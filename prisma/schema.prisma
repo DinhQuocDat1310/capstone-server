@@ -9,3 +9,100 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id           String        @id @default(uuid())
+  firstname    String?
+  lastname     String?
+  email        String        @unique
+  password     String
+  isActive     Boolean       @default(true)
+  role         Role
+  status       UserStatus    @default(INIT)
+  phoneNumber  String?       @unique
+  brand        Brand?
+  driver       Driver?
+  manager      Manager?
+  identityCard IdentityCard?
+  bankAccount  BankAccount?
+}
+
+model IdentityCard {
+  id         String   @id @default(uuid())
+  no         String   @unique
+  imageFront String
+  imageBack  String
+  dob        DateTime
+  createDate DateTime
+  city       String
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String   @unique
+}
+
+enum Role {
+  ADMIN
+  DRIVER
+  BRAND
+  MANAGER
+}
+
+enum UserStatus {
+  INIT
+  NEW
+  PENDING
+  BANNED
+  VERIFIED
+}
+
+model Brand {
+  id              String           @id @default(uuid())
+  brandName       String?
+  logo            String?
+  slogan          String?
+  user            User             @relation(fields: [userId], references: [id])
+  userId          String           @unique
+  businessLicense BusinessLicense?
+}
+
+model BankAccount {
+  id       String @id @default(uuid())
+  owner    String
+  no       String @unique
+  bankName String
+  user     User   @relation(fields: [userId], references: [id])
+  userId   String @unique
+}
+
+model BusinessLicense {
+  id        String @id @default(uuid())
+  image     String
+  type      String
+  localtion String
+  city      String
+  brand     Brand  @relation(fields: [brandId], references: [id])
+  brandId   String @unique
+}
+
+model Car {
+  id         String @id @default(uuid())
+  no         String
+  model      String
+  imageFront String
+  imageBack  String
+
+  driver   Driver @relation(fields: [driverId], references: [id])
+  driverId String @unique
+}
+
+model Driver {
+  id     String @id @default(uuid())
+  Car    Car?
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
+}
+
+model Manager {
+  id     String @id @default(uuid())
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
+}
