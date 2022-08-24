@@ -2,8 +2,8 @@ import { Body, Controller, Post } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBody,
+  ApiCreatedResponse,
   ApiOperation,
-  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { CreateUserDTO } from './dto';
@@ -15,7 +15,7 @@ export class UserController {
 
   @Post()
   @ApiBody({ type: CreateUserDTO })
-  @ApiResponse({
+  @ApiCreatedResponse({
     status: 201,
     description: 'Created success',
   })

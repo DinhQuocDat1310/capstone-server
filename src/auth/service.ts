@@ -1,3 +1,4 @@
+import { AppConfigService } from 'src/config/appConfigService';
 import { JwtPayload } from './dto/jwt-payload';
 import { SignInDto } from './dto/signIn.dto';
 import {
@@ -16,6 +17,7 @@ export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
+    private readonly appConfigService: AppConfigService,
   ) {}
 
   async signInUser(dto: SignInDto) {
@@ -33,7 +35,9 @@ export class AuthService {
     if (user.status === 'BANNED') {
       throw new ForbiddenException({
         statusCode: HttpStatus.FORBIDDEN,
-        errorMessage: 'Your account was blocked.',
+        errorMessage: `Your account was banned. Please Contact Contact: ${this.appConfigService.getConfig(
+          'MAILER',
+        )} for more information.`,
       });
     }
     if (user.status === 'INIT') {
