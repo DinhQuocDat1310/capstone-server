@@ -7,9 +7,8 @@ CREATE TYPE "UserStatus" AS ENUM ('INIT', 'NEW', 'PENDING', 'BANNED', 'VERIFIED'
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
-    "firstname" TEXT,
-    "lastname" TEXT,
-    "email" TEXT NOT NULL,
+    "fullname" TEXT,
+    "email" TEXT,
     "password" TEXT NOT NULL,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "role" "Role" NOT NULL,

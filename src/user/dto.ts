@@ -7,18 +7,14 @@ import {
   IsEnum,
   IsNumberString,
   IsNotEmpty,
+  IsOptional,
 } from 'class-validator';
 
 export class CreateUserDTO {
   @IsString()
-  @ValidateIf((user) => user.role === 'DRIVER')
-  @ApiProperty({ type: String, description: 'firstname' })
-  firstname: string;
-
-  @IsString()
-  @ValidateIf((user) => user.role === 'DRIVER')
-  @ApiProperty({ type: String, description: 'lastname' })
-  lastname: string;
+  @IsOptional()
+  @ApiProperty({ type: String, description: 'fullname' })
+  fullname: string;
 
   @IsString()
   @ValidateIf((user) => user.role === 'BRAND')
