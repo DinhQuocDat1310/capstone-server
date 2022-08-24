@@ -1,17 +1,23 @@
+import { AppConfigService } from 'src/config/appConfigService';
 import { JwtPayload } from './dto/jwt-payload';
 import { SignInDto } from './dto/signIn.dto';
-import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { compare } from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from 'src/prisma/service';
 import { UsersService } from 'src/user/service';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
+    private readonly appConfigService: AppConfigService,
   ) {}
 
   async signInUser(dto: SignInDto) {
@@ -20,8 +26,28 @@ export class AuthService {
       dto.email,
       dto.phoneNumber,
     );
+    if (!user) {
+      throw new UnauthorizedException({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        errorMessage: 'Invalid Credentials',
+      });
+    }
+    if (user.status === 'BANNED') {
+      throw new ForbiddenException({
+        statusCode: HttpStatus.FORBIDDEN,
+        errorMessage: `Your account was banned. Please Contact Contact: ${this.appConfigService.getConfig(
+          'MAILER',
+        )} for more information.`,
+      });
+    }
+    if (user.status === 'INIT') {
+      throw new BadRequestException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        errorMessage: 'You need verify your email or phone number',
+      });
+    }
     const isEqualPassword = await compare(password, user.password);
-    if (!user && !isEqualPassword) {
+    if (!isEqualPassword) {
       throw new UnauthorizedException({
         statusCode: HttpStatus.UNAUTHORIZED,
         errorMessage: 'Invalid Credentials',

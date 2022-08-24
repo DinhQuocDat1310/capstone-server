@@ -8,6 +8,7 @@ import { AuthService } from './service';
 import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from 'src/guard/roles.guard';
 import { UsersService } from 'src/user/service';
+import { AppConfigService } from 'src/config/appConfigService';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { UsersService } from 'src/user/service';
     JwtStrategy,
     PrismaService,
     UsersService,
+    AppConfigService,
     { provide: APP_GUARD, useClass: RolesGuard },
   ],
   exports: [JwtStrategy, PassportModule],
