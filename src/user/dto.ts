@@ -5,9 +5,11 @@ import {
   IsEmail,
   ValidateIf,
   IsEnum,
-  IsNumberString,
   IsNotEmpty,
   IsOptional,
+  MaxLength,
+  Matches,
+  IsNumberString,
 } from 'class-validator';
 
 export class CreateUserDTO {
@@ -32,6 +34,11 @@ export class CreateUserDTO {
 
   @IsNumberString()
   @ValidateIf((user) => user.role === 'DRIVER')
+  @ApiProperty({ type: String, description: 'phoneNumber' })
+  @Matches(/\+(84[3|5|7|8|9])+([0-9]{8})\b/, {
+    message: 'Phone number format: +84xxxxxxxxx',
+  })
+  @MaxLength(14)
   @ApiProperty({ type: String, description: 'phoneNumber' })
   phoneNumber: string;
 

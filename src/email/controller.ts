@@ -17,6 +17,25 @@ import { EmailsService } from './service';
 @ApiTags('Email')
 export class EmailsController {
   constructor(private readonly emailService: EmailsService) {}
+
+  @Get('/otp/:email')
+  @ApiOkResponse({
+    status: 200,
+    description: 'Send code to email success.',
+  })
+  @ApiBadRequestResponse({
+    status: 400,
+    description: 'Failed send code to email.',
+  })
+  @ApiBadRequestResponse({
+    status: 403,
+    description: 'Cannot send verify code to email',
+  })
+  @ApiOperation({ summary: 'Send code to email' })
+  async sendOtpToEmail(@Param('email') email: string) {
+    return await this.emailService.sendVerifyCodeToEmail(email);
+  }
+
   @Post('/verify')
   @ApiBody({ type: VerifyDto })
   @ApiAcceptedResponse({
@@ -38,19 +57,5 @@ export class EmailsController {
   @ApiOperation({ summary: 'Check valid code' })
   async inputCodeVerifyEmail(@Body() verifyEmail: VerifyDto) {
     return await this.emailService.checkValidationCode(verifyEmail);
-  }
-
-  @Get('/otp/:email')
-  @ApiOkResponse({
-    status: 200,
-    description: 'Send code to email success.',
-  })
-  @ApiBadRequestResponse({
-    status: 400,
-    description: 'Failed send code to email.',
-  })
-  @ApiOperation({ summary: 'Send code to email' })
-  async sendOtpToEmail(@Param('email') email: string) {
-    return await this.emailService.sendVerifyCodeToEmail(email);
   }
 }
