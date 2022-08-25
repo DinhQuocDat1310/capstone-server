@@ -1,3 +1,4 @@
+import { SmsModule } from './sms/module';
 import { PrismaService } from './prisma/service';
 import { AppConfigService } from './config/appConfigService';
 import { MailerModule } from '@nestjs-modules/mailer';
@@ -11,6 +12,7 @@ import { AuthModule } from './auth/module';
 import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from './guard/roles.guard';
 import { UsersService } from './user/service';
+import * as Joi from '@hapi/joi';
 
 @Module({
   imports: [
@@ -18,9 +20,15 @@ import { UsersService } from './user/service';
     UserModule,
     BrandModule,
     ManagerModule,
+    SmsModule,
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,
+      validationSchema: Joi.object({
+        TWILIO_ACCOUNT_SID: Joi.string().required(),
+        TWILIO_AUTH_TOKEN: Joi.string().required(),
+        TWILIO_VERIFICATION_SERVICE_SID: Joi.string().required(),
+      }),
     }),
     MailerModule.forRoot({
       transport: {
@@ -36,6 +44,7 @@ import { UsersService } from './user/service';
       isGlobal: true,
     }),
   ],
+
   providers: [
     AppConfigService,
     UsersService,

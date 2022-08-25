@@ -6,11 +6,15 @@ import {
 } from '@nestjs/common';
 import { Role, UserStatus } from '@prisma/client';
 import { hash } from 'bcrypt';
+import { AppConfigService } from 'src/config/appConfigService';
 import { PrismaService } from 'src/prisma/service';
 import { CreateUserDTO } from './dto';
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly appConfigService: AppConfigService,
+  ) {}
   async create(@Body() dto: CreateUserDTO) {
     const hashPassword = await hash(dto.password, 10);
     const { brandName, role, ...user } = dto;
@@ -73,6 +77,21 @@ export class UsersService {
           { phoneNumber },
         ],
       },
+    });
+  }
+
+  async updateUserStatusByPhone(phoneNumber: string, status: UserStatus) {
+    await this.prisma.user.update({
+      where: { phoneNumber },
+      data: {
+        status,
+      },
+    });
+  }
+
+  async findUserByPhone(phoneNumber: string) {
+    return await this.prisma.user.findFirst({
+      where: { phoneNumber },
     });
   }
 }

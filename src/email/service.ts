@@ -39,7 +39,7 @@ export class EmailsService {
     if (user.status !== 'INIT') {
       return {
         statusCode: HttpStatus.FORBIDDEN,
-        message: `Cannot Request to Verify code for this account. Please Contact Contact: ${this.configService.getConfig(
+        message: `Cannot Request to Verify code for this account. Please contact: ${this.configService.getConfig(
           'MAILER',
         )} for more information.`,
       };

@@ -29,13 +29,13 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException({
         statusCode: HttpStatus.UNAUTHORIZED,
-        errorMessage: 'Invalid Credentials',
+        message: 'Your email/phonenumber or password is not valid',
       });
     }
     if (user.status === 'BANNED') {
       throw new ForbiddenException({
         statusCode: HttpStatus.FORBIDDEN,
-        errorMessage: `Your account was banned. Please Contact Contact: ${this.appConfigService.getConfig(
+        message: `Your account was banned. Please Contact Contact: ${this.appConfigService.getConfig(
           'MAILER',
         )} for more information.`,
       });
@@ -43,14 +43,14 @@ export class AuthService {
     if (user.status === 'INIT') {
       throw new BadRequestException({
         statusCode: HttpStatus.BAD_REQUEST,
-        errorMessage: 'You need verify your email or phone number',
+        message: 'You need verify your email or phone number',
       });
     }
     const isEqualPassword = await compare(password, user.password);
     if (!isEqualPassword) {
       throw new UnauthorizedException({
         statusCode: HttpStatus.UNAUTHORIZED,
-        errorMessage: 'Invalid Credentials',
+        message: 'Your email/phonenumber or password is not valid',
       });
     }
     const payload: JwtPayload = { email: user.email, sub: user.id };
