@@ -94,4 +94,15 @@ export class UsersService {
       where: { phoneNumber },
     });
   }
+
+  async findBrandByUserId(userId: string) {
+    return await this.prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+      select: {
+        brand: true,
+      },
+    });
+  }
 }

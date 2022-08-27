@@ -10,10 +10,10 @@ import {
 } from '@nestjs/common';
 import { UserStatus } from '@prisma/client';
 import { Cache } from 'cache-manager';
-import { EXPIRED_CODE_EMAIL_FIVE_MINUTES } from 'src/constants/cache-code';
 import { UsersService } from 'src/user/service';
 import { VerifyDto } from './dto';
 import { AppConfigService } from 'src/config/appConfigService';
+import { EXPIRED_CODE_FIVE_MINUTES } from 'src/constants/cache-code';
 
 @Injectable()
 export class EmailsService {
@@ -61,7 +61,7 @@ export class EmailsService {
         code,
         remainingInput: 5,
       },
-      { ttl: EXPIRED_CODE_EMAIL_FIVE_MINUTES },
+      { ttl: EXPIRED_CODE_FIVE_MINUTES },
     );
     await this.mailerService.sendMail({
       to: receiverEmail,
@@ -69,7 +69,7 @@ export class EmailsService {
       subject: 'Your verify code for Brandvertise',
       html: `
       <h1 style="color: green">Hello ${brand.brandName},</h1></br>
-      <p>Thanks for become Brandvertise's partner!</p>
+      <p>Thanks for becoming Brandvertise's partner!</p>
       <p>Enter Code: <b>${code}</b> in the app to verify your Email. Your code <b>expired in 5 minutes</b> later.</p></br>
       <p>Regards,</p>
       <p style="color: green">Brandvertise</p>
@@ -77,7 +77,7 @@ export class EmailsService {
     });
     return {
       statusCode: HttpStatus.OK,
-      timeExpiredInSecond: EXPIRED_CODE_EMAIL_FIVE_MINUTES,
+      timeExpiredInSecond: EXPIRED_CODE_FIVE_MINUTES,
     };
   }
 
@@ -111,7 +111,7 @@ export class EmailsService {
           code: codeCached.code,
           remainingInput,
         },
-        { ttl: EXPIRED_CODE_EMAIL_FIVE_MINUTES },
+        { ttl: EXPIRED_CODE_FIVE_MINUTES },
       );
       return {
         statusCode: HttpStatus.CONFLICT,
@@ -125,5 +125,61 @@ export class EmailsService {
       statusCode: HttpStatus.ACCEPTED,
       message: 'Verified email successful',
     };
+  }
+
+  async sendAcceptMailBrand(receiverEmail: string) {
+    const user = await this.userService.findUserByEmail(receiverEmail);
+    const brand = await this.brandService.findBrandByUserId(user.id);
+    await this.mailerService.sendMail({
+      to: receiverEmail,
+      from: this.configService.getConfig('MAILER'),
+      subject: 'Verified account Brandvertise',
+      html: `
+      <h1 style="color: green">Hello ${brand.brandName},</h1></br>
+      <p>Thanks for becoming Brandvertise's partner!</p>
+      <p>Join with us!. Your account was accepted.</p></br>
+      <p>Regards,</p>
+      <p style="color: green">Brandvertise</p>
+      `,
+    });
+  }
+
+  async deniedMailBrand(receiverEmail: string) {
+    const user = await this.userService.findUserByEmail(receiverEmail);
+    const brand = await this.brandService.findBrandByUserId(user.id);
+    await this.mailerService.sendMail({
+      to: receiverEmail,
+      from: this.configService.getConfig('MAILER'),
+      subject: 'Verified account Brandvertise',
+      html: `
+      <h1 style="color: green">Hello ${brand.brandName},</h1></br>
+      <p>Thanks for becoming Brandvertise's partner!</p>
+      <p>We're sorry about your violence informations register. Your account was denied.</p></br>
+      <p>Is this have any problems?. Please contact: ${this.configService.getConfig(
+        'MAILER',
+      )} for more information.</p>
+      <p>Regards,</p>
+      <p style="color: green">Brandvertise</p>
+      `,
+    });
+  }
+
+  async requestChangeMailBrand(receiverEmail: string) {
+    const user = await this.userService.findUserByEmail(receiverEmail);
+    const brand = await this.brandService.findBrandByUserId(user.id);
+    const linkUpdateData = `http://localhost:4000/brand/verify-information/${receiverEmail}`;
+    await this.mailerService.sendMail({
+      to: receiverEmail,
+      from: this.configService.getConfig('MAILER'),
+      subject: 'Verified account Brandvertise',
+      html: `
+      <h1 style="color: green">Hello ${brand.brandName},</h1></br>
+      <p>Thanks for becoming Brandvertise's partner!</p>
+      <p>Oops! Something is wrong. Your account have invalid some informations.</p></br>
+      <p>Please update your verify information at <a href=${linkUpdateData}></a></p>             
+      <p>Regards,</p>
+      <p style="color: green">Brandvertise</p>      
+      `,
+    });
   }
 }

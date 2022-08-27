@@ -33,7 +33,7 @@ export class SmsController {
     status: 405,
     description: 'Too many request',
   })
-  @ApiOperation({ summary: 'Send code to phone number' })
+  @ApiOperation({ summary: 'Send OTP to phone number' })
   async createPhoneVerification(@Param('phone') phone: string) {
     return await this.smsService.sendPhoneVerification(phone);
   }
@@ -52,7 +52,7 @@ export class SmsController {
     description: 'Cannot request verify phone number',
   })
   @ApiBody({ type: VerifySMSDto })
-  @ApiOperation({ summary: 'Send code to phone number' })
+  @ApiOperation({ summary: 'Check verify OTP' })
   async verifyOTPPhoneNumber(@Body() verifySMSDto: VerifySMSDto) {
     return await this.smsService.confirmPhoneNumber(verifySMSDto);
   }

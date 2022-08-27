@@ -1,7 +1,6 @@
 import { Controller } from '@nestjs/common';
-import { ManagersService } from './service';
+import { ApiTags } from '@nestjs/swagger';
 
-@Controller('test')
-export class ManagerController {
-  constructor(private readonly managerService: ManagersService) {}
-}
+@Controller('manager')
+@ApiTags('Manager')
+export class ManagerController {}

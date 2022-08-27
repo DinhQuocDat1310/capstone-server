@@ -27,15 +27,15 @@ model User {
 }
 
 model IdentityCard {
-  id         String   @id @default(uuid())
-  no         String   @unique
+  id         String    @id @default(uuid())
+  no         String    @unique
   imageFront String
   imageBack  String
-  dob        DateTime
-  createDate DateTime
-  city       String
-  user       User     @relation(fields: [userId], references: [id])
-  userId     String   @unique
+  dob        DateTime?
+  createDate DateTime?
+  city       String?
+  user       User      @relation(fields: [userId], references: [id])
+  userId     String    @unique
 }
 
 enum Role {
@@ -57,10 +57,11 @@ model Brand {
   id              String           @id @default(uuid())
   brandName       String?
   logo            String?
-  slogan          String?
+  address         String?
   user            User             @relation(fields: [userId], references: [id])
   userId          String           @unique
   businessLicense BusinessLicense?
+  verifyBrand     VerifyBrand[]
 }
 
 model BankAccount {
@@ -73,13 +74,12 @@ model BankAccount {
 }
 
 model BusinessLicense {
-  id        String @id @default(uuid())
-  image     String
-  type      String
-  localtion String
-  city      String
-  brand     Brand  @relation(fields: [brandId], references: [id])
-  brandId   String @unique
+  id           String @id @default(uuid())
+  idLicense    String @unique
+  imageLicense String
+  typeBusiness String
+  brand        Brand  @relation(fields: [brandId], references: [id])
+  brandId      String @unique
 }
 
 model Car {
@@ -101,7 +101,27 @@ model Driver {
 }
 
 model Manager {
-  id     String @id @default(uuid())
-  user   User   @relation(fields: [userId], references: [id])
-  userId String @unique
+  id          String        @id @default(uuid())
+  user        User          @relation(fields: [userId], references: [id])
+  userId      String        @unique
+  verifyBrand VerifyBrand[]
+}
+
+model VerifyBrand {
+  id         String        @id @default(uuid())
+  status     VerifyStatus? @default(PENDING)
+  detail     String?
+  createDate DateTime      @default(now())
+  updateAt   DateTime      @updatedAt
+  brand      Brand?        @relation(fields: [brandId], references: [id])
+  brandId    String?
+  manager    Manager?      @relation(fields: [managerId], references: [id])
+  managerId  String?
+}
+
+enum VerifyStatus {
+  ACCEPT
+  BANNED
+  REQUEST_TO_CHANGE
+  PENDING
 }

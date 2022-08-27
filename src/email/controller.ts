@@ -1,5 +1,5 @@
 import { VerifyDto } from './dto';
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, HttpStatus } from '@nestjs/common';
 import {
   ApiAcceptedResponse,
   ApiBadRequestResponse,
@@ -20,15 +20,15 @@ export class EmailsController {
 
   @Get('/otp/:email')
   @ApiOkResponse({
-    status: 200,
+    status: HttpStatus.OK,
     description: 'Send code to email success.',
   })
   @ApiBadRequestResponse({
-    status: 400,
+    status: HttpStatus.BAD_REQUEST,
     description: 'Failed send code to email.',
   })
-  @ApiBadRequestResponse({
-    status: 403,
+  @ApiForbiddenResponse({
+    status: HttpStatus.FORBIDDEN,
     description: 'Cannot send verify code to email',
   })
   @ApiOperation({ summary: 'Send code to email' })
@@ -39,19 +39,19 @@ export class EmailsController {
   @Post('/verify')
   @ApiBody({ type: VerifyDto })
   @ApiAcceptedResponse({
-    status: 202,
+    status: HttpStatus.ACCEPTED,
     description: 'Verified code accepted',
   })
   @ApiConflictResponse({
-    status: 409,
+    status: HttpStatus.CONFLICT,
     description: 'Your code wrong',
   })
   @ApiRequestTimeoutResponse({
-    status: 408,
+    status: HttpStatus.REQUEST_TIMEOUT,
     description: 'Your code expired',
   })
   @ApiForbiddenResponse({
-    status: 403,
+    status: HttpStatus.FORBIDDEN,
     description: 'Your account was blocked',
   })
   @ApiOperation({ summary: 'Check valid code' })

@@ -55,6 +55,11 @@ export class AuthService {
     }
     const payload: JwtPayload = { email: user.email, sub: user.id };
     const accessToken: string = this.jwtService.sign(payload);
-    return { accessToken: accessToken, role: user.role };
+    const dataBrand = await this.usersService.findBrandByUserId(user.id);
+    return {
+      accessToken: accessToken,
+      role: user.role,
+      brandName: dataBrand.brand.brandName,
+    };
   }
 }

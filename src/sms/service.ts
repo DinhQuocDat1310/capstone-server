@@ -2,18 +2,24 @@ import { VerifySMSDto } from './dto';
 import { UsersService } from 'src/user/service';
 import {
   BadRequestException,
+  CACHE_MANAGER,
   HttpStatus,
+  Inject,
   Injectable,
   MethodNotAllowedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { AppConfigService } from 'src/config/appConfigService';
 import { Twilio } from 'twilio';
 import { UserStatus } from '@prisma/client';
+import { Cache } from 'cache-manager';
+import { EXPIRED_CODE_FIVE_MINUTES } from 'src/constants/cache-code';
 
 @Injectable()
 export class SmsService {
   private readonly twilioClient: Twilio;
   constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly configService: AppConfigService,
     private readonly usersService: UsersService,
   ) {
@@ -24,6 +30,8 @@ export class SmsService {
 
   async sendPhoneVerification(phoneNumber: string) {
     const user = await this.usersService.findUserByCredentials('', phoneNumber);
+    if (!user)
+      throw new NotFoundException(`User not signup yet: ${phoneNumber}`);
     if (user) {
       if (user.status !== 'INIT') {
         return {
@@ -38,6 +46,22 @@ export class SmsService {
       const serviceSid = this.configService.getConfig(
         'TWILIO_VERIFICATION_SERVICE_SID',
       );
+      const OTPCached: { code: string; remainingInput: number } =
+        await this.cacheManager.get(phoneNumber);
+      if (OTPCached) {
+        return {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message:
+            'We have sent the OTP to your phone. Please try again in a few minutes',
+        };
+      }
+      await this.cacheManager.set(
+        phoneNumber,
+        {
+          remainingInput: 5,
+        },
+        { ttl: EXPIRED_CODE_FIVE_MINUTES },
+      );
       const result = await this.twilioClient.verify
         .services(serviceSid)
         .verifications.create({
@@ -49,6 +73,7 @@ export class SmsService {
         return {
           statusCode: HttpStatus.OK,
           message: 'Send OTP to your phone number success',
+          timeExpiredInSecond: EXPIRED_CODE_FIVE_MINUTES,
         };
       }
     } catch (error) {
@@ -58,6 +83,7 @@ export class SmsService {
           message: 'Too many request',
         });
       }
+      console.log(error.message);
       return {
         statusCode: HttpStatus.BAD_REQUEST,
         message: 'Phone number format: +84xxxxxxxxx',
@@ -67,13 +93,12 @@ export class SmsService {
 
   async confirmPhoneNumber(verifySMSDto: VerifySMSDto) {
     const { phoneNumber, otpCode } = verifySMSDto;
-    const user = await this.usersService.findUserByCredentials('', phoneNumber);
-    if (user.status !== 'INIT') {
+    const OTPCached: { code: string; remainingInput: number } =
+      await this.cacheManager.get(phoneNumber);
+    if (!OTPCached) {
       return {
-        statusCode: HttpStatus.FORBIDDEN,
-        message: `Cannot request to verify phone number. Please contact: ${this.configService.getConfig(
-          'MAILER',
-        )} for more information.`,
+        statusCode: HttpStatus.REQUEST_TIMEOUT,
+        message: `Verify code was expired`,
       };
     }
     const serviceSid = this.configService.getConfig(
@@ -84,21 +109,46 @@ export class SmsService {
         .services(serviceSid)
         .verificationChecks.create({ to: phoneNumber, code: otpCode });
       if (!result.valid || result.status !== 'approved') {
-        throw new BadRequestException({
-          message: 'Wrong OTP provide',
-        });
+        const remainingInput = --OTPCached.remainingInput;
+        if (remainingInput == 0) {
+          await this.cacheManager.del(phoneNumber);
+          await this.usersService.updateUserStatusByPhone(
+            phoneNumber,
+            UserStatus.BANNED,
+          );
+          return {
+            statusCode: HttpStatus.FORBIDDEN,
+            message: `Your phone was blocked for this site. Contact: ${this.configService.getConfig(
+              'MAILER',
+            )} for more information.`,
+          };
+        }
+        await this.cacheManager.set(
+          phoneNumber,
+          {
+            code: OTPCached.code,
+            remainingInput,
+          },
+          { ttl: EXPIRED_CODE_FIVE_MINUTES },
+        );
+        return {
+          statusCode: HttpStatus.CONFLICT,
+          message: `OTP code is wrong. You have ${remainingInput} times to input`,
+          data: remainingInput,
+        };
       }
       await this.usersService.updateUserStatusByPhone(
         phoneNumber,
         UserStatus.NEW,
       );
+      await this.cacheManager.del(phoneNumber);
       return {
         statusCode: HttpStatus.ACCEPTED,
         message: 'Verified phone number successful',
       };
     } catch (error) {
       throw new BadRequestException({
-        message: 'Wrong OTP provide',
+        message: error.message,
       });
     }
   }

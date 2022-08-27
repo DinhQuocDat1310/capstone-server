@@ -24,6 +24,8 @@ export class RolesGuard implements CanActivate {
       user.body.email,
       user.body.phoneNumber,
     );
+    console.log(checkRoleUser);
+
     if (checkRoleUser) {
       return requireRoles.some((role) => checkRoleUser.role === role);
     }
