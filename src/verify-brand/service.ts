@@ -1,10 +1,10 @@
 import { MailerService } from '@nestjs-modules/mailer';
-import { EmailsService } from './../email/service';
 import { VerifyInfoDto } from './dto';
 import { ManagerService } from './../manager/service';
 import { PrismaService } from './../prisma/service';
 import { Injectable, BadRequestException, HttpStatus } from '@nestjs/common';
 import { UsersService } from 'src/user/service';
+import { AppConfigService } from 'src/config/appConfigService';
 
 @Injectable()
 export class VerifyBrandService {
@@ -13,6 +13,7 @@ export class VerifyBrandService {
     private readonly userService: UsersService,
     private readonly managerService: ManagerService,
     private readonly mailerService: MailerService,
+    private readonly configService: AppConfigService,
   ) {}
 
   async findManagerHandleMin() {
@@ -76,6 +77,7 @@ export class VerifyBrandService {
         },
       });
       if (result) {
+        await this.acceptMailBrand(verifyInfoDto.email);
         return {
           statusCode: HttpStatus.ACCEPTED,
           message: 'Your account was accepted',
@@ -101,6 +103,7 @@ export class VerifyBrandService {
         },
       });
       if (result) {
+        await this.requestChangeMailBrand(verifyInfoDto.email);
         return {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Your account was request change info',
@@ -126,6 +129,7 @@ export class VerifyBrandService {
         },
       });
       if (result) {
+        await this.deniedMailBrand(verifyInfoDto.email);
         return {
           statusCode: HttpStatus.FORBIDDEN,
           message: 'Your account was denied',
@@ -139,59 +143,74 @@ export class VerifyBrandService {
     }
   }
 
-  // async acceptMailBrand(receiverEmail: string) {
-  //   const user = await this.userService.findUserByEmail(receiverEmail);
-  //   const brand = await this.brandService.findBrandByUserId(user.id);
-  //   await this.mailerService.sendMail({
-  //     to: receiverEmail,
-  //     from: this.configService.getConfig('MAILER'),
-  //     subject: 'Verified account Brandvertise',
-  //     html: `
-  //     <h1 style="color: green">Hello ${brand.brandName},</h1></br>
-  //     <p>Thanks for becoming Brandvertise's partner!</p>
-  //     <p>Join with us!. Your account was accepted.</p></br>
-  //     <p>Regards,</p>
-  //     <p style="color: green">Brandvertise</p>
-  //     `,
-  //   });
-  // }
+  async getBrandByEmail(receiverEmail: string) {
+    const user = await this.userService.findUserByEmail(receiverEmail);
+    return await this.prisma.verifyBrand.findFirst({
+      where: {
+        brand: {
+          userId: user.id,
+        },
+      },
+      select: {
+        brand: {
+          select: {
+            brandName: true,
+          },
+        },
+      },
+    });
+  }
 
-  // async deniedMailBrand(receiverEmail: string) {
-  //   const user = await this.userService.findUserByEmail(receiverEmail);
-  //   const brand = await this.brandService.findBrandByUserId(user.id);
-  //   await this.mailerService.sendMail({
-  //     to: receiverEmail,
-  //     from: this.configService.getConfig('MAILER'),
-  //     subject: 'Verified account Brandvertise',
-  //     html: `
-  //     <h1 style="color: green">Hello ${brand.brandName},</h1></br>
-  //     <p>Thanks for becoming Brandvertise's partner!</p>
-  //     <p>We're sorry about your violence informations register. Your account was denied.</p></br>
-  //     <p>Is this have any problems?. Please contact: ${this.configService.getConfig(
-  //       'MAILER',
-  //     )} for more information.</p>
-  //     <p>Regards,</p>
-  //     <p style="color: green">Brandvertise</p>
-  //     `,
-  //   });
-  // }
+  async acceptMailBrand(receiverEmail: string) {
+    const data = await this.getBrandByEmail(receiverEmail);
+    await this.mailerService.sendMail({
+      to: receiverEmail,
+      from: this.configService.getConfig('MAILER'),
+      subject: 'Verified account Brandvertise',
+      html: `
+      <h1 style="color: green">Hello ${data.brand.brandName},</h1></br>
+      <p>Thanks for becoming Brandvertise's partner!</p>
+      <p>Join with us!. Your account was accepted.</p></br>
+      <p>Regards,</p>
+      <p style="color: green">Brandvertise</p>
+      `,
+    });
+  }
 
-  // async requestChangeMailBrand(receiverEmail: string) {
-  //   const user = await this.userService.findUserByEmail(receiverEmail);
-  //   const brand = await this.brandService.findBrandByUserId(user.id);
-  //   const linkUpdateData = `http://localhost:4000/brand/verify-information/${receiverEmail}`;
-  //   await this.mailerService.sendMail({
-  //     to: receiverEmail,
-  //     from: this.configService.getConfig('MAILER'),
-  //     subject: 'Verified account Brandvertise',
-  //     html: `
-  //     <h1 style="color: green">Hello ${brand.brandName},</h1></br>
-  //     <p>Thanks for becoming Brandvertise's partner!</p>
-  //     <p>Oops! Something is wrong. Your account have invalid some informations.</p></br>
-  //     <p>Please update your verify information at <a href=${linkUpdateData}></a></p>
-  //     <p>Regards,</p>
-  //     <p style="color: green">Brandvertise</p>
-  //     `,
-  //   });
-  // }
+  async deniedMailBrand(receiverEmail: string) {
+    const data = await this.getBrandByEmail(receiverEmail);
+    await this.mailerService.sendMail({
+      to: receiverEmail,
+      from: this.configService.getConfig('MAILER'),
+      subject: 'Verified account Brandvertise',
+      html: `
+      <h1 style="color: green">Hello ${data.brand.brandName},</h1></br>
+      <p>Thanks for becoming Brandvertise's partner!</p>
+      <p>We're sorry about your violence informations register. Your account was denied.</p></br>
+      <p>Is this have any problems?. Please contact: ${this.configService.getConfig(
+        'MAILER',
+      )} for more information.</p>
+      <p>Regards,</p>
+      <p style="color: green">Brandvertise</p>
+      `,
+    });
+  }
+
+  async requestChangeMailBrand(receiverEmail: string) {
+    const data = await this.getBrandByEmail(receiverEmail);
+    const linkUpdateData = `http://localhost:4000/brand/verify-information/${receiverEmail}`;
+    await this.mailerService.sendMail({
+      to: receiverEmail,
+      from: this.configService.getConfig('MAILER'),
+      subject: 'Verified account Brandvertise',
+      html: `
+      <h1 style="color: green">Hello ${data.brand.brandName},</h1></br>
+      <p>Thanks for becoming Brandvertise's partner!</p>
+      <p>Oops! Something is wrong. Your account have invalid some informations.</p></br>
+      <p>Please update your verify information at <a href=${linkUpdateData}>Verify data link</a></p>
+      <p>Regards,</p>
+      <p style="color: green">Brandvertise</p>
+      `,
+    });
+  }
 }

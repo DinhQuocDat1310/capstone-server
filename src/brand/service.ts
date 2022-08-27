@@ -121,6 +121,7 @@ export class BrandsService {
             logo: true,
             user: {
               select: {
+                email: true,
                 fullname: true,
                 phoneNumber: true,
                 identityCard: {

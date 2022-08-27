@@ -19,10 +19,10 @@ export class BrandController {
   constructor(private readonly brandService: BrandsService) {}
 
   @Post('/verify-information/:email')
-  @UseGuards(JwtAuthGuard)
   @ApiBody({ type: VerifyDataDto })
   @UseInterceptors(FilesInterceptor('files', 4))
   @ApiOperation({ summary: 'Add verify data for brand' })
+  @UseGuards(JwtAuthGuard)
   async addInformation(
     @Body() brand: VerifyDataDto,
     @Param('email') email: string,
@@ -32,8 +32,8 @@ export class BrandController {
   }
 
   @Get('/viewListVerify/:email')
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'View list verifying by manager email' })
+  @UseGuards(JwtAuthGuard)
   async listVerifyBrand(@Param('email') email: string) {
     return await this.brandService.viewListVerifyByManager(email);
   }

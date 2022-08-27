@@ -1,5 +1,6 @@
+import { JwtAuthGuard } from 'src/guard/auth.guard';
 import { VerifyBrandService } from './service';
-import { Body, Controller, Post, HttpStatus } from '@nestjs/common';
+import { Body, Controller, Post, HttpStatus, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -25,6 +26,7 @@ export class VerifyBrandController {
     description: 'Accept failed',
   })
   @ApiOperation({ summary: 'Accept account' })
+  @UseGuards(JwtAuthGuard)
   async acceptVerifyBrand(@Body() verifyInfoDto: VerifyInfoDto) {
     return await this.verifyBrandService.acceptBrandByManager(verifyInfoDto);
   }
@@ -40,6 +42,7 @@ export class VerifyBrandController {
     description: 'Request change failed',
   })
   @ApiOperation({ summary: 'Request change data account' })
+  @UseGuards(JwtAuthGuard)
   async requestChangeBrand(@Body() verifyInfoDto: VerifyInfoDto) {
     return await this.verifyBrandService.requestChangeBrandByManager(
       verifyInfoDto,
@@ -57,7 +60,8 @@ export class VerifyBrandController {
     description: 'Denied failed',
   })
   @ApiOperation({ summary: 'Denied account' })
-  async listVerifyBrand(@Body() verifyInfoDto: VerifyInfoDto) {
+  @UseGuards(JwtAuthGuard)
+  async deniedBrand(@Body() verifyInfoDto: VerifyInfoDto) {
     return await this.verifyBrandService.deniedBrandByManager(verifyInfoDto);
   }
 }
