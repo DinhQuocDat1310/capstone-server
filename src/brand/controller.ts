@@ -1,4 +1,3 @@
-import { FilesInterceptor } from '@nestjs/platform-express';
 import {
   Body,
   Controller,
@@ -7,12 +6,13 @@ import {
   Post,
   UploadedFiles,
   UseGuards,
-  UseInterceptors,
+  UseInterceptors
 } from '@nestjs/common';
-import { VerifyDataDto } from './dto';
-import { BrandsService } from './service';
+import { FileFieldsInterceptor } from '@nestjs/platform-express/multer';
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/guard/auth.guard';
+import { VerifyDataDto } from './dto';
+import { BrandsService } from './service';
 @Controller('brand')
 @ApiTags('Brand')
 export class BrandController {
@@ -20,15 +20,34 @@ export class BrandController {
 
   @Post('/verify-information/:email')
   @ApiBody({ type: VerifyDataDto })
-  @UseInterceptors(FilesInterceptor('files', 4))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'logo' },
+      { name: 'imageLicense' },
+      { name: 'imageFront' },
+      { name: 'imageBack' },
+    ]),
+  )
   @ApiOperation({ summary: 'Add verify data for brand' })
   @UseGuards(JwtAuthGuard)
   async addInformation(
     @Body() brand: VerifyDataDto,
     @Param('email') email: string,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles()
+    files: {
+      logo?: Express.Multer.File[];
+      imageLicense?: Express.Multer.File[];
+      imageBack?: Express.Multer.File[];
+      imageFront?: Express.Multer.File[];
+    },
   ) {
-    return await this.brandService.addDataVerify(brand, email, files);
+    console.log(files);
+    return await this.brandService.addDataVerify(brand, email, [
+      ...files.logo,
+      ...files.imageLicense,
+      ...files.imageFront,
+      ...files.imageBack,
+    ]);
   }
 
   @Get('/viewListVerify/:email')
