@@ -2,14 +2,23 @@ import {
   Body,
   Controller,
   Get,
+  HttpStatus,
   Param,
   Post,
   UploadedFiles,
   UseGuards,
-  UseInterceptors
+  UseInterceptors,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express/multer';
-import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiBody,
+  ApiConflictResponse,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/guard/auth.guard';
 import { VerifyDataDto } from './dto';
 import { BrandsService } from './service';
@@ -29,6 +38,18 @@ export class BrandController {
     ]),
   )
   @ApiOperation({ summary: 'Add verify data for brand' })
+  @ApiCreatedResponse({
+    status: HttpStatus.CREATED,
+    description: 'Add verify data success',
+  })
+  @ApiBadRequestResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Id license or No card number invalid',
+  })
+  @ApiConflictResponse({
+    status: HttpStatus.CONFLICT,
+    description: 'This user already have Id license or No card number',
+  })
   @UseGuards(JwtAuthGuard)
   async addInformation(
     @Body() brand: VerifyDataDto,
@@ -53,6 +74,14 @@ export class BrandController {
   @Get('/viewListVerify/:email')
   @ApiOperation({ summary: 'View list verifying by manager email' })
   @UseGuards(JwtAuthGuard)
+  @ApiOkResponse({
+    status: HttpStatus.OK,
+    description: 'View list brand verify success',
+  })
+  @ApiBadRequestResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'View list brand verify fail',
+  })
   async listVerifyBrand(@Param('email') email: string) {
     return await this.brandService.viewListVerifyByManager(email);
   }

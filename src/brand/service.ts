@@ -27,7 +27,7 @@ export class BrandsService {
     });
   }
 
-  async checkIdLicense(idLicense: string, no: string) {
+  async checkIdLicenseAndIdCard(idLicense: string, no: string) {
     return await this.prisma.brand.findFirst({
       where: {
         OR: [
@@ -53,7 +53,7 @@ export class BrandsService {
     email: string,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-    const resultCheck = await this.checkIdLicense(
+    const resultCheck = await this.checkIdLicenseAndIdCard(
       brand.idLicense,
       brand.idCardNumber,
     );
@@ -61,6 +61,15 @@ export class BrandsService {
       return {
         statusCode: HttpStatus.BAD_REQUEST,
         message: 'Your ID license or No.Card number is invalid',
+      };
+    }
+
+    const checkUserExistedUniqueData =
+      await this.usersService.checkUserUsingUniqueData(email);
+    if (checkUserExistedUniqueData) {
+      return {
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: `Account: ${email} already have ID license or No.Card number. Failed to add data.`,
       };
     }
     const result: any = await this.cloudinaryService.uploadImages(files);
@@ -76,72 +85,50 @@ export class BrandsService {
       imageFront = result[2], //Cloud
       typeBusiness,
     } = brand;
+
+    const identityCard = {
+      create: {
+        imageFront: imageFront.url,
+        imageBack: imageBack.url,
+        no: idCardNumber,
+      },
+    };
+
+    const user = {
+      update: {
+        fullname,
+        phoneNumber,
+        identityCard,
+      },
+    };
+
+    const businessLicense = {
+      create: {
+        imageLicense: imageLicense.url,
+        typeBusiness,
+        idLicense,
+      },
+    };
+
+    const dataBrand = {
+      logo: logo.url,
+      address,
+      user,
+      businessLicense,
+    };
+
     try {
       const user = await this.usersService.findUserByEmail(email);
       const brand = await this.usersService.findBrandByUserId(user.id);
-
       const brandAddData = await this.prisma.brand.update({
         where: {
           userId: user.id,
         },
-        data: {
-          logo: logo.url,
-          address,
-          user: {
-            update: {
-              fullname,
-              phoneNumber,
-              identityCard: {
-                create: {
-                  imageFront: imageFront.url,
-                  imageBack: imageBack.url,
-                  no: idCardNumber,
-                },
-              },
-            },
-          },
-          businessLicense: {
-            create: {
-              imageLicense: imageLicense.url,
-              typeBusiness,
-              idLicense,
-            },
-          },
-        },
+        data: dataBrand,
       });
       await this.verifyBrandService.assignManager(brand.brand.id);
       if (brandAddData) {
-        const responseData = await this.prisma.brand.findFirst({
-          where: {
-            userId: user.id,
-          },
-          select: {
-            address: true,
-            brandName: true,
-            logo: true,
-            user: {
-              select: {
-                email: true,
-                fullname: true,
-                phoneNumber: true,
-                identityCard: {
-                  select: {
-                    no: true,
-                    imageFront: true,
-                    imageBack: true,
-                  },
-                },
-              },
-            },
-            businessLicense: {
-              select: {
-                typeBusiness: true,
-                idLicense: true,
-                imageLicense: true,
-              },
-            },
-          },
-        });
+        const responseData = await this.responseData(user.id);
         return {
           statusCode: HttpStatus.CREATED,
           message: 'Success',
@@ -213,5 +200,44 @@ export class BrandsService {
     return await this.listVerifyBrand(
       availableBrand.map((brand) => brand.brandId),
     );
+  }
+
+  async responseData(userId: string) {
+    return await this.prisma.brand.findFirst({
+      where: {
+        userId: userId,
+      },
+      select: {
+        address: true,
+        brandName: true,
+        logo: true,
+        user: {
+          select: {
+            email: true,
+            fullname: true,
+            phoneNumber: true,
+            identityCard: {
+              select: {
+                no: true,
+                imageFront: true,
+                imageBack: true,
+              },
+            },
+          },
+        },
+        businessLicense: {
+          select: {
+            typeBusiness: true,
+            idLicense: true,
+            imageLicense: true,
+          },
+        },
+        verifyBrand: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
   }
 }

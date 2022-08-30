@@ -6,15 +6,11 @@ import {
 } from '@nestjs/common';
 import { Role, UserStatus } from '@prisma/client';
 import { hash } from 'bcrypt';
-import { AppConfigService } from 'src/config/appConfigService';
 import { PrismaService } from 'src/prisma/service';
 import { CreateUserDTO } from './dto';
 @Injectable()
 export class UsersService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly appConfigService: AppConfigService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
   async create(@Body() dto: CreateUserDTO) {
     const hashPassword = await hash(dto.password, 10);
     const { brandName, role, ...user } = dto;
@@ -102,6 +98,30 @@ export class UsersService {
       },
       select: {
         brand: true,
+      },
+    });
+  }
+
+  async checkUserUsingUniqueData(email: string) {
+    return await this.prisma.user.findFirst({
+      where: {
+        email,
+      },
+      select: {
+        identityCard: {
+          select: {
+            no: true,
+          },
+        },
+        brand: {
+          select: {
+            businessLicense: {
+              select: {
+                idLicense: true,
+              },
+            },
+          },
+        },
       },
     });
   }

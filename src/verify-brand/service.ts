@@ -39,7 +39,9 @@ export class VerifyBrandService {
         take: 1,
       });
       return managersMin[0].managerId;
-    } catch (error) {}
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 
   async assignManager(brandId: string) {
@@ -103,7 +105,10 @@ export class VerifyBrandService {
         },
       });
       if (result) {
-        await this.requestChangeMailBrand(verifyInfoDto.email);
+        await this.requestChangeMailBrand(
+          verifyInfoDto.email,
+          verifyInfoDto.detail,
+        );
         return {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Your account was request change info',
@@ -196,7 +201,7 @@ export class VerifyBrandService {
     });
   }
 
-  async requestChangeMailBrand(receiverEmail: string) {
+  async requestChangeMailBrand(receiverEmail: string, detail: string) {
     const data = await this.getBrandByEmail(receiverEmail);
     const linkUpdateData = `http://localhost:4000/brand/verify-information/${receiverEmail}`;
     await this.mailerService.sendMail({
@@ -206,7 +211,7 @@ export class VerifyBrandService {
       html: `
       <h1 style="color: green">Hello ${data.brand.brandName},</h1></br>
       <p>Thanks for becoming Brandvertise's partner!</p>
-      <p>Oops! Something is wrong. Your account have invalid some informations.</p></br>
+      <p>Oops! Something is wrong. Your account have invalid some informations: ${detail}</p></br>
       <p>Please update your verify information at <a href=${linkUpdateData}>Verify data link</a></p>
       <p>Regards,</p>
       <p style="color: green">Brandvertise</p>
