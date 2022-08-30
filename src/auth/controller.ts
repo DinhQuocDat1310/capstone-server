@@ -28,11 +28,11 @@ export class AuthController {
   })
   @ApiUnauthorizedResponse({
     status: 401,
-    description: 'You need verify your email or phoneNumber',
+    description: 'Invalid Credentials',
   })
   @ApiBadRequestResponse({
     status: 400,
-    description: 'Invalid Credentials',
+    description: 'You need verify your email or phoneNumber',
   })
   @ApiOperation({ summary: 'Signin for user' })
   async signIn(@Body() dto: SignInDto) {

@@ -10,10 +10,10 @@ import {
 } from '@nestjs/common';
 import { UserStatus } from '@prisma/client';
 import { Cache } from 'cache-manager';
-import { EXPIRED_CODE_EMAIL_FIVE_MINUTES } from 'src/constants/cache-code';
 import { UsersService } from 'src/user/service';
 import { VerifyDto } from './dto';
 import { AppConfigService } from 'src/config/appConfigService';
+import { EXPIRED_CODE_FIVE_MINUTES } from 'src/constants/cache-code';
 
 @Injectable()
 export class EmailsService {
@@ -61,7 +61,7 @@ export class EmailsService {
         code,
         remainingInput: 5,
       },
-      { ttl: EXPIRED_CODE_EMAIL_FIVE_MINUTES },
+      { ttl: EXPIRED_CODE_FIVE_MINUTES },
     );
     await this.mailerService.sendMail({
       to: receiverEmail,
@@ -69,7 +69,7 @@ export class EmailsService {
       subject: 'Your verify code for Brandvertise',
       html: `
       <h1 style="color: green">Hello ${brand.brandName},</h1></br>
-      <p>Thanks for become Brandvertise's partner!</p>
+      <p>Thanks for becoming Brandvertise's partner!</p>
       <p>Enter Code: <b>${code}</b> in the app to verify your Email. Your code <b>expired in 5 minutes</b> later.</p></br>
       <p>Regards,</p>
       <p style="color: green">Brandvertise</p>
@@ -77,7 +77,7 @@ export class EmailsService {
     });
     return {
       statusCode: HttpStatus.OK,
-      timeExpiredInSecond: EXPIRED_CODE_EMAIL_FIVE_MINUTES,
+      timeExpiredInSecond: EXPIRED_CODE_FIVE_MINUTES,
     };
   }
 
@@ -111,7 +111,7 @@ export class EmailsService {
           code: codeCached.code,
           remainingInput,
         },
-        { ttl: EXPIRED_CODE_EMAIL_FIVE_MINUTES },
+        { ttl: EXPIRED_CODE_FIVE_MINUTES },
       );
       return {
         statusCode: HttpStatus.CONFLICT,
