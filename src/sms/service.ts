@@ -55,13 +55,6 @@ export class SmsService {
             'We have sent the OTP to your phone. Please try again in a few minutes',
         };
       }
-      await this.cacheManager.set(
-        phoneNumber,
-        {
-          remainingInput: 5,
-        },
-        { ttl: EXPIRED_CODE_FIVE_MINUTES },
-      );
       const result = await this.twilioClient.verify
         .services(serviceSid)
         .verifications.create({
@@ -70,6 +63,13 @@ export class SmsService {
           locale: 'en',
         });
       if (result) {
+        await this.cacheManager.set(
+          phoneNumber,
+          {
+            remainingInput: 5,
+          },
+          { ttl: EXPIRED_CODE_FIVE_MINUTES },
+        );
         return {
           statusCode: HttpStatus.OK,
           message: 'Send OTP to your phone number success',
@@ -83,7 +83,6 @@ export class SmsService {
           message: 'Too many request',
         });
       }
-      console.log(error.message);
       return {
         statusCode: HttpStatus.BAD_REQUEST,
         message: 'Phone number format: +84xxxxxxxxx',
@@ -101,51 +100,52 @@ export class SmsService {
         message: `Verify code was expired`,
       };
     }
-    const serviceSid = this.configService.getConfig(
-      'TWILIO_VERIFICATION_SERVICE_SID',
-    );
     try {
-      const result = await this.twilioClient.verify
-        .services(serviceSid)
-        .verificationChecks.create({ to: phoneNumber, code: otpCode });
-      if (!result.valid || result.status !== 'approved') {
-        const remainingInput = --OTPCached.remainingInput;
-        if (remainingInput == 0) {
-          await this.cacheManager.del(phoneNumber);
-          await this.usersService.updateUserStatusByPhone(
+      if (OTPCached.remainingInput < 6 && OTPCached.remainingInput > 1) {
+        const serviceSid = this.configService.getConfig(
+          'TWILIO_VERIFICATION_SERVICE_SID',
+        );
+        const result = await this.twilioClient.verify
+          .services(serviceSid)
+          .verificationChecks.create({ to: phoneNumber, code: otpCode });
+        if (!result.valid || result.status !== 'approved') {
+          const remainingInput = --OTPCached.remainingInput;
+          await this.cacheManager.set(
             phoneNumber,
-            UserStatus.BANNED,
+            {
+              code: OTPCached.code,
+              remainingInput,
+            },
+            { ttl: EXPIRED_CODE_FIVE_MINUTES },
           );
           return {
-            statusCode: HttpStatus.FORBIDDEN,
-            message: `Your phone was blocked for this site. Contact: ${this.configService.getConfig(
-              'MAILER',
-            )} for more information.`,
+            statusCode: HttpStatus.CONFLICT,
+            message: `OTP code is wrong. You have ${remainingInput} times to input`,
+            data: remainingInput,
           };
         }
-        await this.cacheManager.set(
+        await this.usersService.updateUserStatusByPhone(
           phoneNumber,
-          {
-            code: OTPCached.code,
-            remainingInput,
-          },
-          { ttl: EXPIRED_CODE_FIVE_MINUTES },
+          UserStatus.NEW,
+        );
+        await this.cacheManager.del(phoneNumber);
+        return {
+          statusCode: HttpStatus.ACCEPTED,
+          message: 'Verified phone number successful',
+        };
+      } else if (OTPCached.remainingInput === 1) {
+        await this.cacheManager.del(phoneNumber);
+        await this.usersService.updateUserStatusByPhone(
+          phoneNumber,
+          UserStatus.BANNED,
         );
         return {
-          statusCode: HttpStatus.CONFLICT,
-          message: `OTP code is wrong. You have ${remainingInput} times to input`,
-          data: remainingInput,
+          statusCode: HttpStatus.FORBIDDEN,
+          message: `Your phone was blocked for this site. Contact: ${this.configService.getConfig(
+            'MAILER',
+          )} for more information.`,
         };
       }
-      await this.usersService.updateUserStatusByPhone(
-        phoneNumber,
-        UserStatus.NEW,
-      );
-      await this.cacheManager.del(phoneNumber);
-      return {
-        statusCode: HttpStatus.ACCEPTED,
-        message: 'Verified phone number successful',
-      };
     } catch (error) {
       throw new BadRequestException({
         message: error.message,
