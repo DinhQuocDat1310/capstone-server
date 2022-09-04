@@ -26,7 +26,14 @@ export class VerifyBrandService {
       const managersMin = await this.prisma.verifyBrand.groupBy({
         by: ['managerId'],
         where: {
-          status: 'PENDING',
+          OR: [
+            {
+              status: 'PENDING',
+            },
+            {
+              status: 'REQUEST_TO_CHANGE',
+            },
+          ],
         },
         _count: {
           managerId: true,
@@ -63,7 +70,10 @@ export class VerifyBrandService {
       });
       //Add notification
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new BadRequestException({
+        message:
+          'Not found any manager to verify your data. Please add another Manager.',
+      });
     }
   }
 
@@ -83,6 +93,7 @@ export class VerifyBrandService {
         return {
           statusCode: HttpStatus.ACCEPTED,
           message: 'Your account was accepted',
+          statusVerify: 'ACCEPT',
         };
       }
     } catch (error) {
@@ -93,26 +104,63 @@ export class VerifyBrandService {
     }
   }
 
+  async viewListError(idVerify: string) {
+    return this.prisma.verifyBrand.findFirst({
+      where: {
+        id: idVerify,
+      },
+      select: {
+        detail: true,
+      },
+    });
+  }
+
+  async addErrorDetail(verifyInfoDto: VerifyInfoDto) {
+    const { fieldError, messageError, idVerify } = verifyInfoDto;
+    const detail = messageError.reduce((result, field, index) => {
+      result[fieldError[index]] = field;
+      return result;
+    }, {});
+    const result = await this.prisma.verifyBrand.update({
+      where: {
+        id: idVerify,
+      },
+      data: {
+        detail,
+      },
+    });
+    return result.detail;
+  }
+
   async requestChangeBrandByManager(verifyInfoDto: VerifyInfoDto) {
     try {
-      const result = await this.prisma.verifyBrand.update({
-        where: {
-          id: verifyInfoDto.idVerify,
-        },
-        data: {
-          status: 'REQUEST_TO_CHANGE',
-          detail: verifyInfoDto.detail,
-        },
-      });
-      if (result) {
-        await this.requestChangeMailBrand(
-          verifyInfoDto.email,
-          verifyInfoDto.detail,
-        );
-        return {
-          statusCode: HttpStatus.BAD_REQUEST,
-          message: 'Your account was request change info',
-        };
+      let messageDetail = '';
+      const { email, idVerify } = verifyInfoDto;
+      const detailResponse = await this.addErrorDetail(verifyInfoDto);
+      for (const [key, value] of Object.entries(detailResponse)) {
+        messageDetail += `${key} is ${value}, `;
+      }
+      if (detailResponse) {
+        const result = await this.prisma.verifyBrand.update({
+          where: {
+            id: idVerify,
+          },
+          data: {
+            status: 'REQUEST_TO_CHANGE',
+          },
+        });
+        if (result) {
+          await this.requestChangeMailBrand(email, messageDetail);
+          return {
+            statusCode: HttpStatus.ACCEPTED,
+            message: 'Your account was request change info',
+            statusVerify: 'REQUEST_TO_CHANGE',
+            details: {
+              statusCode: HttpStatus.ACCEPTED,
+              detailResponse,
+            },
+          };
+        }
       }
     } catch (error) {
       return {
@@ -137,7 +185,8 @@ export class VerifyBrandService {
         await this.deniedMailBrand(verifyInfoDto.email);
         return {
           statusCode: HttpStatus.FORBIDDEN,
-          message: 'Your account was denied',
+          message: 'Your account was banned',
+          statusVerify: 'BANNED',
         };
       }
     } catch (error) {
@@ -211,7 +260,7 @@ export class VerifyBrandService {
       html: `
       <h1 style="color: green">Hello ${data.brand.brandName},</h1></br>
       <p>Thanks for becoming Brandvertise's partner!</p>
-      <p>Oops! Something is wrong. Your account have invalid some informations: ${detail}</p></br>
+      <p>Oops! Something is wrong. Your account have invalid some informations: <b>${detail}</b></p></br>
       <p>Please update your verify information at <a href=${linkUpdateData}>Verify data link</a></p>
       <p>Regards,</p>
       <p style="color: green">Brandvertise</p>

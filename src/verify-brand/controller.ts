@@ -2,6 +2,7 @@ import { JwtAuthGuard } from 'src/guard/auth.guard';
 import { VerifyBrandService } from './service';
 import { Body, Controller, Post, HttpStatus, UseGuards } from '@nestjs/common';
 import {
+  ApiAcceptedResponse,
   ApiBadRequestResponse,
   ApiBody,
   ApiOkResponse,
@@ -51,7 +52,7 @@ export class VerifyBrandController {
 
   @Post('/denied')
   @ApiBody({ type: VerifyInfoDto })
-  @ApiOkResponse({
+  @ApiAcceptedResponse({
     status: HttpStatus.ACCEPTED,
     description: 'Account denied',
   })

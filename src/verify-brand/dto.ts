@@ -5,10 +5,13 @@ export class VerifyInfoDto {
   @IsString()
   @ApiProperty({ type: String, description: 'idVerify' })
   idVerify: string;
-  @IsString()
   @ApiProperty({ type: String, description: 'detail' })
-  detail: string;
+  detail: object;
   @IsEmail()
   @ApiProperty({ type: String, description: 'email' })
   email: string;
+  @ApiProperty({ type: [String], description: 'field error' })
+  fieldError: string[];
+  @ApiProperty({ type: [String], description: 'message error' })
+  messageError: string[];
 }

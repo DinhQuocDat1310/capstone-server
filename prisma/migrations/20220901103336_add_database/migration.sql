@@ -100,7 +100,7 @@ CREATE TABLE "Manager" (
 CREATE TABLE "VerifyBrand" (
     "id" TEXT NOT NULL,
     "status" "VerifyStatus" DEFAULT 'PENDING',
-    "detail" TEXT,
+    "detail" JSONB,
     "createDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updateAt" TIMESTAMP(3) NOT NULL,
     "brandId" TEXT,

@@ -16,17 +16,17 @@ export class CreateUserDTO {
   @IsString()
   @IsOptional()
   @ApiProperty({ type: String, description: 'fullname' })
-  fullname: string;
+  fullname?: string;
 
   @IsString()
   @ValidateIf((user) => user.role === 'BRAND')
   @ApiProperty({ type: String, description: 'brandName' })
-  brandName: string;
+  brandName?: string;
 
   @IsEmail()
   @ValidateIf((user) => user.role === 'BRAND')
   @ApiProperty({ type: String, description: 'email' })
-  email: string;
+  email?: string;
 
   @IsEnum(Role, { message: 'Role: [ADMIN, BRAND, DRIVER, MANAGER]' })
   @ApiProperty({ enum: Role, description: 'role' })
@@ -40,7 +40,7 @@ export class CreateUserDTO {
   })
   @MaxLength(14)
   @ApiProperty({ type: String, description: 'phoneNumber' })
-  phoneNumber: string;
+  phoneNumber?: string;
 
   @IsString()
   @IsNotEmpty()

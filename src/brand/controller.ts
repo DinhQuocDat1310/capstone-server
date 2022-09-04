@@ -20,7 +20,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/guard/auth.guard';
-import { VerifyDataDto } from './dto';
+import { VerifyDataDto, UpdateVerifyDataDto } from './dto';
 import { BrandsService } from './service';
 @Controller('brand')
 @ApiTags('Brand')
@@ -50,7 +50,7 @@ export class BrandController {
     status: HttpStatus.CONFLICT,
     description: 'This user already have Id license or No card number',
   })
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   async addInformation(
     @Body() brand: VerifyDataDto,
     @Param('email') email: string,
@@ -62,13 +62,63 @@ export class BrandController {
       imageFront?: Express.Multer.File[];
     },
   ) {
-    console.log(files);
     return await this.brandService.addDataVerify(brand, email, [
       ...files.logo,
       ...files.imageLicense,
       ...files.imageFront,
       ...files.imageBack,
     ]);
+  }
+
+  @Post('/update-information/:email')
+  @ApiBody({ type: UpdateVerifyDataDto })
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'logo' },
+      { name: 'imageLicense' },
+      { name: 'imageFront' },
+      { name: 'imageBack' },
+    ]),
+  )
+  @ApiOperation({ summary: 'Update verify data for brand' })
+  @ApiCreatedResponse({
+    status: HttpStatus.CREATED,
+    description: 'Add verify data success',
+  })
+  @ApiBadRequestResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Id license or No card number invalid',
+  })
+  @ApiConflictResponse({
+    status: HttpStatus.CONFLICT,
+    description: 'This user already have Id license or No card number',
+  })
+  // @UseGuards(JwtAuthGuard)
+  async updateInformation(
+    @Body() brand: UpdateVerifyDataDto,
+    @Param('email') email: string,
+    @UploadedFiles()
+    files?: {
+      logo?: Express.Multer.File[];
+      imageLicense?: Express.Multer.File[];
+      imageBack?: Express.Multer.File[];
+      imageFront?: Express.Multer.File[];
+    },
+  ) {
+    if (
+      !files.logo &&
+      !files.imageLicense &&
+      !files.imageFront &&
+      !files.imageBack
+    ) {
+      return await this.brandService.updateVerifyData(brand, email, []);
+    }
+    const arr = [];
+    files.logo ? arr.push(...files.logo) : undefined;
+    files.imageLicense ? arr.push(...files.imageLicense) : undefined;
+    files.imageFront ? arr.push(...files.imageFront) : undefined;
+    files.imageBack ? arr.push(...files.imageBack) : undefined;
+    return await this.brandService.updateVerifyData(brand, email, arr);
   }
 
   @Get('/viewListVerify/:email')

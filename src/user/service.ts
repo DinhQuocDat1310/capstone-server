@@ -102,7 +102,7 @@ export class UsersService {
     });
   }
 
-  async checkUserUsingUniqueData(email: string) {
+  async checkBrandAlreadyHaveUniqueData(email: string) {
     return await this.prisma.user.findFirst({
       where: {
         email,
@@ -122,6 +122,27 @@ export class UsersService {
             },
           },
         },
+      },
+    });
+  }
+
+  async checkIdLicenseAndIdCard(idLicense: string, no: string) {
+    return await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          {
+            brand: {
+              businessLicense: {
+                idLicense,
+              },
+            },
+          },
+          {
+            identityCard: {
+              no,
+            },
+          },
+        ],
       },
     });
   }
