@@ -6,7 +6,7 @@ async function main() {
   const prisma = new PrismaService();
   const logger = new Logger();
   try {
-    for (let dto of await users()) {
+    for (const dto of await users()) {
       const { brandName, role, ...user } = dto;
       const data = {
         ...user,

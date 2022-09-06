@@ -1,7 +1,7 @@
 import {
   Body,
   Controller,
-  Get,
+  HttpCode,
   HttpStatus,
   Param,
   Post,
@@ -15,6 +15,8 @@ import {
   ApiBody,
   ApiConflictResponse,
   ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -38,19 +40,32 @@ export class BrandController {
     ]),
   )
   @ApiOperation({ summary: 'Add verify data for brand' })
-  @ApiCreatedResponse({
-    status: HttpStatus.CREATED,
-    description: 'Add verify data success',
+  @ApiForbiddenResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Account is invalid. Contact admin',
+  })
+  @ApiConflictResponse({
+    status: HttpStatus.CONFLICT,
+    description: 'Account already add verify data',
   })
   @ApiBadRequestResponse({
     status: HttpStatus.BAD_REQUEST,
     description: 'Id license or No card number invalid',
   })
-  @ApiConflictResponse({
-    status: HttpStatus.CONFLICT,
-    description: 'This user already have Id license or No card number',
+  @ApiBadRequestResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Phonenumber already used',
   })
-  // @UseGuards(JwtAuthGuard)
+  @ApiNotFoundResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Not found account email',
+  })
+  @ApiCreatedResponse({
+    status: HttpStatus.CREATED,
+    description: 'Created success',
+  })
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.CREATED)
   async addInformation(
     @Body() brand: VerifyDataDto,
     @Param('email') email: string,
@@ -81,19 +96,24 @@ export class BrandController {
     ]),
   )
   @ApiOperation({ summary: 'Update verify data for brand' })
-  @ApiCreatedResponse({
-    status: HttpStatus.CREATED,
-    description: 'Add verify data success',
+  @ApiNotFoundResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Not found account email',
   })
   @ApiBadRequestResponse({
     status: HttpStatus.BAD_REQUEST,
     description: 'Id license or No card number invalid',
   })
-  @ApiConflictResponse({
-    status: HttpStatus.CONFLICT,
-    description: 'This user already have Id license or No card number',
+  @ApiBadRequestResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Phonenumber already used',
   })
-  // @UseGuards(JwtAuthGuard)
+  @ApiOkResponse({
+    status: HttpStatus.OK,
+    description: 'Update data verify success',
+  })
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
   async updateInformation(
     @Body() brand: UpdateVerifyDataDto,
     @Param('email') email: string,
@@ -119,20 +139,5 @@ export class BrandController {
     files.imageFront ? arr.push(...files.imageFront) : undefined;
     files.imageBack ? arr.push(...files.imageBack) : undefined;
     return await this.brandService.updateVerifyData(brand, email, arr);
-  }
-
-  @Get('/viewListVerify/:email')
-  @ApiOperation({ summary: 'View list verifying by manager email' })
-  @UseGuards(JwtAuthGuard)
-  @ApiOkResponse({
-    status: HttpStatus.OK,
-    description: 'View list brand verify success',
-  })
-  @ApiBadRequestResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: 'View list brand verify fail',
-  })
-  async listVerifyBrand(@Param('email') email: string) {
-    return await this.brandService.viewListVerifyByManager(email);
   }
 }

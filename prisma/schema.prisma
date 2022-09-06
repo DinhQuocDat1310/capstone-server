@@ -50,6 +50,7 @@ enum UserStatus {
   NEW
   PENDING
   BANNED
+  DISABLED
   VERIFIED
 }
 

@@ -1,9 +1,8 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, HttpStatus } from '@nestjs/common';
 import {
-  ApiBadRequestResponse,
+  ApiAcceptedResponse,
   ApiBody,
-  ApiFoundResponse,
-  ApiOkResponse,
+  ApiForbiddenResponse,
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -18,23 +17,20 @@ export class AuthController {
 
   @Post('/login')
   @ApiBody({ type: SignInDto })
-  @ApiOkResponse({
-    status: 200,
+  @ApiUnauthorizedResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Invalid email/phoneNumber or password',
+  })
+  @ApiForbiddenResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Your account was block. Contact Admin',
+  })
+  @ApiAcceptedResponse({
+    status: HttpStatus.ACCEPTED,
     description: 'Login success',
   })
-  @ApiFoundResponse({
-    status: 403,
-    description: 'Your account was block',
-  })
-  @ApiUnauthorizedResponse({
-    status: 401,
-    description: 'Invalid Credentials',
-  })
-  @ApiBadRequestResponse({
-    status: 400,
-    description: 'You need verify your email or phoneNumber',
-  })
   @ApiOperation({ summary: 'Signin for user' })
+  @HttpCode(HttpStatus.ACCEPTED)
   async signIn(@Body() dto: SignInDto) {
     return await this.authService.signInUser(dto);
   }

@@ -4,9 +4,11 @@ import { UsersService } from './../user/service';
 import { PrismaService } from './../prisma/service';
 import {
   BadRequestException,
+  ConflictException,
   HttpStatus,
   Injectable,
   UploadedFiles,
+  NotFoundException,
 } from '@nestjs/common';
 import { VerifyDataDto } from './dto';
 import { CloudinaryService } from 'src/cloudinary/service';
@@ -35,14 +37,13 @@ export class BrandsService {
     @UploadedFiles() files: Express.Multer.File[],
   ) {
     const userFind = await this.usersService.findUserByEmail(email);
-    if (userFind.status !== 'NEW') {
-      return {
-        statusCode: HttpStatus.FORBIDDEN,
-        message: `Cannot Request to Add data for this account. Please contact: ${this.appConfigService.getConfig(
-          'MAILER',
-        )} for more information.`,
-      };
+    if (!userFind) {
+      throw new NotFoundException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Not found account email',
+      });
     }
+    await this.usersService.checkPermissionUser(userFind.status);
     const userUsedUniqueData =
       await this.usersService.checkBrandAlreadyHaveUniqueData(email);
 
@@ -51,32 +52,44 @@ export class BrandsService {
         userUsedUniqueData.identityCard !== null ||
         userUsedUniqueData.brand.businessLicense !== null
       ) {
-        return {
+        throw new ConflictException({
           statusCode: HttpStatus.CONFLICT,
           message:
-            'Your account already add ID license or No.card number. Please update your data if your data was wrong.',
-        };
+            'Your account already add verify data. We will response soon.',
+        });
       }
     }
-    const resultCheck = await this.usersService.checkIdLicenseAndIdCard(
+
+    const checkIdLicense = await this.usersService.checkIdLicense(
       brand.idLicense,
+    );
+    if (checkIdLicense) {
+      throw new BadRequestException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'Your ID license is invalid',
+      });
+    }
+
+    const checkNo = await this.usersService.checkIdCardNumber(
       brand.idCardNumber,
     );
-    if (resultCheck) {
-      return {
+    if (checkNo) {
+      throw new BadRequestException({
         statusCode: HttpStatus.BAD_REQUEST,
-        message: 'Your ID license or No.Card number is invalid',
-      };
+        message: 'Your No card number is invalid',
+      });
     }
-    const userFound = await this.usersService.findUserByPhone(
+
+    const checkPhone = await this.usersService.findUserByPhone(
       brand.phoneNumber,
     );
-    if (userFound) {
-      return {
+    if (checkPhone) {
+      throw new BadRequestException({
         statusCode: HttpStatus.BAD_REQUEST,
         message: 'Your phonenumber already used',
-      };
+      });
     }
+
     const result: any = await this.cloudinaryService.uploadImages(files);
     const {
       address,
@@ -124,7 +137,7 @@ export class BrandsService {
 
     try {
       const brand = await this.usersService.findBrandByUserId(userFind.id);
-      await this.verifyBrandService.assignManager(brand.brand.id);
+      await this.verifyBrandService.assignBrandWithManager(brand.brand.id);
       const brandAddData = await this.prisma.brand.update({
         where: {
           userId: userFind.id,
@@ -135,75 +148,13 @@ export class BrandsService {
         const responseData = await this.responseData(userFind.id);
         return {
           statusCode: HttpStatus.CREATED,
-          message: 'Success',
+          message: 'Created success',
           responseData,
         };
       }
     } catch (error) {
       throw new BadRequestException(error.message);
     }
-  }
-
-  async listVerifyBrand(brandId: string[]) {
-    return await this.prisma.brand.findMany({
-      where: {
-        id: { in: brandId },
-      },
-      select: {
-        address: true,
-        brandName: true,
-        logo: true,
-        user: {
-          select: {
-            fullname: true,
-            phoneNumber: true,
-            identityCard: {
-              select: {
-                no: true,
-                imageFront: true,
-                imageBack: true,
-              },
-            },
-          },
-        },
-        businessLicense: {
-          select: {
-            typeBusiness: true,
-            idLicense: true,
-            imageLicense: true,
-          },
-        },
-        verifyBrand: {
-          select: {
-            id: true,
-          },
-        },
-      },
-    });
-  }
-
-  async viewListVerifyByManager(email: string) {
-    const user = await this.usersService.findUserByEmail(email);
-    const availableBrand = await this.prisma.verifyBrand.findMany({
-      where: {
-        AND: [
-          {
-            manager: {
-              user: {
-                id: user.id,
-              },
-            },
-          },
-          { status: 'PENDING' },
-        ],
-      },
-      select: {
-        brandId: true,
-      },
-    });
-    return await this.listVerifyBrand(
-      availableBrand.map((brand) => brand.brandId),
-    );
   }
 
   async responseData(userId: string) {
@@ -251,28 +202,51 @@ export class BrandsService {
     email: string,
     @UploadedFiles() files?: Express.Multer.File[],
   ) {
-    const resultCheck = await this.usersService.checkIdLicenseAndIdCard(
-      brand.idLicense,
-      brand.idCardNumber,
-    );
-
-    if (resultCheck) {
-      return {
-        statusCode: HttpStatus.BAD_REQUEST,
-        message: 'Your ID license or No.Card number is invalid',
-      };
+    const userFind = await this.usersService.findUserByEmail(email);
+    if (!userFind) {
+      throw new NotFoundException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Not found account email',
+      });
     }
-    const userFound = await this.usersService.findUserByPhone(
-      brand.phoneNumber,
-    );
-    console.log(userFound);
+    await this.usersService.checkPermissionUser(userFind.status);
 
-    if (userFound) {
-      return {
-        statusCode: HttpStatus.BAD_REQUEST,
-        message: 'Your phonenumber already used',
-      };
+    if (brand.idLicense) {
+      const checkIdLicense = await this.usersService.checkIdLicense(
+        brand.idLicense,
+      );
+      if (checkIdLicense) {
+        throw new BadRequestException({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Your ID license is invalid',
+        });
+      }
     }
+
+    if (brand.idCardNumber) {
+      const checkNo = await this.usersService.checkIdCardNumber(
+        brand.idCardNumber,
+      );
+      if (checkNo) {
+        throw new BadRequestException({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Your No card number is invalid',
+        });
+      }
+    }
+
+    if (brand.phoneNumber) {
+      const checkPhone = await this.usersService.findUserByPhone(
+        brand.phoneNumber,
+      );
+      if (checkPhone) {
+        throw new BadRequestException({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Your phonenumber already used',
+        });
+      }
+    }
+
     const result: any = await this.cloudinaryService.uploadImages(files);
     const logo =
       result.length !== 0 && files[0] !== undefined ? result[0].url : undefined;
@@ -325,24 +299,26 @@ export class BrandsService {
     try {
       const user = await this.usersService.findUserByEmail(email);
       const brand = await this.usersService.findBrandByUserId(user.id);
-      await this.verifyBrandService.assignManager(brand.brand.id);
+      await this.verifyBrandService.assignBrandWithManager(brand.brand.id);
       const brandAddData = await this.prisma.brand.update({
         where: {
           userId: user.id,
         },
         data: dataBrand,
       });
-
       if (brandAddData) {
         const responseData = await this.responseData(user.id);
         return {
-          statusCode: HttpStatus.ACCEPTED,
+          statusCode: HttpStatus.OK,
           message: 'Update success',
           responseData,
         };
       }
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new BadRequestException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: error.message,
+      });
     }
   }
 }

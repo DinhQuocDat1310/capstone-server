@@ -6,10 +6,9 @@ import { ManagerService } from 'src/manager/service';
 import { PrismaService } from 'src/prisma/service';
 import { UsersService } from 'src/user/service';
 import { VerifyBrandService } from 'src/verify-brand/service';
-
 import { EmailsController } from './controller';
 import { EmailsService } from './service';
-
+import { JwtService } from '@nestjs/jwt';
 @Module({
   controllers: [EmailsController],
   providers: [
@@ -21,6 +20,7 @@ import { EmailsService } from './service';
     CloudinaryService,
     VerifyBrandService,
     ManagerService,
+    JwtService,
   ],
 })
 export class EmailsModule {}
