@@ -1,4 +1,3 @@
-import { JwtPayload } from './dto/jwt-payload';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -13,7 +12,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: JwtPayload) {
-    return { userId: payload.sub, email: payload.email };
+  async validate(payload: { sub: string; email: string; phoneNumber: string }) {
+    return {
+      userId: payload.sub,
+      email: payload.email,
+      phoneNumber: payload.phoneNumber,
+    };
   }
 }

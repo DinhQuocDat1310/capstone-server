@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, HttpStatus, HttpCode } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -16,14 +16,15 @@ export class UserController {
   @Post()
   @ApiBody({ type: CreateUserDTO })
   @ApiCreatedResponse({
-    status: 201,
+    status: HttpStatus.CREATED,
     description: 'Created success',
   })
   @ApiBadRequestResponse({
-    status: 400,
-    description: 'Cannot created. Try again',
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Account already existed',
   })
   @ApiOperation({ summary: 'Create user' })
+  @HttpCode(HttpStatus.CREATED)
   async create(@Body() createUser: CreateUserDTO) {
     return await this.userService.create(createUser);
   }

@@ -1,6 +1,8 @@
+import { AppConfigService } from './../config/appConfigService';
 import {
   BadRequestException,
   Body,
+  ForbiddenException,
   HttpStatus,
   Injectable,
 } from '@nestjs/common';
@@ -10,7 +12,10 @@ import { PrismaService } from 'src/prisma/service';
 import { CreateUserDTO } from './dto';
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly configService: AppConfigService,
+  ) {}
   async create(@Body() dto: CreateUserDTO) {
     const hashPassword = await hash(dto.password, 10);
     const { brandName, role, ...user } = dto;
@@ -32,7 +37,11 @@ export class UsersService {
         user.email,
         user.phoneNumber,
       );
-      if (isExists) throw new BadRequestException('Account already exists');
+      if (isExists)
+        throw new BadRequestException({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Account already exists',
+        });
       const newUser = await this.prisma.user.create({
         data,
       });
@@ -145,5 +154,40 @@ export class UsersService {
         ],
       },
     });
+  }
+
+  async checkIdLicense(idLicense: string) {
+    return await this.prisma.user.findFirst({
+      where: {
+        brand: {
+          businessLicense: {
+            idLicense,
+          },
+        },
+      },
+    });
+  }
+
+  async checkIdCardNumber(no: string) {
+    return await this.prisma.user.findFirst({
+      where: {
+        identityCard: {
+          no,
+        },
+      },
+    });
+  }
+  async checkPermissionUser(userStatus: UserStatus) {
+    if (
+      UserStatus.BANNED === userStatus ||
+      UserStatus.DISABLED === userStatus
+    ) {
+      throw new ForbiddenException({
+        statusCode: HttpStatus.FORBIDDEN,
+        message: `Your account is invalid. Please contact: ${this.configService.getConfig(
+          'MAILER',
+        )} for more information.`,
+      });
+    }
   }
 }

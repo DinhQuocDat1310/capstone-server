@@ -1,11 +1,15 @@
+import { JwtService } from '@nestjs/jwt';
 import { BrandsService } from './../brand/service';
 import { MailerService } from '@nestjs-modules/mailer';
 import {
+  BadRequestException,
   CACHE_MANAGER,
+  ForbiddenException,
   HttpStatus,
   Inject,
   Injectable,
   NotFoundException,
+  RequestTimeoutException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { UserStatus } from '@prisma/client';
@@ -23,36 +27,42 @@ export class EmailsService {
     private readonly userService: UsersService,
     private readonly configService: AppConfigService,
     private readonly brandService: BrandsService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async sendVerifyCodeToEmail(receiverEmail: string) {
     const code = Math.floor(100000 + Math.random() * 900000);
     const user = await this.userService.findUserByEmail(receiverEmail);
-    if (!user) throw new NotFoundException(`user not found: ${receiverEmail}`);
-
+    if (!user) {
+      throw new NotFoundException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: `User not found: ${receiverEmail}`,
+      });
+    }
     const brand = await this.brandService.findBrandByUserId(user.id);
-    if (!brand)
-      throw new UnauthorizedException(
-        `this user ${receiverEmail} is not register brand yet`,
-      );
-
+    if (!brand) {
+      throw new UnauthorizedException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: `This user ${receiverEmail} is not register brand yet`,
+      });
+    }
     if (user.status !== 'INIT') {
-      return {
+      throw new ForbiddenException({
         statusCode: HttpStatus.FORBIDDEN,
         message: `Cannot Request to Verify code for this account. Please contact: ${this.configService.getConfig(
           'MAILER',
         )} for more information.`,
-      };
+      });
     }
 
     const codeCached: { code: number; remainingInput: number } =
       await this.cacheManager.get(receiverEmail);
     if (codeCached) {
-      return {
+      throw new BadRequestException({
         statusCode: HttpStatus.BAD_REQUEST,
         message:
-          'We have sent the code to your email. Please try again in a few minutes',
-      };
+          'We have sent the code to your email. Please try again in a few minutes.',
+      });
     }
 
     await this.cacheManager.set(
@@ -85,10 +95,10 @@ export class EmailsService {
     const codeCached: { code: number; remainingInput: number } =
       await this.cacheManager.get(email);
     if (!codeCached) {
-      return {
+      throw new RequestTimeoutException({
         statusCode: HttpStatus.REQUEST_TIMEOUT,
         message: `Verify code was expired`,
-      };
+      });
     }
     if (codeCached.code !== codeInput) {
       const remainingInput = --codeCached.remainingInput;
@@ -98,12 +108,12 @@ export class EmailsService {
           email,
           UserStatus.BANNED,
         );
-        return {
+        throw new ForbiddenException({
           statusCode: HttpStatus.FORBIDDEN,
-          message: `Your email was blocked for this site. Contact: ${this.configService.getConfig(
+          message: `Cannot Request to Verify code for this account. Please contact: ${this.configService.getConfig(
             'MAILER',
           )} for more information.`,
-        };
+        });
       }
       await this.cacheManager.set(
         email,
@@ -113,17 +123,24 @@ export class EmailsService {
         },
         { ttl: EXPIRED_CODE_FIVE_MINUTES },
       );
-      return {
-        statusCode: HttpStatus.CONFLICT,
+      throw new BadRequestException({
+        statusCode: HttpStatus.BAD_REQUEST,
         message: `Verified code is wrong. You have ${remainingInput} time(s) reminder to input.`,
         data: remainingInput,
-      };
+      });
     }
+    const user = await this.userService.findUserByEmail(email);
+    const payload = { email: email, sub: user.id };
+    const accessToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET_KEY,
+      expiresIn: '3600',
+    });
     await this.userService.updateStatusUserByEmail(email, UserStatus.NEW);
     await this.cacheManager.del(email);
     return {
       statusCode: HttpStatus.ACCEPTED,
       message: 'Verified email successful',
+      accessToken,
     };
   }
 }

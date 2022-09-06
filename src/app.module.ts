@@ -48,7 +48,6 @@ import * as Joi from '@hapi/joi';
     CloudinaryModule,
     VerifyBrandModule,
   ],
-
   providers: [
     AppConfigService,
     UsersService,

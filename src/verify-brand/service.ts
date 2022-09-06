@@ -2,7 +2,12 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { VerifyInfoDto } from './dto';
 import { ManagerService } from './../manager/service';
 import { PrismaService } from './../prisma/service';
-import { Injectable, BadRequestException, HttpStatus } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  HttpStatus,
+  NotFoundException,
+} from '@nestjs/common';
 import { UsersService } from 'src/user/service';
 import { AppConfigService } from 'src/config/appConfigService';
 
@@ -51,7 +56,7 @@ export class VerifyBrandService {
     }
   }
 
-  async assignManager(brandId: string) {
+  async assignBrandWithManager(brandId: string) {
     try {
       const managerId = await this.findManagerHandleMin();
       await this.prisma.verifyBrand.create({
@@ -71,6 +76,7 @@ export class VerifyBrandService {
       //Add notification
     } catch (error) {
       throw new BadRequestException({
+        statusCode: HttpStatus.BAD_REQUEST,
         message:
           'Not found any manager to verify your data. Please add another Manager.',
       });
@@ -78,6 +84,14 @@ export class VerifyBrandService {
   }
 
   async acceptBrandByManager(verifyInfoDto: VerifyInfoDto) {
+    const user = await this.userService.findUserByEmail(verifyInfoDto.email);
+    if (!user) {
+      throw new NotFoundException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Not found account email',
+      });
+    }
+    await this.userService.checkPermissionUser(user.status);
     try {
       const result = await this.prisma.verifyBrand.update({
         where: {
@@ -91,28 +105,17 @@ export class VerifyBrandService {
       if (result) {
         await this.acceptMailBrand(verifyInfoDto.email);
         return {
-          statusCode: HttpStatus.ACCEPTED,
+          statusCode: HttpStatus.OK,
           message: 'Your account was accepted',
           statusVerify: 'ACCEPT',
         };
       }
     } catch (error) {
-      return {
+      throw new BadRequestException({
         statusCode: HttpStatus.BAD_REQUEST,
         message: 'Error accept',
-      };
+      });
     }
-  }
-
-  async viewListError(idVerify: string) {
-    return this.prisma.verifyBrand.findFirst({
-      where: {
-        id: idVerify,
-      },
-      select: {
-        detail: true,
-      },
-    });
   }
 
   async addErrorDetail(verifyInfoDto: VerifyInfoDto) {
@@ -133,6 +136,14 @@ export class VerifyBrandService {
   }
 
   async requestChangeBrandByManager(verifyInfoDto: VerifyInfoDto) {
+    const user = await this.userService.findUserByEmail(verifyInfoDto.email);
+    if (!user) {
+      throw new NotFoundException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Not found account email',
+      });
+    }
+    await this.userService.checkPermissionUser(user.status);
     try {
       let messageDetail = '';
       const { email, idVerify } = verifyInfoDto;
@@ -156,21 +167,29 @@ export class VerifyBrandService {
             message: 'Your account was request change info',
             statusVerify: 'REQUEST_TO_CHANGE',
             details: {
-              statusCode: HttpStatus.ACCEPTED,
+              statusCode: HttpStatus.OK,
               detailResponse,
             },
           };
         }
       }
     } catch (error) {
-      return {
+      throw new BadRequestException({
         statusCode: HttpStatus.BAD_REQUEST,
         message: 'Error request to change',
-      };
+      });
     }
   }
 
   async deniedBrandByManager(verifyInfoDto: VerifyInfoDto) {
+    const user = await this.userService.findUserByEmail(verifyInfoDto.email);
+    if (!user) {
+      throw new NotFoundException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Not found account email',
+      });
+    }
+    await this.userService.checkPermissionUser(user.status);
     try {
       const result = await this.prisma.verifyBrand.update({
         where: {
@@ -184,21 +203,27 @@ export class VerifyBrandService {
       if (result) {
         await this.deniedMailBrand(verifyInfoDto.email);
         return {
-          statusCode: HttpStatus.FORBIDDEN,
+          statusCode: HttpStatus.OK,
           message: 'Your account was banned',
           statusVerify: 'BANNED',
         };
       }
     } catch (error) {
-      return {
+      throw new BadRequestException({
         statusCode: HttpStatus.BAD_REQUEST,
-        message: 'Error denied',
-      };
+        message: 'Error request banned',
+      });
     }
   }
 
   async getBrandByEmail(receiverEmail: string) {
     const user = await this.userService.findUserByEmail(receiverEmail);
+    if (!user) {
+      throw new NotFoundException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Not found account email',
+      });
+    }
     return await this.prisma.verifyBrand.findFirst({
       where: {
         brand: {
@@ -265,6 +290,134 @@ export class VerifyBrandService {
       <p>Regards,</p>
       <p style="color: green">Brandvertise</p>
       `,
+    });
+  }
+
+  async viewHistoryVerifyData(idBrand: string) {
+    return this.prisma.verifyBrand.findMany({
+      where: {
+        brandId: idBrand,
+      },
+      orderBy: {
+        updateAt: 'desc',
+      },
+      select: {
+        brand: {
+          select: {
+            brandName: true,
+            address: true,
+            logo: true,
+            user: {
+              select: {
+                fullname: true,
+                phoneNumber: true,
+                identityCard: {
+                  select: {
+                    no: true,
+                    imageFront: true,
+                    imageBack: true,
+                  },
+                },
+              },
+            },
+            businessLicense: {
+              select: {
+                typeBusiness: true,
+                idLicense: true,
+                imageLicense: true,
+              },
+            },
+          },
+        },
+        status: true,
+        detail: true,
+        createDate: true,
+        updateAt: true,
+      },
+    });
+  }
+
+  async viewListVerifyByManager(email: string) {
+    const user = await this.userService.findUserByEmail(email);
+    if (!user) {
+      throw new NotFoundException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Your email is invalid',
+      });
+    }
+    await this.userService.checkPermissionUser(user.status);
+    const availableBrand = await this.prisma.verifyBrand.findMany({
+      where: {
+        AND: [
+          {
+            manager: {
+              user: {
+                id: user.id,
+              },
+            },
+          },
+          {
+            OR: [
+              {
+                status: 'PENDING',
+              },
+              {
+                status: 'REQUEST_TO_CHANGE',
+              },
+            ],
+          },
+        ],
+      },
+      select: {
+        id: true,
+      },
+    });
+    if (availableBrand.length === 0) {
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Manager empty task handle verify data brand',
+      };
+    }
+    return await this.listVerifyBrand(
+      availableBrand.map((idVerify) => idVerify.id),
+    );
+  }
+
+  async listVerifyBrand(idVerify: string[]) {
+    return await this.prisma.verifyBrand.findMany({
+      where: {
+        id: { in: idVerify },
+      },
+      select: {
+        id: true,
+        brand: {
+          select: {
+            brandName: true,
+            address: true,
+            logo: true,
+            user: {
+              select: {
+                fullname: true,
+                phoneNumber: true,
+                identityCard: {
+                  select: {
+                    no: true,
+                    imageFront: true,
+                    imageBack: true,
+                  },
+                },
+              },
+            },
+            businessLicense: {
+              select: {
+                typeBusiness: true,
+                idLicense: true,
+                imageLicense: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
 }
