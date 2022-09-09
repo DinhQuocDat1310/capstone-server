@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["interactiveTransactions"]
 }
 
 datasource db {
@@ -10,32 +11,27 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+
 model User {
-  id           String        @id @default(uuid())
-  fullname     String?
-  email        String?       @unique
-  password     String
-  isActive     Boolean       @default(true)
-  role         Role
-  status       UserStatus    @default(INIT)
-  phoneNumber  String?       @unique
+  id                String        @id @default(uuid())
+  password          String
+  email             String?       @unique
+  phoneNumber       String?       @unique
+  fullname          String?
+  address           String?
+  isActive          Boolean       @default(true)
+  role              Role
+  status            UserStatus    @default(INIT)
+  
+  idCitizen         String?       @unique
+  imageCitizenFront String?
+  imageCitizenBack  String?
+
+    
   brand        Brand?
   driver       Driver?
   manager      Manager?
-  identityCard IdentityCard?
-  bankAccount  BankAccount?
-}
-
-model IdentityCard {
-  id         String    @id @default(uuid())
-  no         String    @unique
-  imageFront String
-  imageBack  String
-  dob        DateTime?
-  createDate DateTime?
-  city       String?
-  user       User      @relation(fields: [userId], references: [id])
-  userId     String    @unique
 }
 
 enum Role {
@@ -48,76 +44,104 @@ enum Role {
 enum UserStatus {
   INIT
   NEW
-  PENDING
   BANNED
-  DISABLED
   VERIFIED
 }
 
+
 model Brand {
-  id              String           @id @default(uuid())
-  brandName       String?
-  logo            String?
-  address         String?
-  user            User             @relation(fields: [userId], references: [id])
-  userId          String           @unique
-  businessLicense BusinessLicense?
-  verifyBrand     VerifyBrand[]
-}
+  id                   String          @id @default(uuid())
+  brandName            String          @unique
+  logo                 String?
 
-model BankAccount {
-  id       String @id @default(uuid())
-  owner    String
-  no       String @unique
-  bankName String
-  user     User   @relation(fields: [userId], references: [id])
-  userId   String @unique
-}
-
-model BusinessLicense {
-  id           String @id @default(uuid())
-  idLicense    String @unique
-  imageLicense String
-  typeBusiness String
-  brand        Brand  @relation(fields: [brandId], references: [id])
-  brandId      String @unique
-}
-
-model Car {
-  id         String @id @default(uuid())
-  no         String
-  model      String
-  imageFront String
-  imageBack  String
-
-  driver   Driver @relation(fields: [driverId], references: [id])
-  driverId String @unique
+  idLicenseBusiness    String?         @unique
+  ownerLicenseBusiness String?
+  typeBusiness         String?
+  imageLicenseBusiness String?
+  
+  verify               ManagerVerify[]
+  user                 User            @relation(fields: [userId], references: [id])
+  userId               String          @unique
 }
 
 model Driver {
-  id     String @id @default(uuid())
-  Car    Car?
-  user   User   @relation(fields: [userId], references: [id])
-  userId String @unique
+  id            String @id @default(uuid())
+  
+  licensePlate  String?
+  make          CarMake?
+  color         CarColor?
+  model         String?
+  year          String?
+  imageCarFront String?
+  imageCarBack  String?
+
+  idBank        String?       @unique
+  ownerBank     String?
+  nameBank      String?
+
+  verify        ManagerVerify[]
+  user          User   @relation(fields: [userId], references: [id])
+  userId        String @unique
+}
+
+enum CarColor {
+  White
+  Black
+  Silver_Gray
+  Red
+  Blue
+  Brown_Beige
+  Green
+  Yellow_Gold
+}
+
+enum CarMake {         
+  Toyota
+  Kia
+  Hyundai
+  Mazda
+  Ford
+  Honda
+  Mitsubishi
+  Vinfast
+  Mercedes
+  Audi
 }
 
 model Manager {
   id          String        @id @default(uuid())
   user        User          @relation(fields: [userId], references: [id])
   userId      String        @unique
-  verifyBrand VerifyBrand[]
+  verify      ManagerVerify[]
 }
 
-model VerifyBrand {
-  id         String        @id @default(uuid())
-  status     VerifyStatus? @default(PENDING)
-  detail     Json?
-  createDate DateTime      @default(now())
-  updateAt   DateTime      @updatedAt
-  brand      Brand?        @relation(fields: [brandId], references: [id])
-  brandId    String?
-  manager    Manager?      @relation(fields: [managerId], references: [id])
-  managerId  String?
+enum VerifyType {
+  Campaign
+  Brand
+  Driver
+  Payment
+}
+
+model ManagerVerify {
+  id          String        @id @default(uuid())
+  type        VerifyType
+  status      VerifyStatus  @default(PENDING)
+  detail      String?
+  createDate  DateTime      @default(now())
+  updateAt    DateTime      @updatedAt
+  expiredDate DateTime
+  createBy    RequestBy?      
+  brand       Brand?        @relation(fields: [brandId], references: [id])
+  brandId     String?
+  driver      Driver?       @relation(fields: [driverId], references: [id])
+  driverId    String?
+  manager     Manager?      @relation(fields: [managerId], references: [id])
+  managerId   String?
+}
+
+enum RequestBy {
+  Admin
+  System
 }
 
 enum VerifyStatus {

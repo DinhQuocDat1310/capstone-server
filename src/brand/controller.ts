@@ -2,9 +2,8 @@ import {
   Body,
   Controller,
   HttpCode,
-  HttpStatus,
-  Param,
-  Post,
+  Put,
+  Request,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -12,132 +11,85 @@ import {
 import { FileFieldsInterceptor } from '@nestjs/platform-express/multer';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiBody,
-  ApiConflictResponse,
-  ApiCreatedResponse,
+  ApiConsumes,
   ApiForbiddenResponse,
-  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/guard/auth.guard';
-import { VerifyDataDto, UpdateVerifyDataDto } from './dto';
+import { Role, UserStatus } from '@prisma/client';
+import { RequestUser } from 'src/auth/dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { Roles, Status } from 'src/guard/decorators';
+import { RolesGuard } from 'src/guard/roles.guard';
+import { StatusGuard } from 'src/guard/userStatus.guard';
+import { BrandDTO } from './dto';
 import { BrandsService } from './service';
+
 @Controller('brand')
+@UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
+@Roles(Role.BRAND)
+@ApiBearerAuth('access-token')
 @ApiTags('Brand')
 export class BrandController {
   constructor(private readonly brandService: BrandsService) {}
-
-  @Post('/verify-information/:email')
-  @ApiBody({ type: VerifyDataDto })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        fullname: { type: 'string' },
+        address: { type: 'string' },
+        phoneNumber: { type: 'string' },
+        typeBusiness: {
+          type: 'enum',
+          default: 'test',
+          enum: ['test', 'data'],
+        },
+        logo: { type: 'string', format: 'binary' },
+        imageCitizenFront: { type: 'string', format: 'binary' },
+        imageCitizenBack: { type: 'string', format: 'binary' },
+        imageLicenseBusiness: { type: 'string', format: 'binary' },
+      },
+    },
+  })
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'logo' },
-      { name: 'imageLicense' },
-      { name: 'imageFront' },
-      { name: 'imageBack' },
+      { name: 'imageLicenseBusiness' },
+      { name: 'imageCitizenFront' },
+      { name: 'imageCitizenBack' },
     ]),
   )
-  @ApiOperation({ summary: 'Add verify data for brand' })
+  @ApiOperation({ summary: 'Update data for brand' })
   @ApiForbiddenResponse({
-    status: HttpStatus.FORBIDDEN,
-    description: 'Account is invalid. Contact admin',
+    description: "Account don't have permission to use this feature",
   })
-  @ApiConflictResponse({
-    status: HttpStatus.CONFLICT,
-    description: 'Account already add verify data',
-  })
-  @ApiBadRequestResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: 'Id license or No card number invalid',
-  })
-  @ApiBadRequestResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: 'Phonenumber already used',
-  })
-  @ApiNotFoundResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Not found account email',
-  })
-  @ApiCreatedResponse({
-    status: HttpStatus.CREATED,
-    description: 'Created success',
-  })
-  @UseGuards(JwtAuthGuard)
-  @HttpCode(HttpStatus.CREATED)
-  async addInformation(
-    @Body() brand: VerifyDataDto,
-    @Param('email') email: string,
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiOkResponse({ description: 'ok' })
+  @HttpCode(200)
+  @Status(UserStatus.NEW)
+  @Put('')
+  async updateBrandInformation(
+    @Request() req: RequestUser,
+    @Body() dto: BrandDTO,
     @UploadedFiles()
     files: {
-      logo?: Express.Multer.File[];
-      imageLicense?: Express.Multer.File[];
-      imageBack?: Express.Multer.File[];
-      imageFront?: Express.Multer.File[];
+      logo: Express.Multer.File[];
+      imageLicenseBusiness: Express.Multer.File[];
+      imageCitizenBack: Express.Multer.File[];
+      imageCitizenFront: Express.Multer.File[];
     },
   ) {
-    return await this.brandService.addDataVerify(brand, email, [
-      ...files.logo,
-      ...files.imageLicense,
-      ...files.imageFront,
-      ...files.imageBack,
-    ]);
-  }
-
-  @Post('/update-information/:email')
-  @ApiBody({ type: UpdateVerifyDataDto })
-  @UseInterceptors(
-    FileFieldsInterceptor([
-      { name: 'logo' },
-      { name: 'imageLicense' },
-      { name: 'imageFront' },
-      { name: 'imageBack' },
-    ]),
-  )
-  @ApiOperation({ summary: 'Update verify data for brand' })
-  @ApiNotFoundResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Not found account email',
-  })
-  @ApiBadRequestResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: 'Id license or No card number invalid',
-  })
-  @ApiBadRequestResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: 'Phonenumber already used',
-  })
-  @ApiOkResponse({
-    status: HttpStatus.OK,
-    description: 'Update data verify success',
-  })
-  @UseGuards(JwtAuthGuard)
-  @HttpCode(HttpStatus.OK)
-  async updateInformation(
-    @Body() brand: UpdateVerifyDataDto,
-    @Param('email') email: string,
-    @UploadedFiles()
-    files?: {
-      logo?: Express.Multer.File[];
-      imageLicense?: Express.Multer.File[];
-      imageBack?: Express.Multer.File[];
-      imageFront?: Express.Multer.File[];
-    },
-  ) {
-    if (
-      !files.logo &&
-      !files.imageLicense &&
-      !files.imageFront &&
-      !files.imageBack
-    ) {
-      return await this.brandService.updateVerifyData(brand, email, []);
-    }
-    const arr = [];
-    files.logo ? arr.push(...files.logo) : undefined;
-    files.imageLicense ? arr.push(...files.imageLicense) : undefined;
-    files.imageFront ? arr.push(...files.imageFront) : undefined;
-    files.imageBack ? arr.push(...files.imageBack) : undefined;
-    return await this.brandService.updateVerifyData(brand, email, arr);
+    return await this.brandService.updateBrandInformation(dto, req.user, {
+      logo: files.logo[0],
+      imageLicenseBusiness: files.imageLicenseBusiness[0],
+      imageCitizenFront: files.imageCitizenFront[0],
+      imageCitizenBack: files.imageCitizenBack[0],
+    });
   }
 }

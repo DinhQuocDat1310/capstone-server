@@ -8,11 +8,8 @@ import { BrandModule } from './brand/module';
 import { EmailsModule } from './email/module';
 import { UserModule } from './user/module';
 import { AuthModule } from './auth/module';
-import { APP_GUARD } from '@nestjs/core';
-import { RolesGuard } from './guard/roles.guard';
 import { UsersService } from './user/service';
 import { CloudinaryModule } from './cloudinary/module';
-import { VerifyBrandModule } from './verify-brand/module';
 import { ManagerModule } from './manager/module';
 import * as Joi from '@hapi/joi';
 
@@ -46,14 +43,8 @@ import * as Joi from '@hapi/joi';
       isGlobal: true,
     }),
     CloudinaryModule,
-    VerifyBrandModule,
   ],
-  providers: [
-    AppConfigService,
-    UsersService,
-    PrismaService,
-    { provide: APP_GUARD, useClass: RolesGuard },
-  ],
+  providers: [AppConfigService, UsersService, PrismaService],
   controllers: [],
 })
 export class AppModule {}

@@ -5,7 +5,6 @@ import { BrandController } from './controller';
 import { BrandsService } from './service';
 import { AppConfigService } from 'src/config/appConfigService';
 import { CloudinaryService } from 'src/cloudinary/service';
-import { VerifyBrandService } from 'src/verify-brand/service';
 import { ManagerService } from 'src/manager/service';
 
 @Module({
@@ -16,7 +15,6 @@ import { ManagerService } from 'src/manager/service';
     UsersService,
     AppConfigService,
     CloudinaryService,
-    VerifyBrandService,
     ManagerService,
   ],
 })

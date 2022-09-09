@@ -15,15 +15,9 @@ export class UserController {
 
   @Post()
   @ApiBody({ type: CreateUserDTO })
-  @ApiCreatedResponse({
-    status: HttpStatus.CREATED,
-    description: 'Created success',
-  })
-  @ApiBadRequestResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: 'Account already existed',
-  })
-  @ApiOperation({ summary: 'Create user' })
+  @ApiCreatedResponse({ description: 'created' })
+  @ApiBadRequestResponse({ description: 'Account already existed' })
+  @ApiOperation({ summary: 'Create new user' })
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createUser: CreateUserDTO) {
     return await this.userService.create(createUser);

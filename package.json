@@ -17,6 +17,7 @@
     "migrate:dev": "npx prisma migrate dev",
     "prisma:seed": "npx prisma db seed",
     "prisma:reset": "npx prisma migrate reset",
+    "prisma:generate": "npx prisma generate",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",

@@ -1,21 +1,12 @@
-import { AppConfigService } from './../config/appConfigService';
-import {
-  BadRequestException,
-  Body,
-  ForbiddenException,
-  HttpStatus,
-  Injectable,
-} from '@nestjs/common';
+import { BadRequestException, Body, Injectable } from '@nestjs/common';
 import { Role, UserStatus } from '@prisma/client';
 import { hash } from 'bcrypt';
 import { PrismaService } from 'src/prisma/service';
 import { CreateUserDTO } from './dto';
+import { convertPhoneNumberFormat } from 'src/utilities';
 @Injectable()
 export class UsersService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly configService: AppConfigService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
   async create(@Body() dto: CreateUserDTO) {
     const hashPassword = await hash(dto.password, 10);
     const { brandName, role, ...user } = dto;
@@ -33,161 +24,93 @@ export class UsersService {
           : {},
     };
     try {
-      const isExists = await this.findUserByCredentials(
-        user.email,
-        user.phoneNumber,
+      await this.checkEmailOrPhoneNumberIsExist(
+        user.email ?? '',
+        user.phoneNumber ?? '',
+        'Your account is already exist',
       );
-      if (isExists)
-        throw new BadRequestException({
-          statusCode: HttpStatus.BAD_REQUEST,
-          message: 'Account already exists',
-        });
-      const newUser = await this.prisma.user.create({
+      await this.prisma.user.create({
         data,
       });
-      return {
-        statusCode: HttpStatus.CREATED,
-        data: role === Role.DRIVER ? newUser.phoneNumber : newUser.email,
-      };
+      return { message: 'success' };
     } catch (error) {
       throw new BadRequestException({
-        statusCode: HttpStatus.BAD_REQUEST,
         message: error.message,
       });
     }
   }
 
-  async updateStatusUserByEmail(email: string, status: UserStatus) {
-    await this.prisma.user.update({
-      where: { email },
+  async findUserByUserId(id: string) {
+    return await this.prisma.user.findFirst({
+      where: {
+        id,
+      },
+    });
+  }
+
+  async updateStatusUserByUserId(id: string, status: UserStatus) {
+    return await this.prisma.user.update({
+      where: {
+        id,
+      },
       data: {
         status,
       },
     });
   }
 
-  async findUserByEmail(email: string) {
-    return await this.prisma.user.findFirst({
-      where: { email },
-    });
-  }
-
-  async findUserByCredentials(email: string, phoneNumber: string) {
+  async findUserByEmailOrPhoneNumber(email: string, phoneNumber: string) {
     return await this.prisma.user.findFirst({
       where: {
         OR: [
           {
             email,
           },
-          { phoneNumber },
+          {
+            phoneNumber: convertPhoneNumberFormat(phoneNumber),
+          },
         ],
       },
     });
   }
 
-  async updateUserStatusByPhone(phoneNumber: string, status: UserStatus) {
-    await this.prisma.user.update({
-      where: { phoneNumber },
-      data: {
-        status,
-      },
-    });
+  async checkEmailOrPhoneNumberIsExist(
+    email: string,
+    phoneNumber: string,
+    message: string,
+  ) {
+    const user = await this.findUserByEmailOrPhoneNumber(email, phoneNumber);
+    if (user) throw new BadRequestException(message);
   }
 
-  async findUserByPhone(phoneNumber: string) {
-    return await this.prisma.user.findFirst({
-      where: { phoneNumber },
-    });
-  }
-
-  async findBrandByUserId(userId: string) {
-    return await this.prisma.user.findFirst({
+  async getUserBrandInfo(email: string, role: Role) {
+    return this.prisma.user.findFirst({
       where: {
-        id: userId,
+        email,
+        role,
       },
-      select: {
+      include: {
         brand: true,
       },
     });
   }
 
-  async checkBrandAlreadyHaveUniqueData(email: string) {
-    return await this.prisma.user.findFirst({
+  async checkIdCardIsExist(idCitizen: string) {
+    const card = await this.prisma.user.findFirst({
       where: {
-        email,
-      },
-      select: {
-        identityCard: {
-          select: {
-            no: true,
-          },
-        },
-        brand: {
-          select: {
-            businessLicense: {
-              select: {
-                idLicense: true,
-              },
-            },
-          },
-        },
+        idCitizen,
       },
     });
+    if (card) throw new BadRequestException('This id card citizen is exist');
   }
 
-  async checkIdLicenseAndIdCard(idLicense: string, no: string) {
-    return await this.prisma.user.findFirst({
+  async checkIdLicenseIsExist(idLicenseBusiness: string) {
+    const license = await this.prisma.brand.findFirst({
       where: {
-        OR: [
-          {
-            brand: {
-              businessLicense: {
-                idLicense,
-              },
-            },
-          },
-          {
-            identityCard: {
-              no,
-            },
-          },
-        ],
+        idLicenseBusiness,
       },
     });
-  }
-
-  async checkIdLicense(idLicense: string) {
-    return await this.prisma.user.findFirst({
-      where: {
-        brand: {
-          businessLicense: {
-            idLicense,
-          },
-        },
-      },
-    });
-  }
-
-  async checkIdCardNumber(no: string) {
-    return await this.prisma.user.findFirst({
-      where: {
-        identityCard: {
-          no,
-        },
-      },
-    });
-  }
-  async checkPermissionUser(userStatus: UserStatus) {
-    if (
-      UserStatus.BANNED === userStatus ||
-      UserStatus.DISABLED === userStatus
-    ) {
-      throw new ForbiddenException({
-        statusCode: HttpStatus.FORBIDDEN,
-        message: `Your account is invalid. Please contact: ${this.configService.getConfig(
-          'MAILER',
-        )} for more information.`,
-      });
-    }
+    if (license)
+      throw new BadRequestException('This id business license is exist');
   }
 }

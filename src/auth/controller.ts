@@ -1,37 +1,38 @@
-import { Body, Controller, HttpCode, Post, HttpStatus } from '@nestjs/common';
+import { Controller, Post, UseGuards, Request } from '@nestjs/common';
 import {
-  ApiAcceptedResponse,
   ApiBody,
+  ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { SignInDto } from './dto/signIn.dto';
+import { UserStatus } from '@prisma/client';
+import { Status } from 'src/guard/decorators';
+import { RequestUser } from './dto';
+import { SignInDto } from './dto/index';
+import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthService } from './service';
 
 @Controller('auth')
+@UseGuards(LocalAuthGuard)
 @ApiTags('Auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Post('/login')
+  @ApiOperation({ summary: 'Signin for user' })
   @ApiBody({ type: SignInDto })
   @ApiUnauthorizedResponse({
-    status: HttpStatus.UNAUTHORIZED,
-    description: 'Invalid email/phoneNumber or password',
+    description: 'Login failed: email/phone number or password is incorrect.',
   })
   @ApiForbiddenResponse({
-    status: HttpStatus.FORBIDDEN,
-    description: 'Your account was block. Contact Admin',
+    description:
+      'Your account dont have permission. Please contact admin to support',
   })
-  @ApiAcceptedResponse({
-    status: HttpStatus.ACCEPTED,
-    description: 'Login success',
-  })
-  @ApiOperation({ summary: 'Signin for user' })
-  @HttpCode(HttpStatus.ACCEPTED)
-  async signIn(@Body() dto: SignInDto) {
-    return await this.authService.signInUser(dto);
+  @ApiCreatedResponse({ description: 'Login successful' })
+  @Post('/login')
+  @Status(UserStatus.INIT, UserStatus.NEW, UserStatus.VERIFIED)
+  async login(@Request() req: RequestUser) {
+    return await this.authService.signInUser(req.user);
   }
 }

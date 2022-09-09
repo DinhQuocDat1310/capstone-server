@@ -1,59 +1,60 @@
 import { VerifySMSDto } from './dto';
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiBody,
   ApiForbiddenResponse,
-  ApiFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
 import { SmsService } from './service';
+import { RequestUser } from 'src/auth/dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/guard/roles.guard';
+import { Role, UserStatus } from '@prisma/client';
+import { Roles, Status } from 'src/guard/decorators';
+import { StatusGuard } from 'src/guard/userStatus.guard';
 
 @Controller('sms')
-@ApiTags('Sms')
+@ApiBearerAuth('access-token')
+@UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
+@ApiTags('sms')
 export class SmsController {
   constructor(private readonly smsService: SmsService) {}
 
-  @Get('/otp/:phone')
-  @ApiOkResponse({
-    status: 200,
-    description: 'Send code to phone number success.',
-  })
-  @ApiBadRequestResponse({
-    status: 400,
-    description: 'Failed send code to email.',
-  })
-  @ApiFoundResponse({
-    status: 403,
-    description: 'Fail to verify your phone number',
-  })
-  @ApiBadRequestResponse({
-    status: 405,
-    description: 'Too many request',
-  })
-  @ApiOperation({ summary: 'Send OTP to phone number' })
-  async createPhoneVerification(@Param('phone') phone: string) {
-    return await this.smsService.sendPhoneVerification(phone);
+  @ApiOkResponse()
+  @ApiBadRequestResponse()
+  @ApiOperation({ summary: 'Send OTP' })
+  @HttpCode(200)
+  @Roles(Role.DRIVER)
+  @Status(UserStatus.INIT)
+  @Post('/otp/generate')
+  async createPhoneVerification(@Request() req: RequestUser) {
+    return await this.smsService.sendOTP(req.user);
   }
 
-  @Post('/verify')
-  @ApiOkResponse({
-    status: 200,
-    description: 'Verify phone number success',
-  })
-  @ApiBadRequestResponse({
-    status: 400,
-    description: 'Wrong OTP provide',
-  })
-  @ApiForbiddenResponse({
-    status: 403,
-    description: 'Cannot request verify phone number',
-  })
+  @ApiOkResponse()
+  @ApiBadRequestResponse()
+  @ApiForbiddenResponse()
   @ApiBody({ type: VerifySMSDto })
-  @ApiOperation({ summary: 'Check verify OTP' })
-  async verifyOTPPhoneNumber(@Body() verifySMSDto: VerifySMSDto) {
-    return await this.smsService.confirmPhoneNumber(verifySMSDto);
+  @ApiOperation({ summary: 'Verify OTP' })
+  @HttpCode(200)
+  @Roles(Role.DRIVER)
+  @Status(UserStatus.INIT)
+  @Post('/otp/verify')
+  async verifyOTPPhoneNumber(
+    @Request() req: RequestUser,
+    @Body() dto: VerifySMSDto,
+  ) {
+    return await this.smsService.verifyOTP(req.user, dto.otpCode);
   }
 }

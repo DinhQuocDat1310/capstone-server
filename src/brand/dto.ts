@@ -1,72 +1,53 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNumberString, IsString } from 'class-validator';
+import { IsNumberString, IsOptional, IsString, Matches } from 'class-validator';
 
-export class VerifyDataDto {
-  @ApiProperty({ type: String, description: 'logo' })
-  logo: string;
+export class BrandDTO {
+  @IsString()
+  @IsOptional()
+  ownerLicenseBusiness: string;
 
   @IsString()
-  @ApiProperty({ type: String, description: 'fullname' })
-  fullname: string;
-
-  @IsString()
-  @ApiProperty({ type: String, description: 'address' })
+  @IsOptional()
   address: string;
 
-  @IsNumberString()
-  @ApiProperty({ type: String, description: 'phoneNumber' })
+  @IsOptional()
+  @Matches(/^0\d{9}/)
   phoneNumber: string;
 
   @IsString()
-  @ApiProperty({ type: String, description: 'idLicense' })
+  @IsOptional()
   idLicense: string;
 
   @IsNumberString()
-  @ApiProperty({ type: String, description: 'idCardNumber' })
-  idCardNumber: string;
+  @IsOptional()
+  idCitizen: string;
 
   @IsString()
-  @ApiProperty({ type: String, description: 'typeBusiness' })
+  @IsOptional()
   typeBusiness: string;
 
-  @ApiProperty({ type: String, description: 'Image ID card back' })
-  imageBack: string;
+  @IsOptional()
+  logo: string;
 
-  @ApiProperty({ type: String, description: 'Image ID card back' })
-  imageFront: string;
+  @IsOptional()
+  imageCitizenBack: string;
 
-  @ApiProperty({ type: String, description: 'imageLicense' })
-  imageLicense: string;
+  @IsOptional()
+  imageCitizenFront: string;
+
+  @IsOptional()
+  imageLicenseBusiness: string;
 }
 
-export class UpdateVerifyDataDto {
-  @ApiProperty({ type: String, description: 'logo' })
-  logo: string;
+export class FileImageUploadForBrand {
+  logo?: Express.Multer.File;
+  imageLicenseBusiness?: Express.Multer.File;
+  imageCitizenFront?: Express.Multer.File;
+  imageCitizenBack?: Express.Multer.File;
+}
 
-  @ApiProperty({ type: String, description: 'fullname' })
-  fullname: string;
-
-  @ApiProperty({ type: String, description: 'address' })
-  address: string;
-
-  @ApiProperty({ type: String, description: 'phoneNumber' })
-  phoneNumber: string;
-
-  @ApiProperty({ type: String, description: 'idLicense' })
-  idLicense: string;
-
-  @ApiProperty({ type: String, description: 'idCardNumber' })
-  idCardNumber: string;
-
-  @ApiProperty({ type: String, description: 'typeBusiness' })
-  typeBusiness: string;
-
-  @ApiProperty({ type: String, description: 'Image ID card back' })
-  imageBack: string;
-
-  @ApiProperty({ type: String, description: 'Image ID card back' })
-  imageFront: string;
-
-  @ApiProperty({ type: String, description: 'imageLicense' })
-  imageLicense: string;
+export class FileImageUploaddedForBrand {
+  logo?: string;
+  imageLicenseBusiness?: string;
+  imageCitizenFront?: string;
+  imageCitizenBack?: string;
 }

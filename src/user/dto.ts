@@ -7,9 +7,7 @@ import {
   IsEnum,
   IsNotEmpty,
   IsOptional,
-  MaxLength,
   Matches,
-  IsNumberString,
 } from 'class-validator';
 
 export class CreateUserDTO {
@@ -24,21 +22,23 @@ export class CreateUserDTO {
   brandName?: string;
 
   @IsEmail()
-  @ValidateIf((user) => user.role === 'BRAND')
+  @ValidateIf((user) => user.email !== undefined || user.role === 'BRAND')
   @ApiProperty({ type: String, description: 'email' })
   email?: string;
 
-  @IsEnum(Role, { message: 'Role: [ADMIN, BRAND, DRIVER, MANAGER]' })
-  @ApiProperty({ enum: Role, description: 'role' })
+  @IsEnum([Role.BRAND, Role.DRIVER], {
+    message: 'Role must be following format: [BRAND, DRIVER]',
+  })
+  @ApiProperty({ enum: [Role.BRAND, Role.DRIVER], description: 'role' })
   role: Role;
 
-  @IsNumberString()
-  @ValidateIf((user) => user.role === 'DRIVER')
-  @ApiProperty({ type: String, description: 'phoneNumber' })
-  @Matches(/\+(84[3|5|7|8|9])+([0-9]{8})\b/, {
-    message: 'Phone number format: +84xxxxxxxxx',
+  @ValidateIf(
+    (user) => user.phoneNumber !== undefined || user.role === 'DRIVER',
+  )
+  @IsString()
+  @Matches(/^0\d{9}/, {
+    message: 'Incorrect phone number format. Please input 10 digits',
   })
-  @MaxLength(14)
   @ApiProperty({ type: String, description: 'phoneNumber' })
   phoneNumber?: string;
 

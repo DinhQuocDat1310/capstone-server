@@ -1,8 +1,9 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from '@prisma/client';
-import { ROLES_KEY } from 'src/decorator/roles.decorator';
+import { ROLES_KEY } from './decorators';
 import { UsersService } from 'src/user/service';
+import { RequestUser } from 'src/auth/dto';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -12,23 +13,23 @@ export class RolesGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const requireRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
+    const requireRoles = this.reflector.get<Role[]>(
+      ROLES_KEY,
       context.getHandler(),
-      context.getClass(),
-    ]);
+    );
     if (!requireRoles) {
       return true;
     }
-    const user = context.switchToHttp().getRequest();
-    const checkRoleUser = await this.userService.findUserByCredentials(
-      user.body.email,
-      user.body.phoneNumber,
-    );
-    console.log(checkRoleUser);
-
-    if (checkRoleUser) {
-      return requireRoles.some((role) => checkRoleUser.role === role);
+    const request: RequestUser = context.switchToHttp().getRequest();
+    const userReq = request.user;
+    if (!userReq) {
+      return false;
     }
-    return requireRoles.some((role) => user.body.role === role);
+    const user = await this.userService.findUserByEmailOrPhoneNumber(
+      userReq.email,
+      userReq.phoneNumber,
+    );
+    if (!user) return false;
+    return requireRoles.some((role) => role === user.role);
   }
 }
