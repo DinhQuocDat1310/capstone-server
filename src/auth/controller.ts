@@ -9,13 +9,14 @@ import {
 } from '@nestjs/swagger';
 import { UserStatus } from '@prisma/client';
 import { Status } from 'src/guard/decorators';
+import { StatusGuard } from 'src/guard/userStatus.guard';
 import { RequestUser } from './dto';
 import { SignInDto } from './dto/index';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthService } from './service';
 
 @Controller('auth')
-@UseGuards(LocalAuthGuard)
+@UseGuards(LocalAuthGuard, StatusGuard)
 @ApiTags('Auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
