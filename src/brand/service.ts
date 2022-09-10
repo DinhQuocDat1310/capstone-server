@@ -5,22 +5,34 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
-import { BrandDTO } from './dto';
+import { BrandVerifyInformationDTO } from './dto';
 import { UserSignIn } from 'src/auth/dto';
+import { UserStatus } from '@prisma/client';
+import { VerifyAccountsService } from 'src/verifyAccount/service';
 
 @Injectable()
 export class BrandsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly usersService: UsersService,
+    private readonly verifyAccountService: VerifyAccountsService,
   ) {}
 
-  async updateBrandInformation(dto: BrandDTO, userReq: UserSignIn) {
+  async updateBrandVerify(dto: BrandVerifyInformationDTO, userReq: UserSignIn) {
     const user = await this.usersService.getUserBrandInfo(
       userReq.email,
       userReq.role,
     );
     if (!user) throw new ForbiddenException();
+    const latestVerifyStatus = user.brand?.verify[0]?.status;
+    if (latestVerifyStatus === 'NEW' || latestVerifyStatus === 'PENDING') {
+      throw new BadRequestException(
+        'Your account is on processing, we will reponse back in 3 - 5',
+      );
+    }
+    if (latestVerifyStatus === 'ACCEPT' || latestVerifyStatus === 'BANNED') {
+      throw new ForbiddenException();
+    }
     if (user.phoneNumber !== dto.phoneNumber) {
       await this.usersService.checkEmailOrPhoneNumberIsExist(
         '',
@@ -42,6 +54,7 @@ export class BrandsService {
         },
         data: {
           idCitizen: dto.idCitizen,
+          status: UserStatus.PENDING,
           imageCitizenBack: dto.imageCitizenBack,
           imageCitizenFront: dto.imageCitizenFront,
           phoneNumber: dto.phoneNumber,
@@ -57,6 +70,11 @@ export class BrandsService {
           },
         },
       });
+      if (!latestVerifyStatus || latestVerifyStatus === 'UPDATE') {
+        await this.verifyAccountService.createNewRequestVerifyBrandAccount(
+          user,
+        );
+      }
     } catch (error) {
       throw new BadRequestException(error.message);
     }

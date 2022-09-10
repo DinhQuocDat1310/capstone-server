@@ -19,11 +19,11 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { Role, UserStatus } from '@prisma/client';
+import { UserStatus } from '@prisma/client';
 import { RequestUser } from 'src/auth/dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { ChangePasswordDTO } from 'src/brand/dto';
 import { Status } from 'src/guard/decorators';
-import { RolesGuard } from 'src/guard/roles.guard';
 import { StatusGuard } from 'src/guard/userStatus.guard';
 import { CreateUserDTO, UserDTO } from './dto';
 import { UsersService } from './service';
@@ -49,10 +49,27 @@ export class UserController {
   })
   @ApiOkResponse({ type: UserDTO })
   @UseGuards(JwtAuthGuard, StatusGuard)
-  @Status(UserStatus.INIT, UserStatus.NEW, UserStatus.BANNED)
+  @Status(UserStatus.INIT, UserStatus.NEW, UserStatus.VERIFIED)
   @ApiBearerAuth('access-token')
   @Get()
   async getUserInformation(@Request() req: RequestUser) {
     return await this.userService.getUserAuthorization(req.user);
+  }
+
+  @ApiOperation({ summary: 'Change password user' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorize' })
+  @ApiForbiddenResponse({
+    description: "Account don't have permission to use this feature",
+  })
+  @ApiOkResponse()
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard, StatusGuard)
+  @Status(UserStatus.INIT, UserStatus.NEW, UserStatus.VERIFIED)
+  @Post('passsword/change')
+  async changePassword(
+    @Request() req: RequestUser,
+    @Body() dto: ChangePasswordDTO,
+  ) {
+    await this.userService.updatePasswordUser(req.user.id, dto);
   }
 }

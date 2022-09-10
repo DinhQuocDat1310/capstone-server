@@ -5,6 +5,7 @@ import { BrandController } from './controller';
 import { BrandsService } from './service';
 import { AppConfigService } from 'src/config/appConfigService';
 import { ManagerService } from 'src/manager/service';
+import { VerifyAccountsService } from 'src/verifyAccount/service';
 
 @Module({
   controllers: [BrandController],
@@ -12,6 +13,7 @@ import { ManagerService } from 'src/manager/service';
     BrandsService,
     PrismaService,
     UsersService,
+    VerifyAccountsService,
     AppConfigService,
     ManagerService,
   ],

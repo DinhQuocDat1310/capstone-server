@@ -12,6 +12,8 @@ import { UsersService } from './user/service';
 import { CloudinaryModule } from './cloudinary/module';
 import { ManagerModule } from './manager/module';
 import * as Joi from '@hapi/joi';
+import { ScheduleModule } from '@nestjs/schedule';
+import { TasksModule } from './task/module';
 
 @Module({
   imports: [
@@ -43,6 +45,8 @@ import * as Joi from '@hapi/joi';
       isGlobal: true,
     }),
     CloudinaryModule,
+    ScheduleModule.forRoot(),
+    TasksModule,
   ],
   providers: [AppConfigService, UsersService, PrismaService],
   controllers: [],

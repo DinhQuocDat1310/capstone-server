@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumberString, IsString, IsUrl, Matches } from 'class-validator';
 
-export class BrandDTO {
+export class BrandVerifyInformationDTO {
   @ApiProperty()
   @IsString()
   ownerLicenseBusiness: string;
@@ -45,16 +45,16 @@ export class BrandDTO {
   imageLicenseBusiness: string;
 }
 
-export class FileImageUploadForBrand {
-  logo?: Express.Multer.File;
-  imageLicenseBusiness?: Express.Multer.File;
-  imageCitizenFront?: Express.Multer.File;
-  imageCitizenBack?: Express.Multer.File;
-}
+export class ChangePasswordDTO {
+  @ApiProperty()
+  @Matches(/^0\d{9}/, {
+    message: 'Incorrect phone number format. Please input 10 digits',
+  })
+  currentPassword: string;
 
-export class FileImageUploaddedForBrand {
-  logo?: string;
-  imageLicenseBusiness?: string;
-  imageCitizenFront?: string;
-  imageCitizenBack?: string;
+  @ApiProperty()
+  @Matches(/^0\d{9}/, {
+    message: 'Incorrect phone number format. Please input 10 digits',
+  })
+  newPassword: string;
 }
