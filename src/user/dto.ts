@@ -43,7 +43,7 @@ export class CreateUserDTO {
 
   @IsString()
   @Matches(
-    /^.(?=.{8,})((?=.[!@#$%^&()-_=+{};:,<.>]){1})(?=.\d)((?=.[a-z]){1})((?=.[A-Z]){1}).*$/,
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
     {
       message:
         'Password must contain at least 8 characters, one uppercase, one number and one special case character',
