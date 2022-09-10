@@ -4,82 +4,59 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
-  UploadedFiles,
 } from '@nestjs/common';
-import {
-  BrandDTO,
-  FileImageUploaddedForBrand,
-  FileImageUploadForBrand,
-} from './dto';
-import { CloudinaryService } from 'src/cloudinary/service';
+import { BrandDTO } from './dto';
 import { UserSignIn } from 'src/auth/dto';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class BrandsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly usersService: UsersService,
-    private readonly cloudinaryService: CloudinaryService,
   ) {}
-  async findBrandByUserId(userId: string) {
-    return await this.prisma.brand.findFirst({
-      where: {
-        userId: userId,
-      },
-    });
-  }
 
-  async updateBrandInformation(
-    brandBody: BrandDTO,
-    userReq: UserSignIn,
-    @UploadedFiles() files: FileImageUploadForBrand,
-  ) {
+  async updateBrandInformation(dto: BrandDTO, userReq: UserSignIn) {
     const user = await this.usersService.getUserBrandInfo(
       userReq.email,
       userReq.role,
     );
     if (!user) throw new ForbiddenException();
-    if (user.phoneNumber !== brandBody.phoneNumber) {
+    if (user.phoneNumber !== dto.phoneNumber) {
       await this.usersService.checkEmailOrPhoneNumberIsExist(
         '',
-        brandBody.phoneNumber,
+        dto.phoneNumber,
         'This phone number is already exist',
       );
     }
-    if (user.idCitizen !== brandBody.idCitizen) {
-      await this.usersService.checkIdCardIsExist(brandBody.idCitizen);
+    if (user.idCitizen !== dto.idCitizen) {
+      await this.usersService.checkIdCardIsExist(dto.idCitizen);
     }
-    if (user.brand.idLicenseBusiness !== brandBody.idLicense) {
-      await this.usersService.checkIdLicenseIsExist(brandBody.idLicense);
+    if (user.brand.idLicenseBusiness !== dto.idLicense) {
+      await this.usersService.checkIdLicenseIsExist(dto.idLicense);
     }
-    const result: FileImageUploaddedForBrand =
-      await this.cloudinaryService.uploadImages(files);
 
     try {
-      await this.prisma.$transaction(
-        async (prisma: Prisma.TransactionClient) => {
-          await prisma.user.update({
-            where: {
-              id: userReq.id,
-            },
-            data: {
-              idCitizen: brandBody.idCitizen,
-              imageCitizenBack: result.imageCitizenBack,
-              imageCitizenFront: result.imageCitizenFront,
-              phoneNumber: brandBody.phoneNumber,
-              address: brandBody.address,
-              brand: {
-                update: {
-                  ownerLicenseBusiness: brandBody.ownerLicenseBusiness,
-                  logo: result.logo,
-                  imageLicenseBusiness: result.imageLicenseBusiness,
-                },
-              },
-            },
-          });
+      await this.prisma.user.update({
+        where: {
+          id: userReq.id,
         },
-      );
+        data: {
+          idCitizen: dto.idCitizen,
+          imageCitizenBack: dto.imageCitizenBack,
+          imageCitizenFront: dto.imageCitizenFront,
+          phoneNumber: dto.phoneNumber,
+          address: dto.address,
+          brand: {
+            update: {
+              ownerLicenseBusiness: dto.ownerLicenseBusiness,
+              logo: dto.logo,
+              idLicenseBusiness: dto.idLicense,
+              typeBusiness: dto.typeBusiness,
+              imageLicenseBusiness: dto.imageLicenseBusiness,
+            },
+          },
+        },
+      });
     } catch (error) {
       throw new BadRequestException(error.message);
     }

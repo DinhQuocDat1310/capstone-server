@@ -1,40 +1,47 @@
-import { IsNumberString, IsOptional, IsString, Matches } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNumberString, IsString, IsUrl, Matches } from 'class-validator';
 
 export class BrandDTO {
+  @ApiProperty()
   @IsString()
-  @IsOptional()
   ownerLicenseBusiness: string;
 
+  @ApiProperty()
   @IsString()
-  @IsOptional()
   address: string;
 
-  @IsOptional()
-  @Matches(/^0\d{9}/)
+  @ApiProperty()
+  @Matches(/^0\d{9}/, {
+    message: 'Incorrect phone number format. Please input 10 digits',
+  })
   phoneNumber: string;
 
-  @IsString()
-  @IsOptional()
+  @ApiProperty()
+  @IsNumberString()
   idLicense: string;
 
+  @ApiProperty()
   @IsNumberString()
-  @IsOptional()
   idCitizen: string;
 
+  @ApiProperty()
   @IsString()
-  @IsOptional()
   typeBusiness: string;
 
-  @IsOptional()
+  @ApiProperty()
+  @IsUrl(undefined)
   logo: string;
 
-  @IsOptional()
+  @ApiProperty()
+  @IsUrl(undefined)
   imageCitizenBack: string;
 
-  @IsOptional()
+  @ApiProperty()
+  @IsUrl(undefined)
   imageCitizenFront: string;
 
-  @IsOptional()
+  @ApiProperty()
+  @IsUrl(undefined)
   imageLicenseBusiness: string;
 }
 

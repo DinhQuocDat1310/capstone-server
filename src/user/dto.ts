@@ -5,7 +5,6 @@ import {
   IsEmail,
   ValidateIf,
   IsEnum,
-  IsNotEmpty,
   IsOptional,
   Matches,
 } from 'class-validator';
@@ -43,7 +42,37 @@ export class CreateUserDTO {
   phoneNumber?: string;
 
   @IsString()
-  @IsNotEmpty()
+  @Matches(
+    /^.(?=.{8,})((?=.[!@#$%^&()-_=+{};:,<.>]){1})(?=.\d)((?=.[a-z]){1})((?=.[A-Z]){1}).*$/,
+    {
+      message:
+        'Password must contain at least 8 characters, one uppercase, one number and one special case character',
+    },
+  )
   @ApiProperty({ type: String, description: 'password' })
   password: string;
+}
+
+export class UserDTO {
+  @ApiProperty({ type: String, description: 'fullname' })
+  fullname?: string;
+
+  @ApiProperty({ type: String, description: 'brandName' })
+  brandName?: string;
+
+  @ApiProperty({ type: String, description: 'email' })
+  email?: string;
+
+  @ApiProperty({ enum: Role, description: 'role' })
+  role: Role;
+
+  @ApiProperty({ type: String, description: 'phoneNumber' })
+  phoneNumber?: string;
+
+  @ApiProperty({ type: Object, description: 'Brand Info' })
+  brand?: object;
+  @ApiProperty({ type: Object, description: 'Manager Info' })
+  manager?: object;
+  @ApiProperty({ type: Object, description: 'Driver Info' })
+  driver?: object;
 }

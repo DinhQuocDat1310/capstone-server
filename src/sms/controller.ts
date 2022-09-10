@@ -27,7 +27,7 @@ import { StatusGuard } from 'src/guard/userStatus.guard';
 @Controller('sms')
 @ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
-@ApiTags('sms')
+@ApiTags('Sms')
 export class SmsController {
   constructor(private readonly smsService: SmsService) {}
 

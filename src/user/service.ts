@@ -4,6 +4,7 @@ import { hash } from 'bcrypt';
 import { PrismaService } from 'src/prisma/service';
 import { CreateUserDTO } from './dto';
 import { convertPhoneNumberFormat } from 'src/utilities';
+import { UserSignIn } from 'src/auth/dto';
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
@@ -46,6 +47,21 @@ export class UsersService {
         id,
       },
     });
+  }
+
+  async getUserAuthorization(userReq: UserSignIn) {
+    const include = {};
+    if (userReq.role && userReq.role !== 'ADMIN') {
+      include[`${userReq.role.toLowerCase()}`] = true;
+    }
+    const user = await this.prisma.user.findFirst({
+      where: {
+        id: userReq.id,
+      },
+      include,
+    });
+    const { password, ...result } = user;
+    return result;
   }
 
   async updateStatusUserByUserId(id: string, status: UserStatus) {

@@ -4,7 +4,6 @@ import { Module } from '@nestjs/common';
 import { BrandController } from './controller';
 import { BrandsService } from './service';
 import { AppConfigService } from 'src/config/appConfigService';
-import { CloudinaryService } from 'src/cloudinary/service';
 import { ManagerService } from 'src/manager/service';
 
 @Module({
@@ -14,7 +13,6 @@ import { ManagerService } from 'src/manager/service';
     PrismaService,
     UsersService,
     AppConfigService,
-    CloudinaryService,
     ManagerService,
   ],
 })

@@ -2,7 +2,6 @@ import { VerifyDto } from './dto';
 import {
   Body,
   Post,
-  HttpCode,
   UseGuards,
   Request,
   Controller,

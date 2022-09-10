@@ -1,21 +1,10 @@
-import {
-  Body,
-  Controller,
-  HttpCode,
-  Put,
-  Request,
-  UploadedFiles,
-  UseGuards,
-  UseInterceptors,
-} from '@nestjs/common';
-import { FileFieldsInterceptor } from '@nestjs/platform-express/multer';
+import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
-  ApiConsumes,
+  ApiCreatedResponse,
   ApiForbiddenResponse,
-  ApiOkResponse,
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -31,65 +20,26 @@ import { BrandsService } from './service';
 
 @Controller('brand')
 @UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
-@Roles(Role.BRAND)
 @ApiBearerAuth('access-token')
 @ApiTags('Brand')
 export class BrandController {
   constructor(private readonly brandService: BrandsService) {}
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        fullname: { type: 'string' },
-        address: { type: 'string' },
-        phoneNumber: { type: 'string' },
-        typeBusiness: {
-          type: 'enum',
-          default: 'test',
-          enum: ['test', 'data'],
-        },
-        logo: { type: 'string', format: 'binary' },
-        imageCitizenFront: { type: 'string', format: 'binary' },
-        imageCitizenBack: { type: 'string', format: 'binary' },
-        imageLicenseBusiness: { type: 'string', format: 'binary' },
-      },
-    },
-  })
-  @UseInterceptors(
-    FileFieldsInterceptor([
-      { name: 'logo' },
-      { name: 'imageLicenseBusiness' },
-      { name: 'imageCitizenFront' },
-      { name: 'imageCitizenBack' },
-    ]),
-  )
+
+  @ApiBody({ type: BrandDTO })
   @ApiOperation({ summary: 'Update data for brand' })
   @ApiForbiddenResponse({
     description: "Account don't have permission to use this feature",
   })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @ApiOkResponse({ description: 'ok' })
-  @HttpCode(200)
+  @ApiCreatedResponse()
   @Status(UserStatus.NEW)
-  @Put('')
+  @Roles(Role.BRAND)
+  @Post('')
   async updateBrandInformation(
     @Request() req: RequestUser,
     @Body() dto: BrandDTO,
-    @UploadedFiles()
-    files: {
-      logo: Express.Multer.File[];
-      imageLicenseBusiness: Express.Multer.File[];
-      imageCitizenBack: Express.Multer.File[];
-      imageCitizenFront: Express.Multer.File[];
-    },
   ) {
-    return await this.brandService.updateBrandInformation(dto, req.user, {
-      logo: files.logo[0],
-      imageLicenseBusiness: files.imageLicenseBusiness[0],
-      imageCitizenFront: files.imageCitizenFront[0],
-      imageCitizenBack: files.imageCitizenBack[0],
-    });
+    return await this.brandService.updateBrandInformation(dto, req.user);
   }
 }
