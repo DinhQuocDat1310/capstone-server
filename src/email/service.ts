@@ -2,7 +2,6 @@ import { MailerService } from '@nestjs-modules/mailer';
 import {
   BadRequestException,
   CACHE_MANAGER,
-  HttpStatus,
   Inject,
   Injectable,
 } from '@nestjs/common';
@@ -31,11 +30,9 @@ export class EmailsService {
     const codeCached: { code: string; remainingInput: number } =
       await this.cacheManager.get(user.email);
     if (codeCached) {
-      throw new BadRequestException({
-        statusCode: HttpStatus.BAD_REQUEST,
-        message:
-          'We have sent the code to your email. Please try again in a few minutes.',
-      });
+      throw new BadRequestException(
+        'We have sent the code to your email. Please try again in a few minutes.',
+      );
     }
 
     await this.cacheManager.set(

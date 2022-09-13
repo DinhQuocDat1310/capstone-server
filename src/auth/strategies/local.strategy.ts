@@ -23,7 +23,6 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException(
         'Login failed: email/phone number or password is incorrect.',
       );
-
     if (!user.isActive)
       throw new ForbiddenException(
         `Account is disabled, Please contact: ${this.configService.getConfig(

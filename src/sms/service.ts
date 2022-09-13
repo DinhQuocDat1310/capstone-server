@@ -69,7 +69,7 @@ export class SmsService {
           message: 'Too many request',
         });
       }
-      throw new BadRequestException('Phone number format: +84xxxxxxxxx');
+      throw new BadRequestException("Phone number isn't existed");
     }
   }
 

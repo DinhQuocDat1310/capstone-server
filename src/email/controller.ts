@@ -1,12 +1,5 @@
 import { VerifyDto } from './dto';
-import {
-  Body,
-  Post,
-  UseGuards,
-  Request,
-  Controller,
-  Get,
-} from '@nestjs/common';
+import { Body, Post, UseGuards, Request, Controller } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,

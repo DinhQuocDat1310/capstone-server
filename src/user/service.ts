@@ -43,19 +43,18 @@ export class UsersService {
 
   async updatePasswordUser(userId: string, dto: ChangePasswordDTO) {
     const user = await this.findUserByUserId(userId);
-    if (user && (await compare(dto.newPassword, user.password))) {
-      const hashPassword = await hash(user.password, 10);
+    if (user && (await compare(dto.currentPassword, user.password))) {
       await this.prisma.user.update({
         where: {
           id: userId,
         },
         data: {
-          password: hashPassword,
+          password: await hash(dto.newPassword, 10),
         },
       });
-      return 'updated';
+      return 'Updated';
     }
-    throw new BadRequestException('Please try again!');
+    throw new BadRequestException('Incorrect current password of user');
   }
 
   async findUserByUserId(id: string) {

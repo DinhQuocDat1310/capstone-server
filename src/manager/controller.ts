@@ -16,7 +16,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { Role, VerifyAccountStatus } from '@prisma/client';
+import { Role } from '@prisma/client';
 import { RequestUser } from 'src/auth/dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { Roles } from 'src/guard/decorators';
@@ -28,7 +28,6 @@ import { ManagerService } from './service';
 @Controller('manager')
 @ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.MANAGER)
 @ApiTags('Manager')
 export class ManagerController {
   constructor(
@@ -52,6 +51,7 @@ export class ManagerController {
   }
 
   @Get('account/verify/:role')
+  @Roles(Role.MANAGER)
   async getListVerifyByRole(
     @Request() req: RequestUser,
     @Param('role') role: string,
