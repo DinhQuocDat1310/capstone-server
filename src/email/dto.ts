@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber } from 'class-validator';
+import { IsNumberString } from 'class-validator';
 
 export class VerifyDto {
-  @IsNumber()
-  @ApiProperty({ type: Number, description: 'codeNumber' })
+  @IsNumberString()
+  @ApiProperty({ type: String, description: 'codeNumber' })
   codeInput: string;
 }

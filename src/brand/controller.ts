@@ -46,7 +46,7 @@ export class BrandController {
   @ApiCreatedResponse()
   @Status(UserStatus.NEW, UserStatus.PENDING)
   @Roles(Role.BRAND)
-  @Post('verify')
+  @Post('account/verify')
   async updateBrandInformation(
     @Request() req: RequestUser,
     @Body() dto: BrandVerifyInformationDTO,
@@ -54,14 +54,14 @@ export class BrandController {
     return await this.brandService.updateBrandVerify(dto, req.user);
   }
 
-  @ApiOperation({ summary: 'Get list verify brand' })
+  @ApiOperation({ summary: 'Get history verify brand' })
   @ApiForbiddenResponse({
     description: "Account don't have permission to use this feature",
   })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Status(UserStatus.PENDING)
-  @Get('verify')
+  @Get('account/verify')
   async getListVerifyBrand(@Request() req: RequestUser) {
     return await this.verifyAccountService.getListVerifyBrandByUserId(
       req.user.id,

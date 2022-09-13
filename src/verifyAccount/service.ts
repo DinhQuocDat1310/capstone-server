@@ -2,7 +2,7 @@ import { PrismaService } from './../prisma/service';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { UserSignIn } from 'src/auth/dto';
 import { ManagerVerifyDTO } from 'src/manager/dto';
-import { Prisma, Role, UserStatus, VerifyAccountStatus } from '@prisma/client';
+import { Prisma, UserStatus, VerifyAccountStatus } from '@prisma/client';
 import * as moment from 'moment';
 
 @Injectable()
