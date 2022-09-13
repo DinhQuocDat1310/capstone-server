@@ -2,10 +2,9 @@ import { BadRequestException, Body, Injectable } from '@nestjs/common';
 import { Role, UserStatus } from '@prisma/client';
 import { hash, compare } from 'bcrypt';
 import { PrismaService } from 'src/prisma/service';
-import { CreateUserDTO } from './dto';
+import { ChangePasswordDTO, CreateUserDTO } from './dto';
 import { convertPhoneNumberFormat } from 'src/utilities';
 import { UserSignIn } from 'src/auth/dto';
-import { ChangePasswordDTO } from 'src/brand/dto';
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
