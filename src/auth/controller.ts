@@ -32,7 +32,13 @@ export class AuthController {
   })
   @ApiCreatedResponse({ description: 'Login successful' })
   @Post('/login')
-  @Status(UserStatus.INIT, UserStatus.NEW, UserStatus.PENDING, UserStatus.VERIFIED)
+  @Status(
+    UserStatus.INIT,
+    UserStatus.NEW,
+    UserStatus.PENDING,
+    UserStatus.UPDATE,
+    UserStatus.VERIFIED,
+  )
   async login(@Request() req: RequestUser) {
     return await this.authService.signInUser(req.user);
   }
