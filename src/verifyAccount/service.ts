@@ -61,17 +61,18 @@ export class VerifyAccountsService {
     };
   }
 
-  async getListVerifyPendingByManagerId(userId: string, type: Role) {
+  async getListVerifyPendingByManagerId(userId: string, type: string) {
+    if (!type) throw new BadRequestException('Please input role!');
     const include = {
       brand: false,
       driver: false,
     };
-    if (!type) {
+    if (type === 'all') {
       include.brand = true;
       include.driver = true;
     }
-    if (type) {
-      include[`${type.toLowerCase()}`] = true;
+    if (type === 'driver' || type === 'brand') {
+      include[type] = true;
     }
     return await this.prisma.verifyAccount.findMany({
       where: {
@@ -81,6 +82,9 @@ export class VerifyAccountsService {
         status: VerifyAccountStatus.PENDING,
       },
       include,
+      orderBy: {
+        createDate: 'asc',
+      },
     });
   }
 
@@ -107,12 +111,12 @@ export class VerifyAccountsService {
         id: dto.verifyId,
       },
       data: {
-        status: dto.acction,
+        status: dto.action,
         detail: dto.detail,
       },
     });
     let status: UserStatus = 'PENDING';
-    switch (dto.acction) {
+    switch (dto.action) {
       case 'ACCEPT':
         status = UserStatus.VERIFIED;
         break;
@@ -196,9 +200,21 @@ export class VerifyAccountsService {
 
     const ratio = Math.floor(brandsFilter.length - 1) / (managers.length - 1);
     for (let i = 0; i < brands.length; i++) {
+      await this.prisma.brand.update({
+        where: {
+          id: brands[i].id,
+        },
+        data: {
+          user: {
+            update: {
+              status: 'PENDING',
+            },
+          },
+        },
+      });
       await this.prisma.verifyAccount.create({
         data: {
-          expiredDate: moment().add(-1, 'days').toDate(),
+          expiredDate: moment().add(1, 'days').toDate(),
           brand: {
             connect: {
               id: brands[i].id,

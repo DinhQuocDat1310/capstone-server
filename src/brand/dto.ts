@@ -44,17 +44,3 @@ export class BrandVerifyInformationDTO {
   @IsUrl(undefined)
   imageLicenseBusiness: string;
 }
-
-export class ChangePasswordDTO {
-  @ApiProperty()
-  @Matches(/^0\d{9}/, {
-    message: 'Incorrect phone number format. Please input 10 digits',
-  })
-  currentPassword: string;
-
-  @ApiProperty()
-  @Matches(/^0\d{9}/, {
-    message: 'Incorrect phone number format. Please input 10 digits',
-  })
-  newPassword: string;
-}
