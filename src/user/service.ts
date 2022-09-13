@@ -1,10 +1,11 @@
 import { BadRequestException, Body, Injectable } from '@nestjs/common';
 import { Role, UserStatus } from '@prisma/client';
-import { hash } from 'bcrypt';
+import { hash, compare } from 'bcrypt';
 import { PrismaService } from 'src/prisma/service';
 import { CreateUserDTO } from './dto';
 import { convertPhoneNumberFormat } from 'src/utilities';
 import { UserSignIn } from 'src/auth/dto';
+import { ChangePasswordDTO } from 'src/brand/dto';
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
@@ -39,6 +40,23 @@ export class UsersService {
         message: error.message,
       });
     }
+  }
+
+  async updatePasswordUser(userId: string, dto: ChangePasswordDTO) {
+    const user = await this.findUserByUserId(userId);
+    if (user && (await compare(dto.newPassword, user.password))) {
+      const hashPassword = await hash(user.password, 10);
+      await this.prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          password: hashPassword,
+        },
+      });
+      return 'updated';
+    }
+    throw new BadRequestException('Please try again!');
   }
 
   async findUserByUserId(id: string) {
@@ -106,7 +124,15 @@ export class UsersService {
         role,
       },
       include: {
-        brand: true,
+        brand: {
+          include: {
+            verify: {
+              orderBy: {
+                createDate: 'desc',
+              },
+            },
+          },
+        },
       },
     });
   }

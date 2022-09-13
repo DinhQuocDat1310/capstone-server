@@ -40,7 +40,7 @@ export class EmailsController {
   @ApiOkResponse({ description: 'ok' })
   @Roles(Role.BRAND)
   @Status(UserStatus.INIT)
-  @Get('/otp/generate')
+  @Post('/otp/generate')
   @ApiOperation({ summary: 'Send code to email' })
   async sendOtpToEmail(@Request() req: RequestUser) {
     return await this.emailService.sendOTP(req.user);

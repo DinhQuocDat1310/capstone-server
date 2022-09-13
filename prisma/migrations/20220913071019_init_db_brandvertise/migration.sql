@@ -2,22 +2,19 @@
 CREATE TYPE "Role" AS ENUM ('ADMIN', 'DRIVER', 'BRAND', 'MANAGER');
 
 -- CreateEnum
-CREATE TYPE "UserStatus" AS ENUM ('INIT', 'NEW', 'BANNED', 'VERIFIED');
+CREATE TYPE "UserStatus" AS ENUM ('INIT', 'NEW', 'PENDING', 'UPDATE', 'BANNED', 'VERIFIED');
 
 -- CreateEnum
-CREATE TYPE "CarColor" AS ENUM ('White', 'Black', 'Silver_Gray', 'Red', 'Blue', 'Brown_Beige', 'Green', 'Yellow_Gold');
+CREATE TYPE "CarColor" AS ENUM ('WHITE', 'BLACK', 'SILVER_GRAY', 'RED', 'BLUE', 'BROWN_BEIGE', 'GREEN', 'YELLOW_GOLD');
 
 -- CreateEnum
-CREATE TYPE "CarMake" AS ENUM ('Toyota', 'Kia', 'Hyundai', 'Mazda', 'Ford', 'Honda', 'Mitsubishi', 'Vinfast', 'Mercedes', 'Audi');
+CREATE TYPE "CarMake" AS ENUM ('TOYOTA', 'KIA', 'HYUNDAI', 'MAZDA', 'FORD', 'HONDA', 'MITSUBISHI', 'VINFAST', 'MERCEDES', 'AUDI');
 
 -- CreateEnum
-CREATE TYPE "VerifyType" AS ENUM ('Campaign', 'Brand', 'Driver', 'Payment');
+CREATE TYPE "AssignBy" AS ENUM ('ADMIN', 'SYSTEM');
 
 -- CreateEnum
-CREATE TYPE "RequestBy" AS ENUM ('Admin', 'System');
-
--- CreateEnum
-CREATE TYPE "VerifyStatus" AS ENUM ('ACCEPT', 'BANNED', 'REQUEST_TO_CHANGE', 'PENDING');
+CREATE TYPE "VerifyAccountStatus" AS ENUM ('NEW', 'ACCEPT', 'BANNED', 'EXPIRED', 'UPDATE', 'PENDING');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -28,6 +25,7 @@ CREATE TABLE "User" (
     "fullname" TEXT,
     "address" TEXT,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "isAdmin" BOOLEAN NOT NULL DEFAULT false,
     "role" "Role" NOT NULL,
     "status" "UserStatus" NOT NULL DEFAULT 'INIT',
     "idCitizen" TEXT,
@@ -78,20 +76,19 @@ CREATE TABLE "Manager" (
 );
 
 -- CreateTable
-CREATE TABLE "ManagerVerify" (
+CREATE TABLE "VerifyAccount" (
     "id" TEXT NOT NULL,
-    "type" "VerifyType" NOT NULL,
-    "status" "VerifyStatus" NOT NULL DEFAULT 'PENDING',
+    "status" "VerifyAccountStatus" NOT NULL DEFAULT 'NEW',
     "detail" TEXT,
     "createDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updateAt" TIMESTAMP(3) NOT NULL,
-    "expiredDate" TIMESTAMP(3) NOT NULL,
-    "createBy" "RequestBy",
+    "expiredDate" TIMESTAMP(3),
+    "assignBy" "AssignBy",
     "brandId" TEXT,
     "driverId" TEXT,
     "managerId" TEXT,
 
-    CONSTRAINT "ManagerVerify_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "VerifyAccount_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -131,10 +128,10 @@ ALTER TABLE "Driver" ADD CONSTRAINT "Driver_userId_fkey" FOREIGN KEY ("userId") 
 ALTER TABLE "Manager" ADD CONSTRAINT "Manager_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ManagerVerify" ADD CONSTRAINT "ManagerVerify_brandId_fkey" FOREIGN KEY ("brandId") REFERENCES "Brand"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "VerifyAccount" ADD CONSTRAINT "VerifyAccount_brandId_fkey" FOREIGN KEY ("brandId") REFERENCES "Brand"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ManagerVerify" ADD CONSTRAINT "ManagerVerify_driverId_fkey" FOREIGN KEY ("driverId") REFERENCES "Driver"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "VerifyAccount" ADD CONSTRAINT "VerifyAccount_driverId_fkey" FOREIGN KEY ("driverId") REFERENCES "Driver"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ManagerVerify" ADD CONSTRAINT "ManagerVerify_managerId_fkey" FOREIGN KEY ("managerId") REFERENCES "Manager"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "VerifyAccount" ADD CONSTRAINT "VerifyAccount_managerId_fkey" FOREIGN KEY ("managerId") REFERENCES "Manager"("id") ON DELETE SET NULL ON UPDATE CASCADE;

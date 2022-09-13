@@ -3,7 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["interactiveTransactions"]
+  previewFeatures = ["filteredRelationCount"]
 }
 
 datasource db {
@@ -21,6 +21,7 @@ model User {
   fullname          String?
   address           String?
   isActive          Boolean       @default(true)
+  isAdmin           Boolean       @default(false)
   role              Role
   status            UserStatus    @default(INIT)
   
@@ -44,6 +45,8 @@ enum Role {
 enum UserStatus {
   INIT
   NEW
+  PENDING
+  UPDATE
   BANNED
   VERIFIED
 }
@@ -59,7 +62,7 @@ model Brand {
   typeBusiness         String?
   imageLicenseBusiness String?
   
-  verify               ManagerVerify[]
+  verify               VerifyAccount[]
   user                 User            @relation(fields: [userId], references: [id])
   userId               String          @unique
 }
@@ -79,58 +82,50 @@ model Driver {
   ownerBank     String?
   nameBank      String?
 
-  verify        ManagerVerify[]
+  verify        VerifyAccount[]
   user          User   @relation(fields: [userId], references: [id])
   userId        String @unique
 }
 
 enum CarColor {
-  White
-  Black
-  Silver_Gray
-  Red
-  Blue
-  Brown_Beige
-  Green
-  Yellow_Gold
+  WHITE
+  BLACK
+  SILVER_GRAY
+  RED
+  BLUE
+  BROWN_BEIGE
+  GREEN
+  YELLOW_GOLD
 }
 
 enum CarMake {         
-  Toyota
-  Kia
-  Hyundai
-  Mazda
-  Ford
-  Honda
-  Mitsubishi
-  Vinfast
-  Mercedes
-  Audi
+  TOYOTA
+  KIA
+  HYUNDAI
+  MAZDA
+  FORD
+  HONDA
+  MITSUBISHI
+  VINFAST
+  MERCEDES
+  AUDI
 }
 
 model Manager {
   id          String        @id @default(uuid())
   user        User          @relation(fields: [userId], references: [id])
   userId      String        @unique
-  verify      ManagerVerify[]
+  verify      VerifyAccount[]
 }
 
-enum VerifyType {
-  Campaign
-  Brand
-  Driver
-  Payment
-}
-
-model ManagerVerify {
+model VerifyAccount {
   id          String        @id @default(uuid())
-  type        VerifyType
-  status      VerifyStatus  @default(PENDING)
+  status      VerifyAccountStatus  @default(NEW)
   detail      String?
   createDate  DateTime      @default(now())
   updateAt    DateTime      @updatedAt
-  expiredDate DateTime
-  createBy    RequestBy?      
+  expiredDate DateTime?
+  assignBy    AssignBy?      
   brand       Brand?        @relation(fields: [brandId], references: [id])
   brandId     String?
   driver      Driver?       @relation(fields: [driverId], references: [id])
@@ -139,14 +134,16 @@ model ManagerVerify {
   managerId   String?
 }
 
-enum RequestBy {
-  Admin
-  System
+enum AssignBy {
+  ADMIN
+  SYSTEM
 }
 
-enum VerifyStatus {
+enum VerifyAccountStatus {
+  NEW
   ACCEPT
   BANNED
-  REQUEST_TO_CHANGE
+  EXPIRED
+  UPDATE
   PENDING
 }

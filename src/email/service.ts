@@ -28,7 +28,7 @@ export class EmailsService {
       userReq.email,
       userReq.role,
     );
-    const codeCached: { code: number; remainingInput: number } =
+    const codeCached: { code: string; remainingInput: number } =
       await this.cacheManager.get(user.email);
     if (codeCached) {
       throw new BadRequestException({
@@ -63,8 +63,8 @@ export class EmailsService {
     };
   }
 
-  async VerifyOTP(userReq: UserSignIn, codeInput: number) {
-    const codeCached: { code: number; remainingInput: number } =
+  async VerifyOTP(userReq: UserSignIn, codeInput: string) {
+    const codeCached: { code: string; remainingInput: number } =
       await this.cacheManager.get(userReq.email);
     if (!codeCached) {
       throw new BadRequestException({
