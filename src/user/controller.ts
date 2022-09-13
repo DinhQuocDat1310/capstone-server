@@ -22,10 +22,9 @@ import {
 import { UserStatus } from '@prisma/client';
 import { RequestUser } from 'src/auth/dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { ChangePasswordDTO } from 'src/brand/dto';
 import { Status } from 'src/guard/decorators';
 import { StatusGuard } from 'src/guard/userStatus.guard';
-import { CreateUserDTO, UserDTO } from './dto';
+import { ChangePasswordDTO, CreateUserDTO, UserDTO } from './dto';
 import { UsersService } from './service';
 @Controller('user')
 @ApiTags('User')
@@ -49,7 +48,13 @@ export class UserController {
   })
   @ApiOkResponse({ type: UserDTO })
   @UseGuards(JwtAuthGuard, StatusGuard)
-  @Status(UserStatus.INIT, UserStatus.NEW, UserStatus.VERIFIED)
+  @Status(
+    UserStatus.INIT,
+    UserStatus.NEW,
+    UserStatus.PENDING,
+    UserStatus.UPDATE,
+    UserStatus.VERIFIED,
+  )
   @ApiBearerAuth('access-token')
   @Get()
   async getUserInformation(@Request() req: RequestUser) {
@@ -64,7 +69,13 @@ export class UserController {
   @ApiOkResponse()
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard, StatusGuard)
-  @Status(UserStatus.INIT, UserStatus.NEW, UserStatus.VERIFIED)
+  @Status(
+    UserStatus.INIT,
+    UserStatus.NEW,
+    UserStatus.PENDING,
+    UserStatus.UPDATE,
+    UserStatus.VERIFIED,
+  )
   @Post('passsword/change')
   async changePassword(
     @Request() req: RequestUser,

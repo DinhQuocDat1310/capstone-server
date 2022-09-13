@@ -1,7 +1,7 @@
 import { PrismaService } from './../prisma/service';
 import { Injectable } from '@nestjs/common';
 import { VerifyAccountStatus } from '@prisma/client';
-import moment from 'moment';
+import * as moment from 'moment';
 
 @Injectable()
 export class ManagerService {

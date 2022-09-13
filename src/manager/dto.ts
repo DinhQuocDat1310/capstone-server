@@ -5,6 +5,7 @@ import { IsEnum, IsNotEmpty, IsString, ValidateIf } from 'class-validator';
 export class ManagerVerifyDTO {
   @IsString()
   @IsNotEmpty()
+  @ApiProperty()
   verifyId: string;
 
   @IsEnum(
@@ -24,12 +25,18 @@ export class ManagerVerifyDTO {
       VerifyAccountStatus.BANNED,
       VerifyAccountStatus.UPDATE,
     ],
-    description: 'acction',
+    example: [
+      VerifyAccountStatus.ACCEPT,
+      VerifyAccountStatus.BANNED,
+      VerifyAccountStatus.UPDATE,
+    ],
+    description: 'action',
   })
-  acction?: VerifyAccountStatus;
+  action?: VerifyAccountStatus;
 
   @IsString()
   @IsNotEmpty()
+  @ApiProperty()
   @ValidateIf(
     (verify) => verify.acction === 'UPDATE' || verify.action === 'BANNED',
   )

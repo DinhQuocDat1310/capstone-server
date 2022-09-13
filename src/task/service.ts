@@ -30,12 +30,12 @@ export class TasksService {
         return;
       }
       const ratio =
-        verifies.length - 1 / ((managers.length - 1) * HANDLE_REQUEST_IN_A_DAY);
+        verifies.length / (managers.length * HANDLE_REQUEST_IN_A_DAY);
 
       const requestsHandlerPerDay =
         ratio >= 1
           ? HANDLE_REQUEST_IN_A_DAY
-          : Math.floor((verifies.length - 1) / (managers.length - 1));
+          : Math.floor(verifies.length / managers.length);
 
       for (let i = 0; i < managers.length; i++) {
         const arr = verifies.splice(0, requestsHandlerPerDay);
