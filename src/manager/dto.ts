@@ -31,13 +31,12 @@ export class ManagerVerifyDTO {
     ],
     description: 'action',
   })
-  action?: VerifyAccountStatus;
+  action: VerifyAccountStatus;
 
   @IsString()
-  @IsNotEmpty()
   @ApiProperty()
   @ValidateIf(
-    (verify) => verify.acction === 'UPDATE' || verify.action === 'BANNED',
+    (verify) => verify.action === 'UPDATE' || verify.action === 'BANNED',
   )
   detail: string;
 }
