@@ -5,16 +5,10 @@ import {
   IsEmail,
   ValidateIf,
   IsEnum,
-  IsOptional,
   Matches,
 } from 'class-validator';
 
 export class CreateUserDTO {
-  @IsString()
-  @IsOptional()
-  @ApiProperty({ type: String, description: 'fullname' })
-  fullname?: string;
-
   @IsString()
   @ValidateIf((user) => user.role === 'BRAND')
   @ApiProperty({ type: String, description: 'brandName' })
