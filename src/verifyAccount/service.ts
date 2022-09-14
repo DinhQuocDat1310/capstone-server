@@ -7,10 +7,16 @@ import {
 import { ManagerVerifyDTO } from 'src/manager/dto';
 import { Prisma, UserStatus, VerifyAccountStatus } from '@prisma/client';
 import * as moment from 'moment';
+import { MailerService } from '@nestjs-modules/mailer';
+import { AppConfigService } from 'src/config/appConfigService';
 
 @Injectable()
 export class VerifyAccountsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mailerService: MailerService,
+    private readonly configService: AppConfigService,
+  ) {}
 
   async createNewRequestVerifyBrandAccount(id: string) {
     try {
@@ -127,7 +133,7 @@ export class VerifyAccountsService {
         id: dto.verifyId,
         status: VerifyAccountStatus.PENDING,
         manager: {
-          userId,
+          userId: userId,
         },
       },
       include: {
@@ -136,8 +142,14 @@ export class VerifyAccountsService {
             userId: true,
           },
         },
+        driver: {
+          select: {
+            userId: true,
+          },
+        },
       },
     });
+    const type = verify.brand ? 'brand' : 'driver';
     if (!verify) {
       throw new BadRequestException(
         'This request is not pending anymore. Can you try another request!',
@@ -153,25 +165,56 @@ export class VerifyAccountsService {
       },
     });
     let status: UserStatus = 'PENDING';
+    let message = '';
     switch (dto.action) {
       case 'ACCEPT':
+        message = `<p>Congratulations!. Your ${type} information has been accepted</p>
+           <p>Please login at the website for more details</p>`;
         status = UserStatus.VERIFIED;
         break;
       case 'BANNED':
+        message = `<p>Your account has been banned for violating our terms</p>
+           <p>Please contact ${this.configService.getConfig(
+             'MAILER',
+           )} for more information</p>`;
         status = UserStatus.BANNED;
         break;
       case 'UPDATE':
+        message = `<p>The ${type} information you provided is not valid, please update so that Brandvertise's team can support as soon as possible.</p>
+           <p>Please login at the website for more details</p>`;
         status = UserStatus.UPDATE;
         break;
     }
-    return await this.prisma.user.update({
+    const user = await this.prisma.user.update({
       where: {
-        id: verify.brand.userId,
+        id: verify.brand ? verify.brand.userId : verify.driver.userId,
       },
       data: {
         status,
       },
+      select: {
+        email: true,
+        status: true,
+        brand: {
+          select: {
+            brandName: true,
+          },
+        },
+      },
     });
+    await this.mailerService.sendMail({
+      to: user.email,
+      from: this.configService.getConfig('MAILER'),
+      subject: 'Result verification account',
+      html: `
+       <p>Dear ${user.brand.brandName},</p></br>
+       <p>Thanks for becoming Brandvertise's partner!</p>
+        ${message}
+       <p>Regards,</p>
+       <p style="color: green">Brandvertise</p>
+    `,
+    });
+    return;
   }
 
   async getAllVerifyNew() {

@@ -25,7 +25,7 @@ export class UsersService {
           : {},
     };
     try {
-      await this.checkBrandNameIsExist(brandName);
+      if (role === 'BRAND') await this.checkBrandNameIsExist(brandName);
       await this.checkEmailOrPhoneNumberIsExist(
         user.email ?? '',
         user.phoneNumber ?? '',

@@ -4,6 +4,7 @@ import {
   CACHE_MANAGER,
   Inject,
   Injectable,
+  Logger,
 } from '@nestjs/common';
 import { UserStatus } from '@prisma/client';
 import { Cache } from 'cache-manager';
@@ -14,6 +15,7 @@ import { UserSignIn } from 'src/auth/dto';
 
 @Injectable()
 export class EmailsService {
+  private readonly logger = new Logger(EmailsService.name);
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly mailerService: MailerService,
@@ -102,5 +104,21 @@ export class EmailsService {
     return {
       message: 'Verified',
     };
+  }
+
+  async sendNotificationVerifyAccountToBrandEmail(
+    email: string,
+    subject: string,
+    content: string,
+  ) {
+    await this.mailerService.sendMail({
+      to: email,
+      from: this.configService.getConfig('MAILER'),
+      subject,
+      html: content,
+    });
+    this.logger.debug(
+      `Send notification verify account to ${email} successful!`,
+    );
   }
 }
