@@ -1,6 +1,9 @@
 import { PrismaService } from './../prisma/service';
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { UserSignIn } from 'src/auth/dto';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ManagerVerifyDTO } from 'src/manager/dto';
 import { Prisma, UserStatus, VerifyAccountStatus } from '@prisma/client';
 import * as moment from 'moment';
@@ -9,16 +12,20 @@ import * as moment from 'moment';
 export class VerifyAccountsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createNewRequestVerifyBrandAccount(userReq: UserSignIn) {
-    return await this.prisma.verifyAccount.create({
-      data: {
-        brand: {
-          connect: {
-            userId: userReq.id,
+  async createNewRequestVerifyBrandAccount(id: string) {
+    try {
+      return await this.prisma.verifyAccount.create({
+        data: {
+          brand: {
+            connect: {
+              id,
+            },
           },
         },
-      },
-    });
+      });
+    } catch (e) {
+      throw new InternalServerErrorException(e.message);
+    }
   }
 
   async assignVerifyAccountToManager(verifyId: string, managerId: string) {
@@ -37,104 +44,125 @@ export class VerifyAccountsService {
   }
 
   async getListVerifyBrandByUserId(userId: string) {
-    const verifyList = await this.prisma.verifyAccount.findMany({
+    return await this.prisma.verifyAccount.findMany({
       where: {
         brand: {
           userId,
         },
-      },
-      include: {
-        brand: true,
       },
       orderBy: {
         createDate: 'desc',
       },
     });
-    const current = verifyList[0];
-    const history = verifyList.slice(1).map((verify) => {
-      delete verify.brand;
-      return verify;
-    });
-    return {
-      current,
-      history,
-    };
   }
 
   async getListVerifyPendingByManagerId(userId: string, type: string) {
-    if (!type) throw new BadRequestException('Please input role!');
-    const include = {
-      brand: false,
-      driver: false,
-    };
-    if (type === 'all') {
-      include.brand = true;
-      include.driver = true;
-    }
-    if (type === 'driver' || type === 'brand') {
-      include[type] = true;
-    }
-    return await this.prisma.verifyAccount.findMany({
-      where: {
-        manager: {
-          userId,
-        },
-        status: VerifyAccountStatus.PENDING,
-      },
-      include,
-      orderBy: {
-        createDate: 'asc',
-      },
-    });
-  }
+    if (['driver', 'brand', 'all'].indexOf(type.toLowerCase()) === -1)
+      throw new BadRequestException('The role is not valid!. please try again');
 
-  async verifyAccount(managerId: string, dto: ManagerVerifyDTO) {
-    const verify = await this.prisma.verifyAccount.findFirst({
-      where: {
-        id: dto.verifyId,
-        status: VerifyAccountStatus.PENDING,
-        managerId,
-      },
-      include: {
-        brand: {
-          select: {
-            userId: true,
+    const select = {
+      id: true,
+      status: true,
+      detail: true,
+      createDate: true,
+      expiredDate: true,
+      assignBy: true,
+    };
+    if (type === 'brand' || type === 'all') {
+      select['brand'] = {
+        select: {
+          ownerLicenseBusiness: true,
+          idLicenseBusiness: true,
+          typeBusiness: true,
+          brandName: true,
+          imageLicenseBusiness: true,
+          logo: true,
+          user: {
+            select: {
+              address: true,
+              phoneNumber: true,
+              idCitizen: true,
+              imageCitizenFront: true,
+              imageCitizenBack: true,
+            },
           },
         },
-      },
-    });
-    if (!verify) {
-      throw new BadRequestException();
+      };
     }
-    await this.prisma.verifyAccount.update({
-      where: {
-        id: dto.verifyId,
-      },
-      data: {
-        status: dto.action,
-        detail: dto.detail,
-      },
-    });
-    let status: UserStatus = 'PENDING';
-    switch (dto.action) {
-      case 'ACCEPT':
-        status = UserStatus.VERIFIED;
-        break;
-      case 'BANNED':
-        status = UserStatus.BANNED;
-        break;
-      case 'UPDATE':
-        status = UserStatus.UPDATE;
-        break;
+    if (type === 'driver' || type === 'all') {
+      select['driver'] = true;
     }
-    await this.prisma.user.update({
-      where: {
-        id: verify.brand.userId,
-      },
-      data: {
-        status,
-      },
-    });
+    try {
+      return await this.prisma.verifyAccount.findMany({
+        where: {
+          manager: {
+            userId,
+          },
+          status: VerifyAccountStatus.PENDING,
+        },
+        select,
+        orderBy: {
+          createDate: 'asc',
+        },
+      });
+    } catch (e) {
+      throw new InternalServerErrorException(e.message);
+    }
+  }
+
+  async managerVerifyAccount(managerId: string, dto: ManagerVerifyDTO) {
+    try {
+      const verify = await this.prisma.verifyAccount.findFirst({
+        where: {
+          id: dto.verifyId,
+          status: VerifyAccountStatus.PENDING,
+          managerId,
+        },
+        include: {
+          brand: {
+            select: {
+              userId: true,
+            },
+          },
+        },
+      });
+      if (!verify) {
+        throw new BadRequestException(
+          'This request is not pending anymore. Can you try another request!',
+        );
+      }
+      await this.prisma.verifyAccount.update({
+        where: {
+          id: dto.verifyId,
+        },
+        data: {
+          status: dto.action,
+          detail: dto.detail,
+        },
+      });
+      let status: UserStatus = 'PENDING';
+      switch (dto.action) {
+        case 'ACCEPT':
+          status = UserStatus.VERIFIED;
+          break;
+        case 'BANNED':
+          status = UserStatus.BANNED;
+          break;
+        case 'UPDATE':
+          status = UserStatus.UPDATE;
+          break;
+      }
+      await this.prisma.user.update({
+        where: {
+          id: verify.brand.userId,
+        },
+        data: {
+          status,
+        },
+      });
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
     return 'success';
   }
 
@@ -191,15 +219,17 @@ export class VerifyAccountsService {
     const brands = await this.prisma.brand.findMany({
       include: { verify: true },
     });
-    const managers = await this.prisma.manager.findMany({});
 
     const brandsFilter = brands.filter(
       (brand) =>
         !brand.verify.some((b) => b.status === 'NEW' || b.status === 'PENDING'),
     );
 
-    const ratio = Math.floor(brandsFilter.length - 1) / (managers.length - 1);
-    for (let i = 0; i < brands.length; i++) {
+    if (brandsFilter.length === 0) {
+      return 'all Brand is on processing!';
+    }
+
+    for (let i = 0; i < brandsFilter.length; i++) {
       await this.prisma.brand.update({
         where: {
           id: brands[i].id,
@@ -214,20 +244,14 @@ export class VerifyAccountsService {
       });
       await this.prisma.verifyAccount.create({
         data: {
-          expiredDate: moment().add(1, 'days').toDate(),
           brand: {
             connect: {
               id: brands[i].id,
             },
           },
-          manager: {
-            connect: {
-              id: managers[Math.floor(i / ratio)].id,
-            },
-          },
         },
       });
     }
-    return 'success';
+    return `Create ${brandsFilter.length} request verify NEW Brand`;
   }
 }

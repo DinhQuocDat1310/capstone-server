@@ -77,7 +77,7 @@ export class EmailsService {
           UserStatus.BANNED,
         );
         throw new BadRequestException({
-          message: `Cannot Request to Verify code for this account. Please contact: ${this.configService.getConfig(
+          message: `Your account is banned. Please contact: ${this.configService.getConfig(
             'MAILER',
           )} for more information.`,
         });

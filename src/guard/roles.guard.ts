@@ -1,16 +1,17 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from '@prisma/client';
 import { ROLES_KEY } from './decorators';
-import { UsersService } from 'src/user/service';
 import { RequestUser } from 'src/auth/dto';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(
-    private readonly reflector: Reflector,
-    private readonly userService: UsersService,
-  ) {}
+  constructor(private readonly reflector: Reflector) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const requireRoles = this.reflector.get<Role[]>(
@@ -21,15 +22,12 @@ export class RolesGuard implements CanActivate {
       return true;
     }
     const request: RequestUser = context.switchToHttp().getRequest();
-    const userReq = request.user;
-    if (!userReq) {
-      return false;
+    const isValid = requireRoles.some((role) => role === request.user.role);
+    if (!isValid) {
+      throw new ForbiddenException(
+        `Your ${request.user.role} role is don't have permisson to access this resource`,
+      );
     }
-    const user = await this.userService.findUserByEmailOrPhoneNumber(
-      userReq.email,
-      userReq.phoneNumber,
-    );
-    if (!user) return false;
-    return requireRoles.some((role) => role === user.role);
+    return isValid;
   }
 }

@@ -27,9 +27,7 @@ export class EmailsController {
 
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @ApiForbiddenResponse({
-    description: "Account don't have permission to use this feature",
-  })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiOkResponse({ description: 'ok' })
   @Roles(Role.BRAND)
   @Status(UserStatus.INIT)
@@ -42,10 +40,8 @@ export class EmailsController {
   @ApiBody({ type: VerifyDto })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @ApiForbiddenResponse({
-    description: "Account don't have permission to use this feature",
-  })
-  @ApiOperation({ summary: 'Verify OTP' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiOperation({ summary: 'Verify email' })
   @Roles(Role.BRAND)
   @Status(UserStatus.INIT)
   @Post('/otp/verify')

@@ -43,15 +43,25 @@ export class ManagerController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Post('account/verify')
+  @Roles(Role.MANAGER)
   async verifyAccount(
     @Request() req: RequestUser,
     @Body() dto: ManagerVerifyDTO,
   ) {
-    return await this.verifyAccountService.verifyAccount(req.user.id, dto);
+    return await this.verifyAccountService.managerVerifyAccount(
+      req.user.id,
+      dto,
+    );
   }
 
-  @Get('account/verify/:role')
+  @ApiOperation({ summary: 'Get list verify pending by role' })
+  @ApiForbiddenResponse({
+    description: "Account don't have permission to use this feature",
+  })
+  @ApiBadRequestResponse({ description: 'Role is not valid' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.MANAGER)
+  @Get('account/verify/:role')
   async getListVerifyByRole(
     @Request() req: RequestUser,
     @Param('role') role: string,
@@ -62,6 +72,12 @@ export class ManagerController {
     );
   }
 
+  @ApiOperation({ summary: 'Automation create request for brand' })
+  @ApiForbiddenResponse({
+    description: "Account don't have permission to use this feature",
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Roles(Role.MANAGER)
   @Get('fake/autoCreateNewRequest')
   async addFakeData() {
     return this.verifyAccountService.fakeAutoCreateVerifyRequest();

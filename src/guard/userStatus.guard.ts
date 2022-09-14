@@ -27,7 +27,7 @@ export class StatusGuard implements CanActivate {
     );
     if (!isValid)
       throw new ForbiddenException(
-        `Your account is don't have permission. Please contact: ${process.env.MAILER} for more information.`,
+        `Your account is don't have permission to access this resource`,
       );
     return isValid;
   }

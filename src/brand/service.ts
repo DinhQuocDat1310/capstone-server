@@ -4,11 +4,15 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { BrandVerifyInformationDTO } from './dto';
 import { UserSignIn } from 'src/auth/dto';
 import { UserStatus } from '@prisma/client';
 import { VerifyAccountsService } from 'src/verifyAccount/service';
+import { convertPhoneNumberFormat } from 'src/utilities';
+import { AppConfigService } from 'src/config/appConfigService';
 
 @Injectable()
 export class BrandsService {
@@ -16,6 +20,7 @@ export class BrandsService {
     private readonly prisma: PrismaService,
     private readonly usersService: UsersService,
     private readonly verifyAccountService: VerifyAccountsService,
+    private readonly configService: AppConfigService,
   ) {}
 
   async updateBrandVerify(dto: BrandVerifyInformationDTO, userReq: UserSignIn) {
@@ -23,21 +28,24 @@ export class BrandsService {
       userReq.email,
       userReq.role,
     );
-    if (!user) throw new ForbiddenException();
-    const latestVerifyStatus = user.brand?.verify[0]?.status;
+    const latestVerifyStatus = user.brand.verify[0]?.status;
     if (latestVerifyStatus === 'NEW' || latestVerifyStatus === 'PENDING') {
       throw new BadRequestException(
-        'Your account is on processing, we will reponse back in 3 - 5',
+        'Your account is on processing, we will reponse back in 1 to 3 working days',
       );
     }
     if (latestVerifyStatus === 'ACCEPT' || latestVerifyStatus === 'BANNED') {
-      throw new ForbiddenException();
+      throw new BadRequestException(
+        `Your account is already processed, please check your email or contact with ${this.configService.getConfig(
+          'MAILER',
+        )} for more information`,
+      );
     }
     if (user.phoneNumber !== dto.phoneNumber) {
       await this.usersService.checkEmailOrPhoneNumberIsExist(
         '',
         dto.phoneNumber,
-        'This phone number is already exist',
+        'This phone number is already used',
       );
     }
     if (user.idCitizen !== dto.idCitizen) {
@@ -48,7 +56,12 @@ export class BrandsService {
     }
 
     try {
-      await this.prisma.user.update({
+      if (!latestVerifyStatus || latestVerifyStatus === 'UPDATE') {
+        await this.verifyAccountService.createNewRequestVerifyBrandAccount(
+          user.brand.id,
+        );
+      }
+      return await this.prisma.user.update({
         where: {
           id: userReq.id,
         },
@@ -57,7 +70,7 @@ export class BrandsService {
           status: UserStatus.PENDING,
           imageCitizenBack: dto.imageCitizenBack,
           imageCitizenFront: dto.imageCitizenFront,
-          phoneNumber: dto.phoneNumber,
+          phoneNumber: convertPhoneNumberFormat(dto.phoneNumber),
           address: dto.address,
           brand: {
             update: {
@@ -69,14 +82,12 @@ export class BrandsService {
             },
           },
         },
+        include: {
+          brand: true,
+        },
       });
-      if (!latestVerifyStatus || latestVerifyStatus === 'UPDATE') {
-        await this.verifyAccountService.createNewRequestVerifyBrandAccount(
-          user,
-        );
-      }
-    } catch (error) {
-      throw new BadRequestException(error.message);
+    } catch (e) {
+      throw new InternalServerErrorException(e.message);
     }
   }
 }

@@ -1,8 +1,15 @@
-import { Controller, Post, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  UseGuards,
+  Request,
+  HttpStatus,
+  HttpCode,
+} from '@nestjs/common';
 import {
   ApiBody,
-  ApiCreatedResponse,
   ApiForbiddenResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -27,11 +34,10 @@ export class AuthController {
     description: 'Login failed: email/phone number or password is incorrect.',
   })
   @ApiForbiddenResponse({
-    description:
-      'Your account dont have permission. Please contact admin to support',
+    description: 'Forbidden',
   })
-  @ApiCreatedResponse({ description: 'Login successful' })
-  @Post('/login')
+  @ApiOkResponse({ description: 'Login successful' })
+  @HttpCode(HttpStatus.OK)
   @Status(
     UserStatus.INIT,
     UserStatus.NEW,
@@ -39,6 +45,7 @@ export class AuthController {
     UserStatus.UPDATE,
     UserStatus.VERIFIED,
   )
+  @Post('/login')
   async login(@Request() req: RequestUser) {
     return await this.authService.signInUser(req.user);
   }

@@ -25,6 +25,7 @@ export class UsersService {
           : {},
     };
     try {
+      await this.checkBrandNameIsExist(brandName);
       await this.checkEmailOrPhoneNumberIsExist(
         user.email ?? '',
         user.phoneNumber ?? '',
@@ -106,6 +107,18 @@ export class UsersService {
     });
   }
 
+  async checkBrandNameIsExist(brandName: string) {
+    const brand = await this.prisma.user.findFirst({
+      where: {
+        brand: {
+          brandName,
+        },
+      },
+    });
+    if (brand)
+      throw new BadRequestException('This brand name is already exist!');
+  }
+
   async checkEmailOrPhoneNumberIsExist(
     email: string,
     phoneNumber: string,
@@ -141,7 +154,8 @@ export class UsersService {
         idCitizen,
       },
     });
-    if (card) throw new BadRequestException('This id card citizen is exist');
+    if (card)
+      throw new BadRequestException('This id card citizen is already used');
   }
 
   async checkIdLicenseIsExist(idLicenseBusiness: string) {
@@ -151,6 +165,6 @@ export class UsersService {
       },
     });
     if (license)
-      throw new BadRequestException('This id business license is exist');
+      throw new BadRequestException('This id business license is already used');
   }
 }

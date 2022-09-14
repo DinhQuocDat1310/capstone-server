@@ -5,7 +5,7 @@ import { IsEnum, IsNotEmpty, IsString, ValidateIf } from 'class-validator';
 export class ManagerVerifyDTO {
   @IsString()
   @IsNotEmpty()
-  @ApiProperty()
+  @ApiProperty({ description: 'ID of request verify account' })
   verifyId: string;
 
   @IsEnum(
@@ -15,8 +15,7 @@ export class ManagerVerifyDTO {
       VerifyAccountStatus.UPDATE,
     ],
     {
-      message:
-        'Action must be following format: [ACCEPT, BANNED, REQUEST_TO_CHANGE]',
+      message: 'Action must be following format: [ACCEPT, BANNED, UPDATE]',
     },
   )
   @ApiProperty({
