@@ -93,7 +93,7 @@ export class VerifyAccountsService {
       select['driver'] = true;
     }
     try {
-      return await this.prisma.verifyAccount.findMany({
+      const verifies = await this.prisma.verifyAccount.findMany({
         where: {
           manager: {
             userId,
@@ -104,6 +104,17 @@ export class VerifyAccountsService {
         orderBy: {
           createDate: 'asc',
         },
+      });
+      return verifies.map((verify) => {
+        if (type === 'brand' || type === 'all') {
+          const user = verify['brand']?.user;
+          delete verify['brand']?.user;
+          verify['brand'] = {
+            ...verify['brand'],
+            ...user,
+          };
+        }
+        return verify;
       });
     } catch (e) {
       throw new InternalServerErrorException(e.message);
