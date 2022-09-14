@@ -38,7 +38,7 @@ export class EmailsService {
     await this.cacheManager.set(
       user.email,
       {
-        code,
+        code: code.toString(),
         remainingInput: 5,
       },
       { ttl: EXPIRED_CODE_FIVE_MINUTES },

@@ -110,60 +110,57 @@ export class VerifyAccountsService {
     }
   }
 
-  async managerVerifyAccount(managerId: string, dto: ManagerVerifyDTO) {
-    try {
-      const verify = await this.prisma.verifyAccount.findFirst({
-        where: {
-          id: dto.verifyId,
-          status: VerifyAccountStatus.PENDING,
-          managerId,
+  async managerVerifyAccount(userId: string, dto: ManagerVerifyDTO) {
+    const verify = await this.prisma.verifyAccount.findFirst({
+      where: {
+        id: dto.verifyId,
+        status: VerifyAccountStatus.PENDING,
+        manager: {
+          userId,
         },
-        include: {
-          brand: {
-            select: {
-              userId: true,
-            },
+      },
+      include: {
+        brand: {
+          select: {
+            userId: true,
           },
         },
-      });
-      if (!verify) {
-        throw new BadRequestException(
-          'This request is not pending anymore. Can you try another request!',
-        );
-      }
-      await this.prisma.verifyAccount.update({
-        where: {
-          id: dto.verifyId,
-        },
-        data: {
-          status: dto.action,
-          detail: dto.detail,
-        },
-      });
-      let status: UserStatus = 'PENDING';
-      switch (dto.action) {
-        case 'ACCEPT':
-          status = UserStatus.VERIFIED;
-          break;
-        case 'BANNED':
-          status = UserStatus.BANNED;
-          break;
-        case 'UPDATE':
-          status = UserStatus.UPDATE;
-          break;
-      }
-      await this.prisma.user.update({
-        where: {
-          id: verify.brand.userId,
-        },
-        data: {
-          status,
-        },
-      });
-    } catch (e) {
-      throw new InternalServerErrorException(e);
+      },
+    });
+    if (!verify) {
+      throw new BadRequestException(
+        'This request is not pending anymore. Can you try another request!',
+      );
     }
-    return 'success';
+    await this.prisma.verifyAccount.update({
+      where: {
+        id: dto.verifyId,
+      },
+      data: {
+        status: dto.action,
+        detail: dto.detail,
+      },
+    });
+    let status: UserStatus = 'PENDING';
+    switch (dto.action) {
+      case 'ACCEPT':
+        status = UserStatus.VERIFIED;
+        break;
+      case 'BANNED':
+        status = UserStatus.BANNED;
+        break;
+      case 'UPDATE':
+        status = UserStatus.UPDATE;
+        break;
+    }
+    return await this.prisma.user.update({
+      where: {
+        id: verify.brand.userId,
+      },
+      data: {
+        status,
+      },
+    });
   }
 
   async getAllVerifyNew() {
@@ -217,6 +214,11 @@ export class VerifyAccountsService {
 
   async fakeAutoCreateVerifyRequest() {
     const brands = await this.prisma.brand.findMany({
+      where: {
+        user: {
+          status: 'NEW',
+        },
+      },
       include: { verify: true },
     });
 

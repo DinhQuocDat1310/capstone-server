@@ -57,7 +57,7 @@ export class BrandController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.BRAND)
-  @Status(UserStatus.PENDING)
+  @Status(UserStatus.UPDATE)
   @Get('account/verify')
   async getListVerifyBrand(@Request() req: RequestUser) {
     return await this.verifyAccountService.getListVerifyBrandByUserId(
