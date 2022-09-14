@@ -18,14 +18,15 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { UserStatus } from '@prisma/client';
+import { Role, UserStatus } from '@prisma/client';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { Status } from 'src/guard/decorators';
+import { Roles, Status } from 'src/guard/decorators';
+import { RolesGuard } from 'src/guard/roles.guard';
 import { StatusGuard } from 'src/guard/userStatus.guard';
 import { CloudinaryService } from './service';
 
 @Controller('file')
-@UseGuards(JwtAuthGuard, StatusGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
 @ApiBearerAuth('access-token')
 @ApiTags('File')
 export class CloudinaryController {
@@ -41,16 +42,20 @@ export class CloudinaryController {
     },
   })
   @ApiOperation({ summary: 'Upload file' })
-  @ApiForbiddenResponse({
-    description: "Account don't have permission to use this feature",
-  })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiCreatedResponse({
     description:
-      'url: http://res.cloudinary.com/exampleId/image/upload/vExample/exampleId.type',
+      'url: http://res.cloudinary.com/exampleId/image/upload/v.example/exampleId.type',
   })
-  @Status(UserStatus.NEW, UserStatus.VERIFIED)
+  @Status(
+    UserStatus.NEW,
+    UserStatus.PENDING,
+    UserStatus.UPDATE,
+    UserStatus.VERIFIED,
+  )
+  @Roles(Role.BRAND, Role.DRIVER)
   @UseInterceptors(FileInterceptor('file'))
   @Post('upload')
   async updateBrandInformation(@UploadedFile() file: Express.Multer.File) {
