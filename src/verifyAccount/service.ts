@@ -1,3 +1,9 @@
+import {
+  FAKE_LOGO,
+  FAKE_LICENSE,
+  FAKE_BACK_CARDLICENSE,
+  FAKE_FRONT_CARDLICENSE,
+} from './../constants/fake-data';
 import { PrismaService } from './../prisma/service';
 import {
   BadRequestException,
@@ -284,16 +290,28 @@ export class VerifyAccountsService {
     if (brandsFilter.length === 0) {
       return 'all Brand is on processing!';
     }
-
+    const randomNumber = Math.floor(Math.random() * 900000000);
+    const randomPhone =
+      Math.floor(Math.random() * (999999999 - 100000000)) + 100000000;
     for (let i = 0; i < brandsFilter.length; i++) {
       await this.prisma.brand.update({
         where: {
           id: brands[i].id,
         },
         data: {
+          idLicenseBusiness: (randomNumber + i).toString(),
+          ownerLicenseBusiness: 'Nguyen Van ' + i,
+          logo: FAKE_LOGO[i],
+          typeBusiness: 'Business Land ' + i,
+          imageLicenseBusiness: FAKE_LICENSE[i],
           user: {
             update: {
               status: 'PENDING',
+              imageCitizenFront: FAKE_FRONT_CARDLICENSE[i],
+              imageCitizenBack: FAKE_BACK_CARDLICENSE[i],
+              idCitizen: (randomNumber + i).toString(),
+              address: 'HCM City, Ward ' + i,
+              phoneNumber: `+84${randomPhone + i}`,
             },
           },
         },
