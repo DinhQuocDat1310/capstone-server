@@ -14,12 +14,14 @@ import { ManagerModule } from './manager/module';
 import * as Joi from '@hapi/joi';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TasksModule } from './task/module';
+import { DriverModule } from './driver/module';
 
 @Module({
   imports: [
     AuthModule,
     UserModule,
     BrandModule,
+    DriverModule,
     ManagerModule,
     SmsModule,
     ConfigModule.forRoot({

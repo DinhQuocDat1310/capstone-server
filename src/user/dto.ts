@@ -29,7 +29,7 @@ export class CreateUserDTO {
     (user) => user.phoneNumber !== undefined || user.role === 'DRIVER',
   )
   @IsString()
-  @Matches(/^0\d{9}/, {
+  @Matches(/^0\d{9}$|\+84\d{9}$/, {
     message: 'Incorrect phone number format. Please input 10 digits',
   })
   @ApiProperty({ type: String, description: 'phoneNumber' })

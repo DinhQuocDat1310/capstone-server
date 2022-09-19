@@ -5,14 +5,15 @@ import { PrismaService } from 'src/prisma/service';
 import { ChangePasswordDTO, CreateUserDTO } from './dto';
 import { convertPhoneNumberFormat } from 'src/utilities';
 import { UserSignIn } from 'src/auth/dto';
+import { DriverVerifyInformationDTO } from 'src/driver/dto';
+import { BrandVerifyInformationDTO } from 'src/brand/dto';
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
   async create(@Body() dto: CreateUserDTO) {
-    const hashPassword = await hash(dto.password, 10);
-    const { brandName, role, ...user } = dto;
+    const { brandName, phoneNumber, role, email, password } = dto;
+    const hashPassword = await hash(password, 10);
     const data = {
-      ...user,
       role,
       password: hashPassword,
     };
@@ -20,17 +21,23 @@ export class UsersService {
       create:
         role === Role.BRAND
           ? {
-              brandName,
-            }
+            brandName,
+          }
           : {},
     };
     try {
-      if (role === 'BRAND') await this.checkBrandNameIsExist(brandName);
       await this.checkEmailOrPhoneNumberIsExist(
-        user.email ?? '',
-        user.phoneNumber ?? '',
+        email ?? '',
+        phoneNumber ?? '',
         'Your account is already exist',
       );
+      if (role === 'BRAND') {
+        data['email'] = email;
+        await this.checkBrandNameIsExist(brandName);
+      }
+      if (role === 'DRIVER') {
+        data['phoneNumber'] = convertPhoneNumberFormat(phoneNumber);
+      }
       await this.prisma.user.create({
         data,
       });
@@ -92,6 +99,69 @@ export class UsersService {
     });
   }
 
+  async updateUserBrandInformation(id: string, dto: BrandVerifyInformationDTO) {
+    await this.prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        idCitizen: dto.idCitizen,
+        status: UserStatus.PENDING,
+        imageCitizenBack: dto.imageCitizenBack,
+        imageCitizenFront: dto.imageCitizenFront,
+        phoneNumber: convertPhoneNumberFormat(dto.phoneNumber),
+        address: dto.address,
+        brand: {
+          update: {
+            ownerLicenseBusiness: dto.ownerLicenseBusiness,
+            logo: dto.logo,
+            idLicenseBusiness: dto.idLicense,
+            typeBusiness: dto.typeBusiness,
+            imageLicenseBusiness: dto.imageLicenseBusiness,
+          },
+        },
+      },
+      include: {
+        brand: true,
+      },
+    });
+  }
+
+  async updateUserDriverInformation(
+    id: string,
+    dto: DriverVerifyInformationDTO,
+  ) {
+    await this.prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        fullname: dto.fullname,
+        idCitizen: dto.idCitizen,
+        status: UserStatus.PENDING,
+        imageCitizenBack: dto.imageCitizenBack,
+        imageCitizenFront: dto.imageCitizenFront,
+        email: dto.email,
+        address: dto.address,
+        driver: {
+          update: {
+            idCar: dto.idCar,
+            imageCarBack: dto.imageCarBack,
+            imageCarFront: dto.imageCarFront,
+            imageCarLeft: dto.imageCarLeft,
+            imageCarRight: dto.imageCarRight,
+            bankAccountNumber: dto.bankAccountNumber,
+            bankName: dto.bankName,
+            bankAccountOwner: dto.bankAccountOwner,
+          },
+        },
+      },
+      include: {
+        driver: true,
+      },
+    });
+  }
+
   async findUserByEmailOrPhoneNumber(email: string, phoneNumber: string) {
     return await this.prisma.user.findFirst({
       where: {
@@ -148,6 +218,26 @@ export class UsersService {
     });
   }
 
+  async getUserDriverInfo(phoneNumber: string, role: Role) {
+    return this.prisma.user.findFirst({
+      where: {
+        phoneNumber,
+        role,
+      },
+      include: {
+        driver: {
+          include: {
+            verify: {
+              orderBy: {
+                createDate: 'desc',
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   async checkIdCardIsExist(idCitizen: string) {
     const card = await this.prisma.user.findFirst({
       where: {
@@ -156,6 +246,41 @@ export class UsersService {
     });
     if (card)
       throw new BadRequestException('This id card citizen is already used');
+  }
+
+  async checkIdIsExist({
+    idCitizen = '',
+    bankAccountNumber = '',
+    idCar = '',
+    message = '',
+  }: {
+    idCitizen?: string;
+    bankAccountNumber?: string;
+    idCar?: string;
+    message: string;
+  }) {
+    const isExist = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          {
+            idCitizen,
+          },
+          {
+            driver: {
+              OR: [
+                {
+                  bankAccountNumber,
+                },
+                {
+                  idCar,
+                },
+              ],
+            },
+          },
+        ],
+      },
+    });
+    if (isExist) throw new BadRequestException(message);
   }
 
   async checkIdLicenseIsExist(idLicenseBusiness: string) {
