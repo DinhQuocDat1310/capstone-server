@@ -1,4 +1,4 @@
-import { Role } from '@prisma/client';
+import { Role, UserStatus } from '@prisma/client';
 import { hash } from 'bcrypt';
 export const users = async (): Promise<any[]> => {
   const password: string = await hash('123456aA!', 10);
@@ -6,12 +6,22 @@ export const users = async (): Promise<any[]> => {
   const drivers = [];
   const managers = [];
 
+  const admin = {
+    email: 'admin@gmail.com',
+    password,
+    role: Role.ADMIN,
+    fullname: 'admin',
+    isAdmin: true,
+    status: UserStatus.VERIFIED,
+  };
+
   for (let i = 0; i < 5; i++) {
     managers.push({
       email: `manager${i + 1}@gmail.com`,
       password,
       role: Role.MANAGER,
       fullname: `Manager ${i + 1}`,
+      status: UserStatus.VERIFIED,
       manager: {
         create: {},
       },
@@ -42,5 +52,5 @@ export const users = async (): Promise<any[]> => {
       },
     });
   }
-  return [...managers, ...drivers, ...brands];
+  return [...managers, ...drivers, ...brands, admin];
 };

@@ -40,6 +40,66 @@ export class VerifyAccountsService {
     }
   }
 
+  async createPendingRequestVerifyDriverAccount(id: string, managerId: string) {
+    try {
+      return await this.prisma.verifyAccount.create({
+        data: {
+          status: VerifyAccountStatus.PENDING,
+          driver: {
+            connect: {
+              id,
+            },
+          },
+          manager: {
+            connect: {
+              id: managerId,
+            },
+          },
+        },
+      });
+    } catch (e) {
+      throw new InternalServerErrorException(e.message);
+    }
+  }
+
+  async createPendingRequestVerifyBrandAccount(id: string, managerId: string) {
+    try {
+      return await this.prisma.verifyAccount.create({
+        data: {
+          status: VerifyAccountStatus.PENDING,
+          brand: {
+            connect: {
+              id,
+            },
+          },
+          manager: {
+            connect: {
+              id: managerId,
+            },
+          },
+        },
+      });
+    } catch (e) {
+      throw new InternalServerErrorException(e.message);
+    }
+  }
+
+  async createNewRequestVerifyDriverAccount(id: string) {
+    try {
+      return await this.prisma.verifyAccount.create({
+        data: {
+          driver: {
+            connect: {
+              id,
+            },
+          },
+        },
+      });
+    } catch (e) {
+      throw new InternalServerErrorException(e.message);
+    }
+  }
+
   async assignVerifyAccountToManager(verifyId: string, managerId: string) {
     await this.prisma.verifyAccount.update({
       where: {
@@ -55,12 +115,21 @@ export class VerifyAccountsService {
     });
   }
 
-  async getListVerifyBrandByUserId(userId: string) {
+  async getListVerifyByUserId(userId: string) {
     return await this.prisma.verifyAccount.findMany({
       where: {
-        brand: {
-          userId,
-        },
+        OR: [
+          {
+            brand: {
+              userId,
+            },
+          },
+          {
+            driver: {
+              userId,
+            },
+          },
+        ],
       },
       orderBy: {
         createDate: 'desc',
@@ -69,7 +138,7 @@ export class VerifyAccountsService {
   }
 
   async getListVerifyPendingByManagerId(userId: string, type: string) {
-    if (['driver', 'brand', 'all'].indexOf(type.toLowerCase()) === -1)
+    if (['driver', 'brand'].indexOf(type.toLowerCase()) === -1)
       throw new BadRequestException('The role is not valid!. please try again');
 
     const select = {
@@ -80,7 +149,7 @@ export class VerifyAccountsService {
       expiredDate: true,
       assignBy: true,
     };
-    if (type === 'brand' || type === 'all') {
+    if (type === 'brand') {
       select['brand'] = {
         select: {
           ownerLicenseBusiness: true,
@@ -101,8 +170,29 @@ export class VerifyAccountsService {
         },
       };
     }
-    if (type === 'driver' || type === 'all') {
-      select['driver'] = true;
+    if (type === 'driver') {
+      select['driver'] = {
+        select: {
+          idCar: true,
+          imageCarRight: true,
+          imageCarLeft: true,
+          imageCarFront: true,
+          imageCarBack: true,
+          bankAccountNumber: true,
+          bankAccountOwner: true,
+          bankName: true,
+          user: {
+            select: {
+              fullname: true,
+              address: true,
+              phoneNumber: true,
+              idCitizen: true,
+              imageCitizenFront: true,
+              imageCitizenBack: true,
+            },
+          },
+        },
+      };
     }
     try {
       const verifies = await this.prisma.verifyAccount.findMany({
@@ -117,17 +207,27 @@ export class VerifyAccountsService {
           createDate: 'asc',
         },
       });
-      return verifies.map((verify) => {
-        if (type === 'brand' || type === 'all') {
-          const user = verify['brand']?.user;
-          delete verify['brand']?.user;
-          verify['brand'] = {
-            ...verify['brand'],
-            ...user,
-          };
-        }
-        return verify;
-      });
+      return verifies
+        .map((verify) => {
+          if (type === 'brand') {
+            const user = verify['brand']?.user;
+            delete verify['brand']?.user;
+            verify['brand'] = {
+              ...verify['brand'],
+              ...user,
+            };
+          }
+          if (type === 'driver') {
+            const user = verify['driver']?.user;
+            delete verify['driver']?.user;
+            verify['driver'] = {
+              ...verify['driver'],
+              ...user,
+            };
+          }
+          return verify;
+        })
+        .filter((verify) => Object.keys(verify[`${type}`]).length !== 0);
     } catch (e) {
       throw new InternalServerErrorException(e.message);
     }
@@ -155,7 +255,7 @@ export class VerifyAccountsService {
         },
       },
     });
-    const type = verify.brand ? 'brand' : 'driver';
+    const type = verify?.brand ? 'brand' : 'driver';
     if (!verify) {
       throw new BadRequestException(
         'This request is not pending anymore. Can you try another request!',
@@ -199,6 +299,7 @@ export class VerifyAccountsService {
         status,
       },
       select: {
+        fullname: true,
         email: true,
         status: true,
         brand: {
@@ -208,12 +309,13 @@ export class VerifyAccountsService {
         },
       },
     });
+    const name = type === 'driver' ? user.fullname : user.brand.brandName;
     await this.mailerService.sendMail({
       to: user.email,
       from: this.configService.getConfig('MAILER'),
       subject: 'Result verification account',
       html: `
-       <p>Dear ${user.brand.brandName},</p></br>
+       <p>Dear ${name},</p></br>
        <p>Thanks for becoming Brandvertise's partner!</p>
         ${message}
        <p>Regards,</p>

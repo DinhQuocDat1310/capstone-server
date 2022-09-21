@@ -2,7 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["filteredRelationCount"]
 }
 
@@ -11,28 +11,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-
 model User {
-  id                String        @id @default(uuid())
-  password          String
-  email             String?       @unique
-  phoneNumber       String?       @unique
-  fullname          String?
-  address           String?
-  isActive          Boolean       @default(true)
-  isAdmin           Boolean       @default(false)
-  role              Role
-  status            UserStatus    @default(INIT)
-  
-  idCitizen         String?       @unique
+  id          String     @id @default(uuid())
+  password    String
+  email       String?    @unique
+  phoneNumber String?    @unique
+  fullname    String?
+  address     String?
+  isActive    Boolean    @default(true)
+  isAdmin     Boolean    @default(false)
+  role        Role
+  status      UserStatus @default(INIT)
+
+  idCitizen         String? @unique
   imageCitizenFront String?
   imageCitizenBack  String?
 
-    
-  brand        Brand?
-  driver       Driver?
-  manager      Manager?
+  brand   Brand?
+  driver  Driver?
+  manager Manager?
 }
 
 enum Role {
@@ -51,86 +48,59 @@ enum UserStatus {
   VERIFIED
 }
 
-
 model Brand {
-  id                   String          @id @default(uuid())
-  brandName            String          @unique
-  logo                 String?
+  id        String  @id @default(uuid())
+  brandName String  @unique
+  logo      String?
 
-  idLicenseBusiness    String?         @unique
+  idLicenseBusiness    String? @unique
   ownerLicenseBusiness String?
   typeBusiness         String?
   imageLicenseBusiness String?
-  
-  verify               VerifyAccount[]
-  user                 User            @relation(fields: [userId], references: [id])
-  userId               String          @unique
+
+  verify VerifyAccount[]
+  user   User            @relation(fields: [userId], references: [id])
+  userId String          @unique
 }
 
 model Driver {
-  id            String @id @default(uuid())
-  
-  licensePlate  String?
-  make          CarMake?
-  color         CarColor?
-  model         String?
-  year          String?
+  id String @id @default(uuid())
+
+  idCar         String? @unique
   imageCarFront String?
   imageCarBack  String?
+  imageCarLeft  String?
+  imageCarRight String?
 
-  idBank        String?       @unique
-  ownerBank     String?
-  nameBank      String?
+  bankAccountNumber String? @unique
+  bankAccountOwner  String?
+  bankName          String?
 
-  verify        VerifyAccount[]
-  user          User   @relation(fields: [userId], references: [id])
-  userId        String @unique
-}
-
-enum CarColor {
-  WHITE
-  BLACK
-  SILVER_GRAY
-  RED
-  BLUE
-  BROWN_BEIGE
-  GREEN
-  YELLOW_GOLD
-}
-
-enum CarMake {         
-  TOYOTA
-  KIA
-  HYUNDAI
-  MAZDA
-  FORD
-  HONDA
-  MITSUBISHI
-  VINFAST
-  MERCEDES
-  AUDI
+  verify VerifyAccount[]
+  user   User            @relation(fields: [userId], references: [id])
+  userId String          @unique
 }
 
 model Manager {
-  id          String        @id @default(uuid())
-  user        User          @relation(fields: [userId], references: [id])
-  userId      String        @unique
-  verify      VerifyAccount[]
+  id     String          @id @default(uuid())
+  user   User            @relation(fields: [userId], references: [id])
+  userId String          @unique
+  verify VerifyAccount[]
 }
 
 model VerifyAccount {
-  id          String        @id @default(uuid())
-  status      VerifyAccountStatus  @default(NEW)
+  id          String              @id @default(uuid())
+  status      VerifyAccountStatus @default(NEW)
   detail      String?
-  createDate  DateTime      @default(now())
-  updateAt    DateTime      @updatedAt
+  createDate  DateTime            @default(now())
+  updateAt    DateTime            @updatedAt
   expiredDate DateTime?
-  assignBy    AssignBy?      
-  brand       Brand?        @relation(fields: [brandId], references: [id])
+  assignBy    AssignBy?
+  brand       Brand?              @relation(fields: [brandId], references: [id])
   brandId     String?
-  driver      Driver?       @relation(fields: [driverId], references: [id])
+  driver      Driver?             @relation(fields: [driverId], references: [id])
   driverId    String?
-  manager     Manager?      @relation(fields: [managerId], references: [id])
+  manager     Manager?            @relation(fields: [managerId], references: [id])
   managerId   String?
 }
 

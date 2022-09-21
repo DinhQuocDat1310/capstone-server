@@ -2,16 +2,12 @@ import { UsersService } from './../user/service';
 import { PrismaService } from './../prisma/service';
 import {
   BadRequestException,
-  ForbiddenException,
   Injectable,
   InternalServerErrorException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { BrandVerifyInformationDTO } from './dto';
 import { UserSignIn } from 'src/auth/dto';
-import { UserStatus } from '@prisma/client';
 import { VerifyAccountsService } from 'src/verifyAccount/service';
-import { convertPhoneNumberFormat } from 'src/utilities';
 import { AppConfigService } from 'src/config/appConfigService';
 
 @Injectable()
@@ -56,36 +52,18 @@ export class BrandsService {
     }
 
     try {
-      if (!latestVerifyStatus || latestVerifyStatus === 'UPDATE') {
+      if (!latestVerifyStatus) {
         await this.verifyAccountService.createNewRequestVerifyBrandAccount(
           user.brand.id,
         );
+      } else if (latestVerifyStatus === 'UPDATE') {
+        await this.verifyAccountService.createPendingRequestVerifyBrandAccount(
+          user.brand.id,
+          user.brand.verify[0].managerId,
+        );
       }
-      return await this.prisma.user.update({
-        where: {
-          id: userReq.id,
-        },
-        data: {
-          idCitizen: dto.idCitizen,
-          status: UserStatus.PENDING,
-          imageCitizenBack: dto.imageCitizenBack,
-          imageCitizenFront: dto.imageCitizenFront,
-          phoneNumber: convertPhoneNumberFormat(dto.phoneNumber),
-          address: dto.address,
-          brand: {
-            update: {
-              ownerLicenseBusiness: dto.ownerLicenseBusiness,
-              logo: dto.logo,
-              idLicenseBusiness: dto.idLicense,
-              typeBusiness: dto.typeBusiness,
-              imageLicenseBusiness: dto.imageLicenseBusiness,
-            },
-          },
-        },
-        include: {
-          brand: true,
-        },
-      });
+      await this.usersService.updateUserBrandInformation(userReq.id, dto);
+      return 'updated';
     } catch (e) {
       throw new InternalServerErrorException(e.message);
     }
