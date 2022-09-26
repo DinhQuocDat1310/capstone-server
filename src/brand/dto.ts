@@ -71,3 +71,18 @@ export class BrandVerifyInformationDTO {
   @IsUrl(undefined)
   imageLicenseBusiness: string;
 }
+
+export class VerifiedBrandDto {
+  @IsString()
+  @ApiProperty({ type: String, description: 'brandId' })
+  brandId: string;
+}
+
+export class UpdateBrandLogoDto {
+  @ApiProperty({
+    description: 'URL image of brand logo',
+    default: 'image.com',
+  })
+  @IsUrl(undefined)
+  logo: string;
+}

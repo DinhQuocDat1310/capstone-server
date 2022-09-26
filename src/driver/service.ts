@@ -18,7 +18,7 @@ export class DriversService {
     private readonly verifyAccountService: VerifyAccountsService,
     private readonly configService: AppConfigService,
     private readonly usersService: UsersService,
-  ) { }
+  ) {}
 
   async updateDriverVerify(
     dto: DriverVerifyInformationDTO,

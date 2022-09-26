@@ -5,7 +5,7 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { BrandVerifyInformationDTO } from './dto';
+import { BrandVerifyInformationDTO, UpdateBrandLogoDto } from './dto';
 import { UserSignIn } from 'src/auth/dto';
 import { VerifyAccountsService } from 'src/verifyAccount/service';
 import { AppConfigService } from 'src/config/appConfigService';
@@ -63,6 +63,19 @@ export class BrandsService {
         );
       }
       await this.usersService.updateUserBrandInformation(userReq.id, dto);
+      return 'updated';
+    } catch (e) {
+      throw new InternalServerErrorException(e.message);
+    }
+  }
+
+  async updateBrandLogo(logo: UpdateBrandLogoDto, userReq: UserSignIn) {
+    const user = await this.usersService.getUserBrandInfo(
+      userReq.email,
+      userReq.role,
+    );
+    try {
+      await this.usersService.updateLogoBrand(user.id, logo);
       return 'updated';
     } catch (e) {
       throw new InternalServerErrorException(e.message);
