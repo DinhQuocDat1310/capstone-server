@@ -450,6 +450,7 @@ export class VerifyAccountsService {
           user: {
             select: {
               email: true,
+              address: true,
             },
           },
         },
@@ -467,6 +468,7 @@ export class VerifyAccountsService {
               fullname: true,
               email: true,
               phoneNumber: true,
+              address: true,
             },
           },
         },
