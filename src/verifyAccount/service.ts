@@ -7,6 +7,7 @@ import {
   FAKE_TYPE_BUSINESS,
   FAKE_ADDRESS,
   FAKE_OWNER_BUSINESS,
+  FAKE_IMAGE_CAR,
 } from './../constants/fake-data';
 import { PrismaService } from './../prisma/service';
 import {
@@ -379,44 +380,64 @@ export class VerifyAccountsService {
   }
 
   async fakeAutoCreateVerifyRequest() {
-    const brands = await this.prisma.brand.findMany({
+    const users = await this.prisma.user.findMany({
       where: {
-        user: {
-          status: 'NEW',
+        status: 'NEW',
+      },
+      include: {
+        brand: {
+          include: {
+            verify: true,
+          },
+        },
+        driver: {
+          include: {
+            verify: true,
+          },
         },
       },
-      include: { verify: true },
     });
 
-    const brandsFilter = brands.filter(
-      (brand) =>
-        !brand.verify.some((b) => b.status === 'NEW' || b.status === 'PENDING'),
-    );
+    const brandsFilter = users
+      .filter((user) => user.brand?.verify?.length === 0)
+      .filter((user) => user?.brand?.id);
+    const driversFilter = users
+      .filter((user) => user.driver?.verify?.length === 0)
+      .filter((user) => user?.driver?.id);
 
-    if (brandsFilter.length === 0) {
-      return 'all Brand is on processing!';
+    if (brandsFilter.length === 0 && driversFilter.length === 0) {
+      return 'all account is on processing!';
     }
-    const randomNumber = Math.floor(Math.random() * 900000000);
     const randomPhone =
       Math.floor(Math.random() * (999999999 - 100000000)) + 100000000;
     for (let i = 0; i < brandsFilter.length; i++) {
+      const randomIdCitizen = Math.floor(
+        Math.random() * (Math.pow(10, 10) * 9.9 - Math.pow(10, 10) + 1) +
+          Math.pow(10, 10),
+      );
+      const randomIdLicense = Math.floor(
+        Math.random() * (Math.pow(10, 12) * 9.9 - Math.pow(10, 12) + 1) +
+          Math.pow(10, 12),
+      );
+      const random = Math.floor(Math.random() * 20);
       await this.prisma.brand.update({
         where: {
-          id: brands[i].id,
+          id: brandsFilter[i].brand.id,
         },
+
         data: {
-          idLicenseBusiness: (randomNumber + i).toString(),
-          ownerLicenseBusiness: FAKE_OWNER_BUSINESS[i],
-          logo: FAKE_LOGO[i],
-          typeBusiness: FAKE_TYPE_BUSINESS[i],
-          imageLicenseBusiness: FAKE_LICENSE[i],
+          idLicenseBusiness: randomIdLicense.toString(),
+          ownerLicenseBusiness: FAKE_OWNER_BUSINESS[random],
+          logo: FAKE_LOGO[random],
+          typeBusiness: FAKE_TYPE_BUSINESS[random],
+          imageLicenseBusiness: FAKE_LICENSE[random],
           user: {
             update: {
               status: 'PENDING',
-              imageCitizenFront: FAKE_FRONT_CARDLICENSE[i],
-              imageCitizenBack: FAKE_BACK_CARDLICENSE[i],
-              idCitizen: (randomNumber + i).toString(),
-              address: FAKE_ADDRESS[i],
+              imageCitizenFront: FAKE_FRONT_CARDLICENSE[random],
+              imageCitizenBack: FAKE_BACK_CARDLICENSE[random],
+              idCitizen: randomIdCitizen.toString(),
+              address: FAKE_ADDRESS[random],
               phoneNumber: `+84${randomPhone + i}`,
             },
           },
@@ -426,13 +447,63 @@ export class VerifyAccountsService {
         data: {
           brand: {
             connect: {
-              id: brands[i].id,
+              id: brandsFilter[i].brand.id,
             },
           },
         },
       });
     }
-    return `Create ${brandsFilter.length} request verify NEW Brand`;
+    for (let i = 0; i < driversFilter.length; i++) {
+      const random = Math.floor(Math.random() * 20);
+      const randomIdCitizend = Math.floor(
+        Math.random() * (Math.pow(10, 10) * 9.9 - Math.pow(10, 10) + 1) +
+          Math.pow(10, 10),
+      );
+      const randomIdCar = Math.floor(
+        Math.random() * (Math.pow(10, 5) * 9.9 - Math.pow(10, 5) + 1) +
+          Math.pow(10, 5),
+      );
+      await this.prisma.driver.update({
+        where: {
+          id: driversFilter[i].driver.id,
+        },
+
+        data: {
+          imageCarBack: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
+          imageCarFront: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
+          imageCarLeft: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
+          imageCarRight: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
+          idCar: `TEST-${randomIdCar}`,
+          bankName: 'AGRIBANK',
+          bankAccountNumber: `${i}`,
+          bankAccountOwner: FAKE_OWNER_BUSINESS[random],
+          user: {
+            update: {
+              status: 'PENDING',
+              fullname: FAKE_OWNER_BUSINESS[random],
+              imageCitizenFront: FAKE_FRONT_CARDLICENSE[random],
+              imageCitizenBack: FAKE_BACK_CARDLICENSE[random],
+              idCitizen: randomIdCitizend.toString(),
+              address: FAKE_ADDRESS[random],
+              email: `driver${i}@gmail.com`,
+            },
+          },
+        },
+      });
+      await this.prisma.verifyAccount.create({
+        data: {
+          driver: {
+            connect: {
+              id: driversFilter[i].driver.id,
+            },
+          },
+        },
+      });
+    }
+
+    return `Create ${
+      brandsFilter.length + driversFilter.length
+    } request verify NEW account`;
   }
 
   async getListHistoryVerifiedByManagerId(userId: string, type: string) {
