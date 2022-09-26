@@ -23,7 +23,7 @@ import { Roles, Status } from 'src/guard/decorators';
 import { RolesGuard } from 'src/guard/roles.guard';
 import { StatusGuard } from 'src/guard/userStatus.guard';
 import { VerifyAccountsService } from 'src/verifyAccount/service';
-import { BrandVerifyInformationDTO } from './dto';
+import { BrandVerifyInformationDTO, UpdateBrandLogoDto } from './dto';
 import { BrandsService } from './service';
 
 @Controller('brand')
@@ -50,6 +50,22 @@ export class BrandController {
     @Body() dto: BrandVerifyInformationDTO,
   ) {
     return await this.brandService.updateBrandVerify(dto, req.user);
+  }
+
+  @ApiBody({ type: UpdateBrandLogoDto })
+  @ApiOperation({ summary: 'Update logo brand verification' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiCreatedResponse({ description: 'Updated' })
+  @Status(UserStatus.VERIFIED)
+  @Roles(Role.BRAND)
+  @Post('account/update-logo/')
+  async updateBrandLogo(
+    @Request() req: RequestUser,
+    @Body() dto: UpdateBrandLogoDto,
+  ) {
+    return await this.brandService.updateBrandLogo(dto, req.user);
   }
 
   @ApiOperation({ summary: 'Get history verified account' })

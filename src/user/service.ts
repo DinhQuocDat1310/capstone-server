@@ -6,10 +6,10 @@ import { ChangePasswordDTO, CreateUserDTO } from './dto';
 import { convertPhoneNumberFormat } from 'src/utilities';
 import { UserSignIn } from 'src/auth/dto';
 import { DriverVerifyInformationDTO } from 'src/driver/dto';
-import { BrandVerifyInformationDTO } from 'src/brand/dto';
+import { BrandVerifyInformationDTO, UpdateBrandLogoDto } from 'src/brand/dto';
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
   async create(@Body() dto: CreateUserDTO) {
     const { brandName, phoneNumber, role, email, password } = dto;
     const hashPassword = await hash(password, 10);
@@ -21,8 +21,8 @@ export class UsersService {
       create:
         role === Role.BRAND
           ? {
-            brandName,
-          }
+              brandName,
+            }
           : {},
     };
     try {
@@ -118,6 +118,24 @@ export class UsersService {
             idLicenseBusiness: dto.idLicense,
             typeBusiness: dto.typeBusiness,
             imageLicenseBusiness: dto.imageLicenseBusiness,
+          },
+        },
+      },
+      include: {
+        brand: true,
+      },
+    });
+  }
+
+  async updateLogoBrand(id: string, dto: UpdateBrandLogoDto) {
+    await this.prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        brand: {
+          update: {
+            logo: dto.logo,
           },
         },
       },

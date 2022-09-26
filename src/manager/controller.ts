@@ -1,3 +1,4 @@
+import { VerifiedBrandDto } from './../brand/dto';
 import {
   Body,
   Controller,
@@ -69,6 +70,42 @@ export class ManagerController {
     return await this.verifyAccountService.getListVerifyPendingByManagerId(
       req.user.id,
       role.toLowerCase(),
+    );
+  }
+
+  @ApiOperation({ summary: 'Get list history verified by role' })
+  @ApiForbiddenResponse({
+    description: "Account don't have permission to use this feature",
+  })
+  @ApiBadRequestResponse({ description: 'Role is not valid' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Roles(Role.MANAGER)
+  @Get('account/verified/:role')
+  async getListVerifiedByRole(
+    @Request() req: RequestUser,
+    @Param('role') role: string,
+  ) {
+    return await this.verifyAccountService.getListHistoryVerifiedByManagerId(
+      req.user.id,
+      role.toLowerCase(),
+    );
+  }
+
+  @ApiOperation({ summary: 'Get history detail verified' })
+  @ApiForbiddenResponse({
+    description: "Account don't have permission to use this feature",
+  })
+  @ApiBadRequestResponse({ description: 'Role is not valid' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Roles(Role.MANAGER)
+  @Post('account/verified/detail')
+  async getHistoryDetailVerified(
+    @Request() req: RequestUser,
+    @Body() dto: VerifiedBrandDto,
+  ) {
+    return await this.verifyAccountService.getHistoryDetailVerified(
+      req.user.id,
+      dto,
     );
   }
 

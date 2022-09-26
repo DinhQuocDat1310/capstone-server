@@ -1,8 +1,12 @@
+import { VerifiedBrandDto } from './../brand/dto';
 import {
   FAKE_LOGO,
   FAKE_LICENSE,
   FAKE_BACK_CARDLICENSE,
   FAKE_FRONT_CARDLICENSE,
+  FAKE_TYPE_BUSINESS,
+  FAKE_ADDRESS,
+  FAKE_OWNER_BUSINESS,
 } from './../constants/fake-data';
 import { PrismaService } from './../prisma/service';
 import {
@@ -402,9 +406,9 @@ export class VerifyAccountsService {
         },
         data: {
           idLicenseBusiness: (randomNumber + i).toString(),
-          ownerLicenseBusiness: 'Nguyen Van ' + i,
+          ownerLicenseBusiness: FAKE_OWNER_BUSINESS[i],
           logo: FAKE_LOGO[i],
-          typeBusiness: 'Business Land ' + i,
+          typeBusiness: FAKE_TYPE_BUSINESS[i],
           imageLicenseBusiness: FAKE_LICENSE[i],
           user: {
             update: {
@@ -412,7 +416,7 @@ export class VerifyAccountsService {
               imageCitizenFront: FAKE_FRONT_CARDLICENSE[i],
               imageCitizenBack: FAKE_BACK_CARDLICENSE[i],
               idCitizen: (randomNumber + i).toString(),
-              address: 'HCM City, Ward ' + i,
+              address: FAKE_ADDRESS[i],
               phoneNumber: `+84${randomPhone + i}`,
             },
           },
@@ -429,5 +433,128 @@ export class VerifyAccountsService {
       });
     }
     return `Create ${brandsFilter.length} request verify NEW Brand`;
+  }
+
+  async getListHistoryVerifiedByManagerId(userId: string, type: string) {
+    if (['driver', 'brand'].indexOf(type.toLowerCase()) === -1)
+      throw new BadRequestException('The role is not valid!. please try again');
+
+    const select = {};
+    if (type === 'brand') {
+      select['brand'] = {
+        select: {
+          id: true,
+          logo: true,
+          brandName: true,
+          ownerLicenseBusiness: true,
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      };
+    }
+
+    if (type === 'driver') {
+      select['driver'] = {
+        select: {
+          id: true,
+          bankAccountOwner: true,
+          bankName: true,
+          user: {
+            select: {
+              fullname: true,
+              email: true,
+              phoneNumber: true,
+            },
+          },
+        },
+      };
+    }
+
+    try {
+      const verifieds = await this.prisma.verifyAccount.findMany({
+        where: {
+          manager: {
+            userId,
+          },
+          status: {
+            not:
+              VerifyAccountStatus.PENDING ||
+              VerifyAccountStatus.NEW ||
+              VerifyAccountStatus.EXPIRED,
+          },
+        },
+        select,
+        orderBy: {
+          createDate: 'asc',
+        },
+        distinct: ['brandId'],
+      });
+      return verifieds
+        .map((verified) => {
+          if (type === 'brand') {
+            const user = verified['brand']?.user;
+            delete verified['brand']?.user;
+            verified['brand'] = {
+              ...verified['brand'],
+              ...user,
+            };
+          }
+          if (type === 'driver') {
+            const user = verified['driver']?.user;
+            delete verified['driver']?.user;
+            verified['driver'] = {
+              ...verified['driver'],
+              ...user,
+            };
+          }
+          return verified;
+        })
+        .filter((verified) => Object.keys(verified[`${type}`]).length !== 0);
+    } catch (e) {
+      throw new InternalServerErrorException(e.message);
+    }
+  }
+
+  async getHistoryDetailVerified(userId: string, dto: VerifiedBrandDto) {
+    const select = {
+      status: true,
+      detail: true,
+      createDate: true,
+      expiredDate: true,
+      updateAt: true,
+    };
+    try {
+      return await this.prisma.verifyAccount.findMany({
+        where: {
+          AND: [
+            {
+              manager: {
+                userId,
+              },
+            },
+            {
+              brandId: dto.brandId,
+            },
+            {
+              status: {
+                not:
+                  VerifyAccountStatus.PENDING ||
+                  VerifyAccountStatus.NEW ||
+                  VerifyAccountStatus.EXPIRED,
+              },
+            },
+          ],
+        },
+        select,
+        orderBy: {
+          createDate: 'desc',
+        },
+      });
+    } catch (e) {
+      throw new InternalServerErrorException(e.message);
+    }
   }
 }
