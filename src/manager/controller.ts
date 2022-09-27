@@ -1,4 +1,3 @@
-import { VerifiedBrandDto } from './../brand/dto';
 import {
   Body,
   Controller,
@@ -80,7 +79,7 @@ export class ManagerController {
   @ApiBadRequestResponse({ description: 'Role is not valid' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.MANAGER)
-  @Get('account/verified/:role')
+  @Get('account/verifieds/:role')
   async getListVerifiedByRole(
     @Request() req: RequestUser,
     @Param('role') role: string,
@@ -91,25 +90,27 @@ export class ManagerController {
     );
   }
 
-  @ApiOperation({ summary: 'Get history detail verified' })
+  @ApiOperation({
+    summary: 'Get history detail verified with BrandId/DriverId',
+  })
   @ApiForbiddenResponse({
     description: "Account don't have permission to use this feature",
   })
   @ApiBadRequestResponse({ description: 'Role is not valid' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.MANAGER)
-  @Post('account/verified/detail')
+  @Get('account/verified/:id')
   async getHistoryDetailVerified(
     @Request() req: RequestUser,
-    @Body() dto: VerifiedBrandDto,
+    @Param('id') id: string,
   ) {
     return await this.verifyAccountService.getHistoryDetailVerified(
       req.user.id,
-      dto,
+      id,
     );
   }
 
-  @ApiOperation({ summary: 'Automation create request for brand' })
+  @ApiOperation({ summary: 'Automation create request for brand/driver' })
   @ApiForbiddenResponse({
     description: "Account don't have permission to use this feature",
   })
