@@ -1,4 +1,3 @@
-import { VerifiedBrandDto } from './../brand/dto';
 import {
   FAKE_LOGO,
   FAKE_LICENSE,
@@ -563,7 +562,7 @@ export class VerifyAccountsService {
         orderBy: {
           createDate: 'asc',
         },
-        distinct: ['brandId'],
+        distinct: ['brandId', 'driverId'],
       });
       return verifieds
         .map((verified) => {
@@ -591,7 +590,7 @@ export class VerifyAccountsService {
     }
   }
 
-  async getHistoryDetailVerified(userId: string, dto: VerifiedBrandDto) {
+  async getHistoryDetailVerified(userId: string, id: string) {
     const select = {
       status: true,
       detail: true,
@@ -609,7 +608,7 @@ export class VerifyAccountsService {
               },
             },
             {
-              brandId: dto.brandId,
+              OR: [{ brandId: id }, { driverId: id }],
             },
             {
               status: {
