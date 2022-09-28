@@ -54,14 +54,14 @@ export class ManagerController {
     );
   }
 
-  @ApiOperation({ summary: 'Get list verify pending by role' })
+  @ApiOperation({ summary: 'Get list verifies pending by role' })
   @ApiForbiddenResponse({
     description: "Account don't have permission to use this feature",
   })
   @ApiBadRequestResponse({ description: 'Role is not valid' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.MANAGER)
-  @Get('account/verify/:role')
+  @Get('account/verifies/:role')
   async getListVerifyByRole(
     @Request() req: RequestUser,
     @Param('role') role: string,

@@ -340,44 +340,6 @@ export class VerifyAccountsService {
     });
   }
 
-  async getAllVerifyExpired(): Promise<Prisma.VerifyAccountCreateInput[]> {
-    const verify = await this.prisma.verifyAccount.findMany({
-      where: {
-        expiredDate: {
-          lt: moment().toDate(),
-        },
-        status: 'PENDING',
-      },
-    });
-    return verify;
-  }
-
-  async updateVerifyAccountExpired() {
-    await this.prisma.verifyAccount.updateMany({
-      where: {
-        expiredDate: {
-          lt: moment().toDate(),
-        },
-      },
-      data: {
-        status: 'EXPIRED',
-      },
-    });
-  }
-
-  async createNewVerifyWhenExpired(
-    verifies: Prisma.VerifyAccountCreateInput[],
-  ) {
-    const data = verifies.map((verify) => {
-      return {
-        expiredDate: verify.expiredDate,
-      };
-    });
-    await this.prisma.verifyAccount.createMany({
-      data,
-    });
-  }
-
   async fakeAutoCreateVerifyRequest() {
     const users = await this.prisma.user.findMany({
       where: {
@@ -531,8 +493,6 @@ export class VerifyAccountsService {
       select['driver'] = {
         select: {
           id: true,
-          bankAccountOwner: true,
-          bankName: true,
           user: {
             select: {
               fullname: true,
@@ -566,25 +526,17 @@ export class VerifyAccountsService {
       });
       return verifieds
         .map((verified) => {
-          if (type === 'brand') {
-            const user = verified['brand']?.user;
-            delete verified['brand']?.user;
-            verified['brand'] = {
-              ...verified['brand'],
-              ...user,
-            };
-          }
-          if (type === 'driver') {
-            const user = verified['driver']?.user;
-            delete verified['driver']?.user;
-            verified['driver'] = {
-              ...verified['driver'],
-              ...user,
-            };
-          }
-          return verified;
+          return verified[`${type}`];
         })
-        .filter((verified) => Object.keys(verified[`${type}`]).length !== 0);
+        .map((verified) => {
+          const user = verified['user'];
+          delete verified['user'];
+          return {
+            ...verified,
+            ...user,
+          };
+        })
+        .filter((verified) => Object.keys(verified.length !== 0));
     } catch (e) {
       throw new InternalServerErrorException(e.message);
     }
@@ -595,7 +547,6 @@ export class VerifyAccountsService {
       status: true,
       detail: true,
       createDate: true,
-      expiredDate: true,
       updateAt: true,
     };
     try {
