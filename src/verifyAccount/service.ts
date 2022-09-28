@@ -15,8 +15,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { ManagerVerifyDTO } from 'src/manager/dto';
-import { Prisma, UserStatus, VerifyAccountStatus } from '@prisma/client';
-import * as moment from 'moment';
+import { UserStatus, VerifyAccountStatus } from '@prisma/client';
 import { MailerService } from '@nestjs-modules/mailer';
 import { AppConfigService } from 'src/config/appConfigService';
 
@@ -523,19 +522,18 @@ export class VerifyAccountsService {
         },
         distinct: ['brandId', 'driverId'],
       });
+
       return verifieds
+        .map((verified) => verified[`${type}`])
         .map((verified) => {
-          return verified[`${type}`];
-        })
-        .map((verified) => {
-          const user = verified['user'];
-          delete verified['user'];
+          const user = verified?.user;
+          delete verified?.user;
           return {
             ...verified,
             ...user,
           };
         })
-        .filter((verified) => Object.keys(verified.length !== 0));
+        .filter((verified) => Object.keys(verified).length !== 0);
     } catch (e) {
       throw new InternalServerErrorException(e.message);
     }
