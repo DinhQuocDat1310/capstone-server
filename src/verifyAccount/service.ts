@@ -150,7 +150,6 @@ export class VerifyAccountsService {
       status: true,
       detail: true,
       createDate: true,
-      expiredDate: true,
       assignBy: true,
     };
     if (type === 'brand') {
