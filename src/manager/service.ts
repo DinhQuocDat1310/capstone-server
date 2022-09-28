@@ -32,7 +32,6 @@ export class ManagerService {
             },
             data: {
               status: 'PENDING',
-              expiredDate: moment().add(1, 'days').toDate(),
             },
           },
         },

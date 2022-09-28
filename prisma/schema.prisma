@@ -94,7 +94,6 @@ model VerifyAccount {
   detail      String?
   createDate  DateTime            @default(now())
   updateAt    DateTime            @updatedAt
-  expiredDate DateTime?
   assignBy    AssignBy?
   brand       Brand?              @relation(fields: [brandId], references: [id])
   brandId     String?

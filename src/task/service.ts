@@ -52,25 +52,4 @@ export class TasksService {
       this.logger.error(e.message);
     }
   }
-
-  @Cron('0 */3 * * * *')
-  async handleCheckExpiredTime() {
-    try {
-      const verifies = await this.verifyAccountService.getAllVerifyExpired();
-      if (verifies.length === 0) {
-        this.logger.debug('No Request Verify Account Expired!');
-        return;
-      }
-      await this.verifyAccountService.updateVerifyAccountExpired();
-      this.logger.debug(
-        `Update ${verifies.length} request verify account PENDING to EXPIRED!`,
-      );
-      await this.verifyAccountService.createNewVerifyWhenExpired(verifies);
-      this.logger.debug(
-        `Create ${verifies.length} request verify account EXPIRED to NEW!`,
-      );
-    } catch (e) {
-      this.logger.error(e.message);
-    }
-  }
 }
