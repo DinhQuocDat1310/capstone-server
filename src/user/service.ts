@@ -1,4 +1,9 @@
-import { BadRequestException, Body, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { Role, UserStatus } from '@prisma/client';
 import { hash, compare } from 'bcrypt';
 import { PrismaService } from 'src/prisma/service';
@@ -51,7 +56,13 @@ export class UsersService {
 
   async updatePasswordUser(userId: string, dto: ChangePasswordDTO) {
     const user = await this.findUserByUserId(userId);
-    if (user && (await compare(dto.currentPassword, user.password))) {
+    const checkCurrentPassword = await compare(
+      dto.currentPassword,
+      user.password,
+    );
+    if (!checkCurrentPassword)
+      throw new BadRequestException('Incorrect current password of user');
+    if (user && checkCurrentPassword) {
       await this.prisma.user.update({
         where: {
           id: userId,
@@ -62,7 +73,7 @@ export class UsersService {
       });
       return 'Updated';
     }
-    throw new BadRequestException('Incorrect current password of user');
+    throw new InternalServerErrorException('Server error');
   }
 
   async findUserByUserId(id: string) {
