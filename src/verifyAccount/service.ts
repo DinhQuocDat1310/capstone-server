@@ -44,6 +44,17 @@ export class VerifyAccountsService {
   }
 
   async createPendingRequestVerifyDriverAccount(id: string, managerId: string) {
+    const verify = await this.prisma.verifyAccount.findFirst({
+      where: {
+        brandId: id,
+      },
+      select: {
+        createDate: true,
+      },
+      orderBy: {
+        createDate: 'asc',
+      },
+    });
     try {
       return await this.prisma.verifyAccount.create({
         data: {
@@ -58,6 +69,7 @@ export class VerifyAccountsService {
               id: managerId,
             },
           },
+          createDate: verify.createDate,
         },
       });
     } catch (e) {
@@ -66,6 +78,17 @@ export class VerifyAccountsService {
   }
 
   async createPendingRequestVerifyBrandAccount(id: string, managerId: string) {
+    const verify = await this.prisma.verifyAccount.findFirst({
+      where: {
+        brandId: id,
+      },
+      select: {
+        createDate: true,
+      },
+      orderBy: {
+        createDate: 'asc',
+      },
+    });
     try {
       return await this.prisma.verifyAccount.create({
         data: {
@@ -80,6 +103,7 @@ export class VerifyAccountsService {
               id: managerId,
             },
           },
+          createDate: verify.createDate,
         },
       });
     } catch (e) {
