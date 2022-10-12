@@ -121,7 +121,7 @@ enum VerifyAccountStatus {
 
 model Campaign {
   id               String         @id @default(uuid())
-  campaignName     String
+  campaignName     String         @unique
   startRunningDate DateTime
   statusCampaign   CampaignStatus @default(NEW)
   duration         String
