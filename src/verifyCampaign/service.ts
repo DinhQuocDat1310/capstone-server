@@ -32,70 +32,6 @@ export class VerifyCampaignService {
     private readonly configService: AppConfigService,
   ) {}
 
-  async createNewRequestVerifyCampaign(id: string) {
-    try {
-      return await this.prisma.verifyCampaign.create({
-        data: {
-          campaign: {
-            connect: {
-              id,
-            },
-          },
-        },
-      });
-    } catch (e) {
-      throw new InternalServerErrorException(e.message);
-    }
-  }
-  async createPendingRequestVerifyCampaign(id: string, managerId: string) {
-    const verifyCampaign = await this.prisma.verifyAccount.findFirst({
-      where: {
-        brandId: id,
-      },
-      select: {
-        createDate: true,
-      },
-      orderBy: {
-        createDate: 'asc',
-      },
-    });
-    try {
-      return await this.prisma.verifyCampaign.create({
-        data: {
-          status: VerifyAccountStatus.PENDING,
-          campaign: {
-            connect: {
-              id,
-            },
-          },
-          manager: {
-            connect: {
-              id: managerId,
-            },
-          },
-          createDate: verifyCampaign.createDate,
-        },
-      });
-    } catch (e) {
-      throw new InternalServerErrorException(e.message);
-    }
-  }
-
-  async assignVerifyCampaignToManager(verifyId: string, managerId: string) {
-    await this.prisma.verifyCampaign.update({
-      where: {
-        id: verifyId,
-      },
-      data: {
-        manager: {
-          connect: {
-            id: managerId,
-          },
-        },
-      },
-    });
-  }
-
   async getAllVerifyCampaignNew() {
     return await this.prisma.verifyCampaign.findMany({
       where: {
@@ -125,6 +61,12 @@ export class VerifyCampaignService {
           campaign: {
             select: {
               brandId: true,
+              brand: {
+                select: {
+                  brandName: true,
+                  logo: true,
+                },
+              },
               campaignName: true,
               startRunningDate: true,
               totalKm: true,
@@ -141,7 +83,6 @@ export class VerifyCampaignService {
               locationCampaign: {
                 select: {
                   locationName: true,
-                  price: true,
                 },
               },
             },
@@ -261,14 +202,12 @@ export class VerifyCampaignService {
     let status: VerifyCampaignStatus = VerifyCampaignStatus.PENDING;
     let statusCampaign: CampaignStatus = CampaignStatus.NEW;
     let message = '';
-    let step = '';
     switch (dto.action) {
       case 'ACCEPT':
         message = `<p>Congratulations!. Your campaign information has been accepted</p>
            <p>Please login at the website for more details</p>`;
         status = VerifyCampaignStatus.ACCEPT;
         statusCampaign = CampaignStatus.OPENING;
-        step = '1';
         break;
       case 'BANNED':
         message = `<p>Your campaign has been banned for violating our terms</p>
@@ -282,7 +221,6 @@ export class VerifyCampaignService {
         message = `<p>The campaign information you provided is not valid, please update so that Brandvertise's team can support as soon as possible.</p>
            <p>Please login at the website for more details</p>`;
         status = VerifyCampaignStatus.UPDATE;
-        step = '1';
         break;
     }
     const campaign = await this.prisma.campaign.update({
@@ -328,7 +266,7 @@ export class VerifyCampaignService {
        <p style="color: green">Brandvertise</p>
     `,
     });
-    return { step };
+    return;
   }
 
   async getListHistoryVerifiedCampaignByManagerId(userId: string) {
