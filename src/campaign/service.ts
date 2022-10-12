@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { UserSignIn } from 'src/auth/dto';
 import { PrismaService } from 'src/prisma/service';
 import { CampaignVerifyInformationDTO } from './dto';
@@ -63,6 +67,9 @@ export class CampaignService {
             detail: true,
             createDate: true,
             updateAt: true,
+          },
+          orderBy: {
+            createDate: 'desc',
           },
         },
       },
@@ -353,5 +360,69 @@ export class CampaignService {
         campaignName,
       },
     });
+  }
+
+  async cancelCampaign(userId: string, campaignId: string) {
+    const checkCampaignId = await this.prisma.campaign.findFirst({
+      where: {
+        AND: [
+          {
+            brand: {
+              userId,
+            },
+          },
+          {
+            id: campaignId,
+          },
+        ],
+      },
+    });
+    if (!checkCampaignId)
+      throw new BadRequestException('Not found campaign Id for Cancel');
+    const checkStatusCampaign = await this.prisma.campaign.findFirst({
+      where: {
+        AND: [
+          { id: campaignId },
+          { statusCampaign: 'NEW' },
+          {
+            verifyCampaign: {
+              some: {
+                status: 'NEW',
+              },
+            },
+          },
+        ],
+      },
+      select: {
+        verifyCampaign: {
+          select: {
+            id: true,
+            campaignId: true,
+          },
+        },
+      },
+    });
+    if (!checkStatusCampaign)
+      throw new BadRequestException(
+        'This Campaign is being process handling, can not Cancel',
+      );
+    try {
+      await this.prisma.campaign.update({
+        where: {
+          id: campaignId,
+        },
+        data: {
+          statusCampaign: 'CANCELED',
+          verifyCampaign: {
+            delete: {
+              id: checkStatusCampaign.verifyCampaign[0]?.id,
+            },
+          },
+        },
+      });
+      return { message: 'Success Cancel campaign', step: 1 };
+    } catch (e) {
+      throw new InternalServerErrorException(e.message);
+    }
   }
 }
