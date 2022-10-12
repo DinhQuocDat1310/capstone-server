@@ -299,7 +299,7 @@ export class CampaignService {
     const checkCampaignNameUsed = await this.checkCampaignNameUsed(
       dto.campaignName,
     );
-    if (!checkCampaignNameUsed)
+    if (checkCampaignNameUsed)
       throw new BadRequestException('Campaign name already used!');
     const campaign = await this.prisma.campaign.create({
       data: {
