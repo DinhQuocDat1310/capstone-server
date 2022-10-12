@@ -120,18 +120,19 @@ enum VerifyAccountStatus {
 }
 
 model Campaign {
-  id               String         @id @default(uuid())
-  campaignName     String         @unique
-  startRunningDate DateTime
-  statusCampaign   CampaignStatus @default(NEW)
-  duration         String
-  totalKm          String
-  quantityDriver   String
-  description      String?
-  minimumKmDrive   String         @default("20")
-  totalDriverMoney String?
-  totalWarpMoney   String?
-  totalSystemMoney String?
+  id                String         @id @default(uuid())
+  campaignName      String         @unique
+  startRunningDate  DateTime
+  dateOpenRegister  DateTime
+  startRegisterDate DateTime
+  endRegisterDate   DateTime
+  statusCampaign    CampaignStatus @default(NEW)
+  duration          String
+  totalKm           String
+  quantityDriver    String
+  description       String?
+  minimumKmDrive    String         @default("20")
+  dateWrapSticket   DateTime
 
   brand              Brand?                 @relation(fields: [brandId], references: [id])
   brandId            String?
@@ -140,6 +141,7 @@ model Campaign {
   wrap               Warp?                  @relation(fields: [warpId], references: [id])
   warpId             String?                @unique
   verifyCampaign     VerifyCampaign[]
+  contractCampaign   ContractCampaign?
 }
 
 enum CampaignStatus {
@@ -189,4 +191,14 @@ enum VerifyCampaignStatus {
   ACCEPT
   BANNED
   UPDATE
+}
+
+model ContractCampaign {
+  id               String    @id @default(uuid())
+  contractName     String
+  totalDriverMoney String
+  totalSystemMoney String
+  totalWarpType    String
+  campaign         Campaign? @relation(fields: [campaignId], references: [id])
+  campaignId       String?   @unique
 }
