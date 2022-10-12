@@ -295,11 +295,15 @@ export class CampaignService {
     const campaign = await this.prisma.campaign.create({
       data: {
         campaignName: dto.campaignName,
-        startRunningDate: dto.startRunningDate,
+        startRunningDate: new Date(dto.startRunningDate).toISOString(),
         duration: dto.duration,
         quantityDriver: dto.quantityDriver,
         totalKm: dto.totalKm,
         description: dto.description,
+        dateOpenRegister: new Date(dto.dateOpenRegister).toISOString(),
+        dateWrapSticket: new Date(dto.dateWrapSticket).toISOString(),
+        startRegisterDate: new Date(dto.dateOpenRegister).toISOString(),
+        endRegisterDate: new Date(dto.endRegisterDate).toISOString(),
         brand: {
           connect: {
             userId,
