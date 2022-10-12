@@ -1,3 +1,4 @@
+import { StatusGuard } from './../guard/userStatus.guard';
 import { VerifyCampaignService } from './../verifyCampaign/service';
 import {
   Controller,
@@ -28,7 +29,7 @@ import { RolesGuard } from 'src/guard/roles.guard';
 
 @Controller('campaign')
 @ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
 @ApiTags('Campaign')
 export class CampaignController {
   constructor(
@@ -75,5 +76,21 @@ export class CampaignController {
     @Param('id') campaignId: string,
   ) {
     return await this.campaignService.updateCampaign(dto, req.user, campaignId);
+  }
+
+  @ApiBody({ type: CampaignVerifyInformationDTO })
+  @ApiOperation({ summary: 'Create campaign data verification' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiCreatedResponse({ description: 'Create' })
+  @Roles(Role.BRAND)
+  @Status(UserStatus.VERIFIED)
+  @Post('/create')
+  async createCampaignInformation(
+    @Request() req: RequestUser,
+    @Body() dto: CampaignVerifyInformationDTO,
+  ) {
+    return await this.campaignService.createCampaign(dto, req.user.id);
   }
 }

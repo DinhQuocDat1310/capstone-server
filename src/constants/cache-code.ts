@@ -1,1 +1,1 @@
-export const EXPIRED_CODE_FIVE_MINUTES = 5 * 60 * 1000;
+export const EXPIRED_CODE_FIVE_MINUTES = 5 * 60;

@@ -263,6 +263,7 @@ export class CampaignService {
         id: true,
         campaignName: true,
         duration: true,
+        totalKm: true,
         description: true,
         quantityDriver: true,
         minimumKmDrive: true,
@@ -290,6 +291,82 @@ export class CampaignService {
       },
       orderBy: {
         startRunningDate: 'asc',
+      },
+    });
+  }
+
+  async createCampaign(dto: CampaignVerifyInformationDTO, userId: string) {
+    const checkCampaignNameUsed = await this.checkCampaignNameUsed(
+      dto.campaignName,
+    );
+    if (!checkCampaignNameUsed)
+      throw new BadRequestException('Campaign name already used!');
+    const campaign = await this.prisma.campaign.create({
+      data: {
+        campaignName: dto.campaignName,
+        startRunningDate: dto.startRunningDate,
+        duration: dto.duration,
+        quantityDriver: dto.quantityDriver,
+        totalKm: dto.totalKm,
+        description: dto.description,
+        brand: {
+          connect: {
+            userId,
+          },
+        },
+        locationCampaign: {
+          create: {
+            locationName: dto.locationName,
+            price: '1,000,000',
+          },
+        },
+        wrap: {
+          create: {
+            positionWarp: dto.positionWarp,
+            imagePoster: dto.imagePoster,
+            price: dto.positionWarp === 'ONE_SIDE' ? '500,000' : '1,000,000',
+          },
+        },
+      },
+      select: {
+        id: true,
+        campaignName: true,
+        duration: true,
+        totalKm: true,
+        description: true,
+        quantityDriver: true,
+        minimumKmDrive: true,
+        startRunningDate: true,
+        locationCampaign: {
+          select: {
+            locationName: true,
+          },
+        },
+        wrap: {
+          select: {
+            imagePoster: true,
+            positionWarp: true,
+          },
+        },
+        statusCampaign: true,
+      },
+    });
+    await this.prisma.verifyCampaign.create({
+      data: {
+        campaign: {
+          connect: {
+            id: campaign.id,
+          },
+        },
+      },
+    });
+    return { campaign, step: 1 };
+  }
+
+  async checkCampaignNameUsed(campaignName: string) {
+    return await this.prisma.campaign.findFirst({
+      where: {
+        campaignName,
       },
     });
   }

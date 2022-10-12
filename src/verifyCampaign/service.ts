@@ -180,7 +180,12 @@ export class VerifyCampaignService {
       for (let j = 0; j < 5; j++) {
         const campaignId = await this.prisma.campaign.create({
           data: {
-            campaignName: FAKE_CAMPAIGN_NAME[j],
+            campaignName:
+              'Sunlight' +
+              Math.floor(
+                Math.random() * (Math.pow(5, 6) * 9.9 - Math.pow(5, 6) + 1) +
+                  Math.pow(6, 6),
+              ),
             startRunningDate: new Date(),
             duration: FAKE_DURATION[j],
             quantityDriver: FAKE_QUANTITY_DRIVER[j],
@@ -220,7 +225,7 @@ export class VerifyCampaignService {
         });
       }
     }
-    return `Create 25 request verify NEW campaigns`;
+    return `Create ${brand.length * 5} request verify NEW campaigns`;
   }
 
   async managerVerifyCampaign(userId: string, dto: ManagerVerifyDTO) {
@@ -258,12 +263,14 @@ export class VerifyCampaignService {
     let status: VerifyCampaignStatus = VerifyCampaignStatus.PENDING;
     let statusCampaign: CampaignStatus = CampaignStatus.NEW;
     let message = '';
+    let step = '';
     switch (dto.action) {
       case 'ACCEPT':
         message = `<p>Congratulations!. Your campaign information has been accepted</p>
            <p>Please login at the website for more details</p>`;
         status = VerifyCampaignStatus.ACCEPT;
         statusCampaign = CampaignStatus.OPENING;
+        step = '1';
         break;
       case 'BANNED':
         message = `<p>Your campaign has been banned for violating our terms</p>
@@ -277,6 +284,7 @@ export class VerifyCampaignService {
         message = `<p>The campaign information you provided is not valid, please update so that Brandvertise's team can support as soon as possible.</p>
            <p>Please login at the website for more details</p>`;
         status = VerifyCampaignStatus.UPDATE;
+        step = '1';
         break;
     }
     const campaign = await this.prisma.campaign.update({
@@ -322,7 +330,7 @@ export class VerifyCampaignService {
        <p style="color: green">Brandvertise</p>
     `,
     });
-    return;
+    return { step };
   }
 
   async getListHistoryVerifiedCampaignByManagerId(userId: string) {
