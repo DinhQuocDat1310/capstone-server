@@ -22,7 +22,11 @@ export class CampaignService {
         AND: [
           {
             OR: [
-              { statusCampaign: 'OPENING' },
+              {
+                statusCampaign: {
+                  in: ['NEW', 'OPENING'],
+                },
+              },
               {
                 verifyCampaign: {
                   every: {
