@@ -2,7 +2,6 @@ import {
   FAKE_DURATION,
   FAKE_TOTALKM,
   FAKE_QUANTITY_DRIVER,
-  FAKE_CAMPAIGN_NAME,
   FAKE_ADDRESS,
   FAKE_LOCATION_PRICE,
   FAKE_POSITION_WRAP,
@@ -24,7 +23,6 @@ import {
 } from '@nestjs/common';
 import { AppConfigService } from 'src/config/appConfigService';
 import { PrismaService } from 'src/prisma/service';
-import * as moment from 'moment';
 import { ManagerVerifyDTO } from 'src/manager/dto';
 @Injectable()
 export class VerifyCampaignService {
