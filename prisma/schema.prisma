@@ -61,6 +61,8 @@ model Brand {
   verify VerifyAccount[]
   user   User            @relation(fields: [userId], references: [id])
   userId String          @unique
+
+  campaign Campaign[]
 }
 
 model Driver {
@@ -82,25 +84,26 @@ model Driver {
 }
 
 model Manager {
-  id     String          @id @default(uuid())
-  user   User            @relation(fields: [userId], references: [id])
-  userId String          @unique
-  verify VerifyAccount[]
+  id             String           @id @default(uuid())
+  user           User             @relation(fields: [userId], references: [id])
+  userId         String           @unique
+  verify         VerifyAccount[]
+  verifyCampaign VerifyCampaign[]
 }
 
 model VerifyAccount {
-  id          String              @id @default(uuid())
-  status      VerifyAccountStatus @default(NEW)
-  detail      String?
-  createDate  DateTime            @default(now())
-  updateAt    DateTime            @updatedAt
-  assignBy    AssignBy?
-  brand       Brand?              @relation(fields: [brandId], references: [id])
-  brandId     String?
-  driver      Driver?             @relation(fields: [driverId], references: [id])
-  driverId    String?
-  manager     Manager?            @relation(fields: [managerId], references: [id])
-  managerId   String?
+  id         String              @id @default(uuid())
+  status     VerifyAccountStatus @default(NEW)
+  detail     String?
+  createDate DateTime            @default(now())
+  updateAt   DateTime            @updatedAt
+  assignBy   AssignBy?
+  brand      Brand?              @relation(fields: [brandId], references: [id])
+  brandId    String?
+  driver     Driver?             @relation(fields: [driverId], references: [id])
+  driverId   String?
+  manager    Manager?            @relation(fields: [managerId], references: [id])
+  managerId  String?
 }
 
 enum AssignBy {
@@ -112,7 +115,78 @@ enum VerifyAccountStatus {
   NEW
   ACCEPT
   BANNED
-  EXPIRED
   UPDATE
   PENDING
+}
+
+model Campaign {
+  id               String         @id @default(uuid())
+  campaignName     String
+  startRunningDate DateTime
+  statusCampaign   CampaignStatus @default(NEW)
+  duration         String
+  totalKm          String
+  quantityDriver   String
+  description      String?
+  minimumKmDrive   String         @default("20")
+  totalDriverMoney String?
+  totalWarpMoney   String?
+  totalSystemMoney String?
+
+  brand              Brand?                 @relation(fields: [brandId], references: [id])
+  brandId            String?
+  locationCampaign   LocationCampaignPerKm? @relation(fields: [locationCampaignId], references: [id])
+  locationCampaignId String                 @unique
+  wrap               Warp?                  @relation(fields: [warpId], references: [id])
+  warpId             String?                @unique
+  verifyCampaign     VerifyCampaign[]
+}
+
+enum CampaignStatus {
+  NEW
+  OPENING
+  RUNNING
+  CLOSED
+  CANCELED
+}
+
+model LocationCampaignPerKm {
+  id           String     @id @default(uuid())
+  locationName String
+  price        String
+  campaign     Campaign[]
+}
+
+model Warp {
+  id           String       @id @default(uuid())
+  imagePoster  String
+  positionWarp PositionWarp
+  price        String
+  campaign     Campaign?
+}
+
+enum PositionWarp {
+  BOTH_SIDE
+  ONE_SIDE
+}
+
+model VerifyCampaign {
+  id         String               @id @default(uuid())
+  status     VerifyCampaignStatus @default(NEW)
+  detail     String?
+  createDate DateTime             @default(now())
+  updateAt   DateTime             @updatedAt
+  assignBy   AssignBy?
+  manager    Manager?             @relation(fields: [managerId], references: [id])
+  managerId  String?
+  campaign   Campaign?            @relation(fields: [campaignId], references: [id])
+  campaignId String?
+}
+
+enum VerifyCampaignStatus {
+  NEW
+  PENDING
+  ACCEPT
+  BANNED
+  UPDATE
 }

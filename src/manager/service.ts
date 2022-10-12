@@ -1,7 +1,6 @@
 import { PrismaService } from './../prisma/service';
 import { Injectable } from '@nestjs/common';
 import { VerifyAccountStatus } from '@prisma/client';
-import * as moment from 'moment';
 
 @Injectable()
 export class ManagerService {
@@ -67,5 +66,29 @@ export class ManagerService {
       };
     });
     return format;
+  }
+
+  async connectVerifyCampaignToManager(
+    verifyIds: { id: string }[],
+    managerId: string,
+  ) {
+    return await this.prisma.manager.update({
+      where: {
+        id: managerId,
+      },
+      data: {
+        verifyCampaign: {
+          connect: verifyIds,
+          updateMany: {
+            where: {
+              status: 'NEW',
+            },
+            data: {
+              status: 'PENDING',
+            },
+          },
+        },
+      },
+    });
   }
 }

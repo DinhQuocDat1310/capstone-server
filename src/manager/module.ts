@@ -1,3 +1,4 @@
+import { VerifyCampaignService } from './../verifyCampaign/service';
 import { PrismaService } from 'src/prisma/service';
 import { Module } from '@nestjs/common';
 import { ManagerController } from './controller';
@@ -14,6 +15,7 @@ import { AppConfigService } from 'src/config/appConfigService';
     PrismaService,
     UsersService,
     VerifyAccountsService,
+    VerifyCampaignService,
   ],
 })
 export class ManagerModule {}
