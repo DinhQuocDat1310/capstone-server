@@ -1,5 +1,4 @@
 import { VerifyCampaignService } from './../verifyCampaign/service';
-import { UsersService } from './../user/service';
 import { PrismaService } from './../prisma/service';
 import { Module } from '@nestjs/common';
 import { CampaignService } from './service';
@@ -11,7 +10,6 @@ import { AppConfigService } from 'src/config/appConfigService';
   providers: [
     CampaignService,
     PrismaService,
-    UsersService,
     VerifyCampaignService,
     AppConfigService,
   ],

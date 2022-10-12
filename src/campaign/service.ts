@@ -1,20 +1,12 @@
-import { VerifyCampaignService } from './../verifyCampaign/service';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { UserSignIn } from 'src/auth/dto';
-import { AppConfigService } from 'src/config/appConfigService';
 import { PrismaService } from 'src/prisma/service';
-import { UsersService } from 'src/user/service';
 import { CampaignVerifyInformationDTO } from './dto';
 import { Role } from '@prisma/client';
 
 @Injectable()
 export class CampaignService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly usersService: UsersService,
-    private readonly verifyCampaignService: VerifyCampaignService,
-    private readonly configService: AppConfigService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async getListCampaignByUserId(userId: string) {
     return await this.prisma.campaign.findMany({
@@ -85,7 +77,7 @@ export class CampaignService {
     userReq: UserSignIn,
     campaignId: string,
   ) {
-    const checkIdCampaign = await this.findIdCampaign(campaignId);
+    const checkIdCampaign = await this.findCampaignByID(campaignId);
     if (!checkIdCampaign)
       throw new BadRequestException('Campaign ID invalid to update');
 
@@ -94,41 +86,22 @@ export class CampaignService {
       userReq.role,
       campaignId,
     );
-
-    const latestVerifyCampaignStatus =
-      user.brand.campaign[0]?.verifyCampaign[0]?.status;
-    console.log(user.brand.campaign[0]?.verifyCampaign[0]);
-    if (
-      latestVerifyCampaignStatus === 'NEW' ||
-      latestVerifyCampaignStatus === 'PENDING'
-    ) {
+    const campaignToUpdate = user.brand.campaign[0]?.verifyCampaign[0]?.status;
+    if (campaignToUpdate !== 'UPDATE') {
       throw new BadRequestException(
-        'Your campaign is on processing, we will response back in 1 to 3 working days',
-      );
-    }
-    if (
-      latestVerifyCampaignStatus === 'ACCEPT' ||
-      latestVerifyCampaignStatus === 'BANNED'
-    ) {
-      throw new BadRequestException(
-        `Your campaign is already processed, please check your email or contact with ${this.configService.getConfig(
-          'MAILER',
-        )} for more information`,
+        'Invalid to update your campaign, request verify campaign was handled or waiting for us to handle',
       );
     }
 
     try {
-      if (!latestVerifyCampaignStatus) {
-        await this.verifyCampaignService.createNewRequestVerifyCampaign(
+      if (campaignToUpdate === 'UPDATE') {
+        await this.updateCampaignInformation(
+          userReq.id,
+          dto,
           campaignId,
-        );
-      } else if (latestVerifyCampaignStatus === 'UPDATE') {
-        await this.verifyCampaignService.createPendingRequestVerifyCampaign(
-          campaignId,
-          user.brand.campaign[0]?.verifyCampaign[0]?.managerId,
+          user.brand.campaign[0]?.verifyCampaign[0]?.id,
         );
       }
-      await this.updateCampaignInformation(userReq.id, dto, campaignId);
       return 'Updated';
     } catch (e) {
       throw new Error(e.message);
@@ -139,6 +112,7 @@ export class CampaignService {
     id: string,
     dto: CampaignVerifyInformationDTO,
     campaignId: string,
+    verifyCampaignId: string,
   ) {
     await this.prisma.user.update({
       where: {
@@ -168,7 +142,18 @@ export class CampaignService {
                   },
                   locationCampaign: {
                     update: {
-                      locationName: dto.campaignName,
+                      locationName: dto.locationName,
+                    },
+                  },
+                  verifyCampaign: {
+                    update: {
+                      where: {
+                        id: verifyCampaignId,
+                      },
+                      data: {
+                        detail: null,
+                        status: 'PENDING',
+                      },
                     },
                   },
                 },
@@ -180,21 +165,10 @@ export class CampaignService {
     });
   }
 
-  async findIdCampaign(id: string) {
+  async findCampaignByID(campaignId: string) {
     return await this.prisma.campaign.findFirst({
       where: {
-        AND: [
-          { id },
-          {
-            verifyCampaign: {
-              every: {
-                status: {
-                  in: 'UPDATE',
-                },
-              },
-            },
-          },
-        ],
+        id: campaignId,
       },
     });
   }
@@ -204,25 +178,31 @@ export class CampaignService {
     role: Role,
     campaignId: string,
   ) {
-    console.log(campaignId);
     const brand = await this.prisma.campaign.findFirst({
       where: {
-        id: campaignId,
-        brand: {
-          user: {
-            email,
-            role,
+        AND: [
+          { id: campaignId },
+          {
+            brand: {
+              user: {
+                email,
+                role,
+              },
+            },
           },
-        },
+        ],
       },
       select: {
         brand: {
           select: {
             campaign: {
+              where: {
+                id: campaignId,
+              },
               select: {
                 verifyCampaign: {
-                  orderBy: {
-                    createDate: 'desc',
+                  where: {
+                    AND: [{ campaignId: campaignId }, { status: 'UPDATE' }],
                   },
                 },
               },

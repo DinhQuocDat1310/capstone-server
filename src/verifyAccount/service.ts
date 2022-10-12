@@ -128,21 +128,6 @@ export class VerifyAccountsService {
     }
   }
 
-  async assignVerifyAccountToManager(verifyId: string, managerId: string) {
-    await this.prisma.verifyAccount.update({
-      where: {
-        id: verifyId,
-      },
-      data: {
-        manager: {
-          connect: {
-            id: managerId,
-          },
-        },
-      },
-    });
-  }
-
   async getListVerifyByUserId(userId: string) {
     return await this.prisma.verifyAccount.findMany({
       where: {

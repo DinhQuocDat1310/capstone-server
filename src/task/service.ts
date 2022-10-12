@@ -13,7 +13,7 @@ export class TasksService {
     private readonly verifyCampaignService: VerifyCampaignService,
   ) {}
 
-  @Cron('0 */4 * * * *')
+  @Cron('0 */2 * * * *')
   async handleAddManagerVerifyAccountData() {
     try {
       //Add mananger verify Account

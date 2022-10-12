@@ -32,70 +32,6 @@ export class VerifyCampaignService {
     private readonly configService: AppConfigService,
   ) {}
 
-  async createNewRequestVerifyCampaign(id: string) {
-    try {
-      return await this.prisma.verifyCampaign.create({
-        data: {
-          campaign: {
-            connect: {
-              id,
-            },
-          },
-        },
-      });
-    } catch (e) {
-      throw new InternalServerErrorException(e.message);
-    }
-  }
-  async createPendingRequestVerifyCampaign(id: string, managerId: string) {
-    const verifyCampaign = await this.prisma.verifyAccount.findFirst({
-      where: {
-        brandId: id,
-      },
-      select: {
-        createDate: true,
-      },
-      orderBy: {
-        createDate: 'asc',
-      },
-    });
-    try {
-      return await this.prisma.verifyCampaign.create({
-        data: {
-          status: VerifyAccountStatus.PENDING,
-          campaign: {
-            connect: {
-              id,
-            },
-          },
-          manager: {
-            connect: {
-              id: managerId,
-            },
-          },
-          createDate: verifyCampaign.createDate,
-        },
-      });
-    } catch (e) {
-      throw new InternalServerErrorException(e.message);
-    }
-  }
-
-  async assignVerifyCampaignToManager(verifyId: string, managerId: string) {
-    await this.prisma.verifyCampaign.update({
-      where: {
-        id: verifyId,
-      },
-      data: {
-        manager: {
-          connect: {
-            id: managerId,
-          },
-        },
-      },
-    });
-  }
-
   async getAllVerifyCampaignNew() {
     return await this.prisma.verifyCampaign.findMany({
       where: {
@@ -125,6 +61,12 @@ export class VerifyCampaignService {
           campaign: {
             select: {
               brandId: true,
+              brand: {
+                select: {
+                  brandName: true,
+                  logo: true,
+                },
+              },
               campaignName: true,
               startRunningDate: true,
               totalKm: true,
@@ -141,7 +83,6 @@ export class VerifyCampaignService {
               locationCampaign: {
                 select: {
                   locationName: true,
-                  price: true,
                 },
               },
             },
