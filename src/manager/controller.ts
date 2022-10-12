@@ -1,3 +1,4 @@
+import { VerifyCampaignService } from './../verifyCampaign/service';
 import {
   Body,
   Controller,
@@ -12,6 +13,7 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiForbiddenResponse,
+  ApiNotFoundResponse,
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -33,6 +35,7 @@ export class ManagerController {
   constructor(
     private readonly verifyAccountService: VerifyAccountsService,
     private readonly managerService: ManagerService,
+    private readonly verifyCampaignService: VerifyCampaignService,
   ) {}
 
   @ApiOperation({ summary: 'Verify account by Manager' })
@@ -116,8 +119,99 @@ export class ManagerController {
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.MANAGER)
-  @Get('fake/autoCreateNewRequest')
+  @Get('fake/account/autoCreateNewRequest')
   async addFakeData() {
     return this.verifyAccountService.fakeAutoCreateVerifyRequest();
+  }
+
+  @ApiOperation({ summary: 'Automation create request for campaign' })
+  @ApiForbiddenResponse({
+    description: "Account don't have permission to use this feature",
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Roles(Role.MANAGER)
+  @Get('fake/campaign/autoCreateNewRequest')
+  async addFakeDataCampaign() {
+    return this.verifyCampaignService.fakeAutoCreateVerifyCampaignRequest();
+  }
+
+  @ApiOperation({ summary: 'Get list verifies campaign pending' })
+  @ApiForbiddenResponse({
+    description: "Account don't have permission to use this feature",
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Roles(Role.MANAGER)
+  @Get('campaign/verifies')
+  async getListVerifyCampaign(@Request() req: RequestUser) {
+    return await this.verifyCampaignService.getListVerifyCampaignPending(
+      req.user.id,
+    );
+  }
+
+  @ApiOperation({ summary: 'Automation ACCEPT verified Brand/Driver' })
+  @ApiForbiddenResponse({
+    description: "Account don't have permission to use this feature",
+  })
+  @ApiNotFoundResponse({
+    description: 'Not found any verify account request',
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Roles(Role.MANAGER)
+  @Get('fake/autoVerifiedAccountRequest/')
+  async fakeVerifyDataAccount(@Request() req: RequestUser) {
+    return this.verifyAccountService.fakeAutoVerifyAccountRequest(req.user.id);
+  }
+
+  @ApiOperation({ summary: 'Verify campaign by Manager' })
+  @ApiBody({ type: ManagerVerifyDTO })
+  @ApiForbiddenResponse({
+    description: "Account don't have permission to use this feature",
+  })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Post('campaign/verify')
+  @Roles(Role.MANAGER)
+  async verifyCampaign(
+    @Request() req: RequestUser,
+    @Body() dto: ManagerVerifyDTO,
+  ) {
+    return await this.verifyCampaignService.managerVerifyCampaign(
+      req.user.id,
+      dto,
+    );
+  }
+
+  @ApiOperation({ summary: 'Get list history verified Campaign of Brand' })
+  @ApiForbiddenResponse({
+    description: "Account don't have permission to use this feature",
+  })
+  @ApiBadRequestResponse({ description: 'Role is not valid' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Roles(Role.MANAGER)
+  @Get('campaign/verifieds')
+  async getListVerifiedCampaign(@Request() req: RequestUser) {
+    return await this.verifyCampaignService.getListHistoryVerifiedCampaignByManagerId(
+      req.user.id,
+    );
+  }
+
+  @ApiOperation({
+    summary: 'Get history detail verified Campaign',
+  })
+  @ApiForbiddenResponse({
+    description: "Account don't have permission to use this feature",
+  })
+  @ApiBadRequestResponse({ description: 'Role is not valid' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Roles(Role.MANAGER)
+  @Get('campaign/verified/:id')
+  async getHistoryDetailVerifiedCampaignDetail(
+    @Request() req: RequestUser,
+    @Param('id') id: string,
+  ) {
+    return await this.verifyCampaignService.getHistoryDetailVerifiedCampaign(
+      req.user.id,
+      id,
+    );
   }
 }

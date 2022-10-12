@@ -13,6 +13,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { ManagerVerifyDTO } from 'src/manager/dto';
 import { UserStatus, VerifyAccountStatus } from '@prisma/client';
@@ -534,10 +535,7 @@ export class VerifyAccountsService {
             userId,
           },
           status: {
-            not:
-              VerifyAccountStatus.PENDING ||
-              VerifyAccountStatus.NEW ||
-              VerifyAccountStatus.EXPIRED,
+            not: VerifyAccountStatus.PENDING || VerifyAccountStatus.NEW,
           },
         },
         select,
@@ -584,10 +582,7 @@ export class VerifyAccountsService {
             },
             {
               status: {
-                not:
-                  VerifyAccountStatus.PENDING ||
-                  VerifyAccountStatus.NEW ||
-                  VerifyAccountStatus.EXPIRED,
+                not: VerifyAccountStatus.PENDING || VerifyAccountStatus.NEW,
               },
             },
           ],
@@ -599,6 +594,110 @@ export class VerifyAccountsService {
       });
     } catch (e) {
       throw new InternalServerErrorException(e.message);
+    }
+  }
+
+  async getAllVerifyPending(userId: string) {
+    const ids = await this.prisma.verifyAccount.findMany({
+      where: {
+        manager: {
+          userId,
+        },
+        status: VerifyAccountStatus.PENDING,
+      },
+      select: {
+        id: true,
+      },
+    });
+    return ids.map((verify) => verify['id']);
+  }
+
+  async getAllBrandVerifyByManagerId(userId: string) {
+    try {
+      const brands = await this.prisma.verifyAccount.findMany({
+        where: {
+          manager: {
+            userId,
+          },
+          status: VerifyAccountStatus.PENDING,
+        },
+        include: {
+          brand: {
+            select: {
+              userId: true,
+            },
+          },
+        },
+      });
+      return brands
+        .map((brand) => brand['brand']?.userId)
+        .filter((brand) => Object.keys(brand || {}).length !== 0);
+    } catch (e) {
+      throw new InternalServerErrorException(e.message);
+    }
+  }
+
+  async getAllDriverVerifyByManagerId(userId: string) {
+    try {
+      const drivers = await this.prisma.verifyAccount.findMany({
+        where: {
+          manager: {
+            userId,
+          },
+          status: VerifyAccountStatus.PENDING,
+        },
+        include: {
+          driver: {
+            select: {
+              userId: true,
+            },
+          },
+        },
+      });
+      return drivers
+        .map((driver) => driver['driver']?.userId)
+        .filter((driver) => Object.keys(driver || {}).length !== 0);
+    } catch (e) {
+      throw new InternalServerErrorException(e.message);
+    }
+  }
+
+  async fakeAutoVerifyAccountRequest(userId: string) {
+    const verifies = await this.getAllVerifyPending(userId);
+    const brands = await this.getAllBrandVerifyByManagerId(userId);
+    const drivers = await this.getAllDriverVerifyByManagerId(userId);
+    if (brands.length === 0 && drivers.length === 0)
+      throw new NotFoundException(
+        `Not found any verify request of Brand/Driver is pending to Accept`,
+      );
+    try {
+      await this.prisma.verifyAccount.updateMany({
+        where: {
+          id: {
+            in: verifies,
+          },
+        },
+        data: {
+          status: VerifyAccountStatus.ACCEPT,
+        },
+      });
+      await this.prisma.user.updateMany({
+        where: {
+          id: {
+            in: [...brands, ...drivers],
+          },
+        },
+        data: {
+          status: UserStatus.VERIFIED,
+        },
+      });
+      return `ACCEPT ${
+        brands.length + drivers.length
+      } request verify account. ${
+        brands.length + drivers.length
+      } account VERIFIED.`;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
     }
   }
 }

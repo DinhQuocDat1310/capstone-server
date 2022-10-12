@@ -15,6 +15,7 @@ import * as Joi from '@hapi/joi';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TasksModule } from './task/module';
 import { DriverModule } from './driver/module';
+import { CampaignModule } from './campaign/module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { DriverModule } from './driver/module';
     CloudinaryModule,
     ScheduleModule.forRoot(),
     TasksModule,
+    CampaignModule,
   ],
   providers: [AppConfigService, UsersService, PrismaService],
   controllers: [],
