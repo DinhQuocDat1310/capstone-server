@@ -93,4 +93,19 @@ export class CampaignController {
   ) {
     return await this.campaignService.createCampaign(dto, req.user.id);
   }
+
+  @ApiOperation({ summary: 'Cancel for New campaign' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiCreatedResponse({ description: 'Create' })
+  @Roles(Role.BRAND)
+  @Status(UserStatus.VERIFIED)
+  @Post('/cancel/:id')
+  async cancelNewCampaign(
+    @Request() req: RequestUser,
+    @Param('id') campaignId: string,
+  ) {
+    return await this.campaignService.cancelCampaign(req.user.id, campaignId);
+  }
 }
