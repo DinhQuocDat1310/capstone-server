@@ -300,10 +300,6 @@ export class CampaignService {
         quantityDriver: dto.quantityDriver,
         totalKm: dto.totalKm,
         description: dto.description,
-        dateOpenRegister: new Date(dto.dateOpenRegister).toISOString(),
-        dateWrapSticket: new Date(dto.dateWrapSticket).toISOString(),
-        startRegisterDate: new Date(dto.dateOpenRegister).toISOString(),
-        endRegisterDate: new Date(dto.endRegisterDate).toISOString(),
         brand: {
           connect: {
             userId,

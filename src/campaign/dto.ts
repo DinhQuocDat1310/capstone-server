@@ -25,38 +25,6 @@ export class CampaignVerifyInformationDTO {
   startRunningDate: string;
 
   @ApiProperty({
-    description: `Date open register`,
-  })
-  @Matches(/(0[1-9]|1[012])[/](0[1-9]|[12][0-9]|3[01])[/](19|20)[0-9]{2}/, {
-    message: 'Open register date must be format MM/DD/YYYY',
-  })
-  dateOpenRegister: string;
-
-  @ApiProperty({
-    description: `Date end register`,
-  })
-  @Matches(/(0[1-9]|1[012])[/](0[1-9]|[12][0-9]|3[01])[/](19|20)[0-9]{2}/, {
-    message: 'End register date must be format MM/DD/YYYY',
-  })
-  endRegisterDate: string;
-
-  @ApiProperty({
-    description: `Date start register`,
-  })
-  @Matches(/(0[1-9]|1[012])[/](0[1-9]|[12][0-9]|3[01])[/](19|20)[0-9]{2}/, {
-    message: 'Start register date must be format MM/DD/YYYY',
-  })
-  startRegisterDate: string;
-
-  @ApiProperty({
-    description: `Date warp sticket`,
-  })
-  @Matches(/(0[1-9]|1[012])[/](0[1-9]|[12][0-9]|3[01])[/](19|20)[0-9]{2}/, {
-    message: 'Date warp sticket must be format MM/DD/YYYY',
-  })
-  dateWrapSticket: string;
-
-  @ApiProperty({
     description: 'Duration of campaign',
   })
   @IsNumberString()

@@ -123,16 +123,16 @@ model Campaign {
   id                String         @id @default(uuid())
   campaignName      String         @unique
   startRunningDate  DateTime
-  dateOpenRegister  DateTime
-  startRegisterDate DateTime
-  endRegisterDate   DateTime
+  dateOpenRegister  DateTime?
+  startRegisterDate DateTime?
+  endRegisterDate   DateTime?
   statusCampaign    CampaignStatus @default(NEW)
   duration          String
   totalKm           String
   quantityDriver    String
   description       String?
   minimumKmDrive    String         @default("20")
-  dateWrapSticket   DateTime
+  dateWrapSticket   DateTime?
 
   brand              Brand?                 @relation(fields: [brandId], references: [id])
   brandId            String?
