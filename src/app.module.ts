@@ -16,6 +16,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TasksModule } from './task/module';
 import { DriverModule } from './driver/module';
 import { CampaignModule } from './campaign/module';
+import { ContractModule } from './contract/module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { CampaignModule } from './campaign/module';
     ScheduleModule.forRoot(),
     TasksModule,
     CampaignModule,
+    ContractModule,
   ],
   providers: [AppConfigService, UsersService, PrismaService],
   controllers: [],

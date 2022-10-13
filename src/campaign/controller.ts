@@ -37,18 +37,39 @@ export class CampaignController {
     private readonly verifyCampaignService: VerifyCampaignService,
   ) {}
 
-  @ApiOperation({ summary: 'Get list verified campaigns' })
+  @ApiOperation({
+    summary: 'Get list verifies campaigns (For Tab: Verify Campaign)',
+  })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.BRAND)
   @Status(UserStatus.VERIFIED)
-  @Get('/verifies')
+  @Get('/verifies/waiting')
   async getListVerifyCampaign(@Request() req: RequestUser) {
-    return await this.campaignService.getListCampaignByUserId(req.user.id);
+    return await this.campaignService.getListVerifiesCampaignByUserId(
+      req.user.id,
+    );
   }
 
-  @ApiOperation({ summary: 'Get list history campaigns' })
+  @ApiOperation({
+    summary: 'Get list current campaigns (For Tab: Current Campaign)',
+  })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Roles(Role.BRAND)
+  @Status(UserStatus.VERIFIED)
+  @Get('/verifies/current')
+  async getListCurrentCampaign(@Request() req: RequestUser) {
+    return await this.campaignService.getListCurrentCampaignByUserId(
+      req.user.id,
+    );
+  }
+
+  @ApiOperation({
+    summary: 'Get list history campaigns (For Tab: History Campaign)',
+  })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
@@ -58,6 +79,25 @@ export class CampaignController {
   async getListVerifyHistoryCampaign(@Request() req: RequestUser) {
     return await this.campaignService.getListHistoryCampaignByUserId(
       req.user.id,
+    );
+  }
+
+  @ApiOperation({
+    summary: 'View campaign details by Campaign ID',
+  })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Roles(Role.BRAND)
+  @Status(UserStatus.VERIFIED)
+  @Get('/verifies/details/:id')
+  async getDetailCampaign(
+    @Request() req: RequestUser,
+    @Param('id') campaignId: string,
+  ) {
+    return await this.campaignService.viewCampaignDetails(
+      req.user.id,
+      campaignId,
     );
   }
 

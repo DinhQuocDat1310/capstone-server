@@ -24,12 +24,14 @@ import {
 import { AppConfigService } from 'src/config/appConfigService';
 import { PrismaService } from 'src/prisma/service';
 import { ManagerVerifyDTO } from 'src/manager/dto';
+import { ContractService } from 'src/contract/service';
 @Injectable()
 export class VerifyCampaignService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly mailerService: MailerService,
     private readonly configService: AppConfigService,
+    private readonly contractService: ContractService,
   ) {}
 
   async getAllVerifyCampaignNew() {
@@ -54,12 +56,9 @@ export class VerifyCampaignService {
         },
         select: {
           id: true,
-          status: true,
-          detail: true,
-          createDate: true,
-          assignBy: true,
           campaign: {
             select: {
+              id: true,
               brandId: true,
               brand: {
                 select: {
@@ -69,17 +68,6 @@ export class VerifyCampaignService {
               },
               campaignName: true,
               startRunningDate: true,
-              totalKm: true,
-              duration: true,
-              quantityDriver: true,
-              minimumKmDrive: true,
-              description: true,
-              wrap: {
-                select: {
-                  imagePoster: true,
-                  positionWarp: true,
-                },
-              },
               locationCampaign: {
                 select: {
                   locationName: true,
@@ -95,6 +83,65 @@ export class VerifyCampaignService {
     } catch (e) {
       throw new InternalServerErrorException(e.message);
     }
+  }
+
+  async viewVerifyCampaignDetail(userId: string, campaignId: string) {
+    const campaignDetail = await this.prisma.campaign.findFirst({
+      where: {
+        AND: [
+          {
+            id: campaignId,
+          },
+          {
+            verifyCampaign: {
+              some: {
+                manager: {
+                  userId: userId,
+                },
+              },
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        campaignName: true,
+        startRunningDate: true,
+        duration: true,
+        totalKm: true,
+        quantityDriver: true,
+        minimumKmDrive: true,
+        description: true,
+        brand: {
+          select: {
+            brandName: true,
+            logo: true,
+          },
+        },
+        locationCampaign: {
+          select: {
+            locationName: true,
+          },
+        },
+        wrap: {
+          select: {
+            imagePoster: true,
+            positionWarp: true,
+          },
+        },
+        verifyCampaign: {
+          select: {
+            id: true,
+            createDate: true,
+            updateAt: true,
+          },
+        },
+      },
+    });
+    if (!campaignDetail) {
+      throw new BadRequestException('Campaign ID not found');
+    }
+    return campaignDetail;
   }
 
   async fakeAutoCreateVerifyCampaignRequest() {
@@ -170,11 +217,15 @@ export class VerifyCampaignService {
   async managerVerifyCampaign(userId: string, dto: ManagerVerifyDTO) {
     const verify = await this.prisma.verifyCampaign.findFirst({
       where: {
-        id: dto.verifyId,
-        status: VerifyCampaignStatus.PENDING,
-        manager: {
-          userId: userId,
-        },
+        AND: [
+          { id: dto.verifyId },
+          { status: VerifyCampaignStatus.PENDING },
+          {
+            manager: {
+              userId: userId,
+            },
+          },
+        ],
       },
       include: {
         campaign: {
@@ -207,8 +258,8 @@ export class VerifyCampaignService {
         message = `<p>Congratulations!. Your campaign information has been accepted</p>
            <p>Please login at the website for more details</p>`;
         status = VerifyCampaignStatus.ACCEPT;
-        statusCampaign = CampaignStatus.OPENING;
-        break;
+        this.contractService.connectContractToCampaign(verify.campaignId);
+        return `Accepted and create contract (Check in tblContractCampaign in Database). Checkout total money is being update :3`;
       case 'BANNED':
         message = `<p>Your campaign has been banned for violating our terms</p>
            <p>Please contact ${this.configService.getConfig(

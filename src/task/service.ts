@@ -51,8 +51,17 @@ export class TasksService {
       this.logger.debug(
         `Assign successful ${requestsHandlerAccountPerDay} request verify account for each Manager (ACCOUNT)`,
       );
+    } catch (e) {
+      this.logger.error(e.message);
+    }
+  }
 
+  @Cron('0 */2 * * * *')
+  async handleAddManagerVerifyCampaignData() {
+    try {
       //Add mananger verify Campaign
+      const HANDLE_REQUEST_IN_A_DAY = 5;
+      const managers = await this.managerService.getManagers();
       const verifiesCampaign =
         await this.verifyCampaignService.getAllVerifyCampaignNew();
 
