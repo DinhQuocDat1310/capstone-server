@@ -5,6 +5,7 @@ import { ManagerService } from 'src/manager/service';
 import { PrismaService } from 'src/prisma/service';
 import { VerifyAccountsService } from 'src/verifyAccount/service';
 import { TasksService } from './service';
+import { ContractService } from 'src/contract/service';
 
 @Module({
   providers: [
@@ -14,6 +15,7 @@ import { TasksService } from './service';
     PrismaService,
     AppConfigService,
     VerifyCampaignService,
+    ContractService,
   ],
 })
 export class TasksModule {}

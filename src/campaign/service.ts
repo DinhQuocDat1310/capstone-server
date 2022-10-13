@@ -12,27 +12,18 @@ import { Role } from '@prisma/client';
 export class CampaignService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getListCampaignByUserId(userId: string) {
+  async getListVerifiesCampaignByUserId(userId: string) {
     return await this.prisma.campaign.findMany({
       where: {
         AND: [
           {
-            OR: [
-              {
-                statusCampaign: {
-                  in: ['NEW', 'OPENING'],
+            verifyCampaign: {
+              every: {
+                status: {
+                  in: ['NEW', 'PENDING', 'UPDATE'],
                 },
               },
-              {
-                verifyCampaign: {
-                  every: {
-                    status: {
-                      in: ['PENDING', 'UPDATE'],
-                    },
-                  },
-                },
-              },
-            ],
+            },
           },
           {
             brand: {
@@ -44,34 +35,56 @@ export class CampaignService {
       select: {
         id: true,
         campaignName: true,
-        duration: true,
-        description: true,
         quantityDriver: true,
-        minimumKmDrive: true,
         startRunningDate: true,
         locationCampaign: {
           select: {
             locationName: true,
           },
         },
-        wrap: {
-          select: {
-            imagePoster: true,
-            positionWarp: true,
-          },
-        },
-        statusCampaign: true,
         verifyCampaign: {
           select: {
             status: true,
             detail: true,
-            createDate: true,
-            updateAt: true,
           },
           orderBy: {
             createDate: 'desc',
           },
         },
+      },
+      orderBy: {
+        startRunningDate: 'asc',
+      },
+    });
+  }
+
+  async getListCurrentCampaignByUserId(userId: string) {
+    return await this.prisma.campaign.findMany({
+      where: {
+        AND: [
+          {
+            statusCampaign: {
+              in: ['OPEN', 'PAYMENT', 'WARPPING', 'RUNNING'],
+            },
+          },
+          {
+            brand: {
+              userId,
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        campaignName: true,
+        quantityDriver: true,
+        startRunningDate: true,
+        locationCampaign: {
+          select: {
+            locationName: true,
+          },
+        },
+        statusCampaign: true,
       },
       orderBy: {
         startRunningDate: 'asc',
@@ -115,12 +128,81 @@ export class CampaignService {
     }
   }
 
+  async viewCampaignDetails(userId: string, campaignId: string) {
+    const brandOwnCampaign = await this.prisma.campaign.findFirst({
+      where: {
+        AND: [
+          {
+            id: campaignId,
+          },
+          {
+            brand: {
+              userId,
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        campaignName: true,
+        startRunningDate: true,
+        duration: true,
+        totalKm: true,
+        quantityDriver: true,
+        minimumKmDrive: true,
+        description: true,
+        dateOpenRegister: true,
+        startRegisterDate: true,
+        endRegisterDate: true,
+        dateWrapSticket: true,
+        brand: {
+          select: {
+            brandName: true,
+            logo: true,
+          },
+        },
+        locationCampaign: {
+          select: {
+            locationName: true,
+            price: true,
+          },
+        },
+        wrap: {
+          select: {
+            imagePoster: true,
+            positionWarp: true,
+            price: true,
+          },
+        },
+        verifyCampaign: {
+          select: {
+            status: true,
+            detail: true,
+            createDate: true,
+            updateAt: true,
+          },
+        },
+      },
+    });
+    if (!brandOwnCampaign) {
+      throw new BadRequestException('Campaign ID not found');
+    }
+    return brandOwnCampaign;
+  }
+
   async updateCampaignInformation(
     id: string,
     dto: CampaignVerifyInformationDTO,
     campaignId: string,
     verifyCampaignId: string,
   ) {
+    const checkCampaignNameUsed = await this.checkCampaignNameUsed(
+      dto.campaignName,
+    );
+    if (checkCampaignNameUsed)
+      throw new BadRequestException('Campaign name already used!');
+    const currentDate = new Date(dto.startRunningDate);
+    currentDate.setDate(currentDate.getDate() + 1);
     await this.prisma.user.update({
       where: {
         id,
@@ -135,7 +217,7 @@ export class CampaignService {
                 },
                 data: {
                   campaignName: dto.campaignName,
-                  startRunningDate: dto.startRunningDate,
+                  startRunningDate: currentDate.toISOString(),
                   duration: dto.duration,
                   totalKm: dto.totalKm,
                   quantityDriver: dto.quantityDriver,
@@ -226,22 +308,9 @@ export class CampaignService {
       where: {
         AND: [
           {
-            OR: [
-              {
-                statusCampaign: {
-                  in: ['CANCELED', 'CLOSED'],
-                },
-              },
-              {
-                verifyCampaign: {
-                  every: {
-                    status: {
-                      in: ['BANNED'],
-                    },
-                  },
-                },
-              },
-            ],
+            statusCampaign: {
+              in: ['CANCELED', 'CLOSED'],
+            },
           },
           {
             brand: {
@@ -253,32 +322,10 @@ export class CampaignService {
       select: {
         id: true,
         campaignName: true,
-        duration: true,
-        totalKm: true,
-        description: true,
-        quantityDriver: true,
-        minimumKmDrive: true,
         startRunningDate: true,
-        locationCampaign: {
-          select: {
-            locationName: true,
-          },
-        },
-        wrap: {
-          select: {
-            imagePoster: true,
-            positionWarp: true,
-          },
-        },
+        duration: true,
+        quantityDriver: true,
         statusCampaign: true,
-        verifyCampaign: {
-          select: {
-            status: true,
-            detail: true,
-            createDate: true,
-            updateAt: true,
-          },
-        },
       },
       orderBy: {
         startRunningDate: 'asc',
@@ -292,10 +339,12 @@ export class CampaignService {
     );
     if (checkCampaignNameUsed)
       throw new BadRequestException('Campaign name already used!');
+    const currentDate = new Date(dto.startRunningDate);
+    currentDate.setDate(currentDate.getDate() + 1);
     const campaign = await this.prisma.campaign.create({
       data: {
         campaignName: dto.campaignName,
-        startRunningDate: new Date(dto.startRunningDate).toISOString(),
+        startRunningDate: currentDate.toISOString(),
         duration: dto.duration,
         quantityDriver: dto.quantityDriver,
         totalKm: dto.totalKm,
@@ -339,7 +388,11 @@ export class CampaignService {
             positionWarp: true,
           },
         },
-        statusCampaign: true,
+        verifyCampaign: {
+          select: {
+            status: true,
+          },
+        },
       },
     });
     await this.prisma.verifyCampaign.create({
@@ -351,7 +404,7 @@ export class CampaignService {
         },
       },
     });
-    return { campaign, step: 1 };
+    return campaign;
   }
 
   async checkCampaignNameUsed(campaignName: string) {
@@ -420,7 +473,7 @@ export class CampaignService {
           },
         },
       });
-      return { message: 'Success Cancel campaign', step: 1 };
+      return 'Success Cancel campaign';
     } catch (e) {
       throw new InternalServerErrorException(e.message);
     }

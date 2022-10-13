@@ -6,6 +6,7 @@ import { ManagerService } from './service';
 import { UsersService } from 'src/user/service';
 import { VerifyAccountsService } from 'src/verifyAccount/service';
 import { AppConfigService } from 'src/config/appConfigService';
+import { ContractService } from 'src/contract/service';
 
 @Module({
   controllers: [ManagerController],
@@ -16,6 +17,7 @@ import { AppConfigService } from 'src/config/appConfigService';
     UsersService,
     VerifyAccountsService,
     VerifyCampaignService,
+    ContractService,
   ],
 })
 export class ManagerModule {}

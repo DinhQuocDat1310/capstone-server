@@ -146,7 +146,9 @@ model Campaign {
 
 enum CampaignStatus {
   NEW
-  OPENING
+  OPEN
+  PAYMENT
+  WARPPING
   RUNNING
   CLOSED
   CANCELED
@@ -196,9 +198,9 @@ enum VerifyCampaignStatus {
 model ContractCampaign {
   id               String    @id @default(uuid())
   contractName     String
-  totalDriverMoney String
-  totalSystemMoney String
-  totalWarpType    String
+  totalDriverMoney String?
+  totalSystemMoney String?
+  totalWarpType    String?
   campaign         Campaign? @relation(fields: [campaignId], references: [id])
   campaignId       String?   @unique
 }
