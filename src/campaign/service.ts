@@ -17,6 +17,11 @@ export class CampaignService {
       where: {
         AND: [
           {
+            statusCampaign: {
+              notIn: ['CANCELED', 'CLOSED'],
+            },
+          },
+          {
             verifyCampaign: {
               every: {
                 status: {
@@ -386,11 +391,6 @@ export class CampaignService {
           select: {
             imagePoster: true,
             positionWarp: true,
-          },
-        },
-        verifyCampaign: {
-          select: {
-            status: true,
           },
         },
       },

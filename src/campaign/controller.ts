@@ -33,8 +33,8 @@ import { RolesGuard } from 'src/guard/roles.guard';
 @ApiTags('Campaign')
 export class CampaignController {
   constructor(
-    private readonly campaignService: CampaignService,
     private readonly verifyCampaignService: VerifyCampaignService,
+    private readonly campaignService: CampaignService,
   ) {}
 
   @ApiOperation({
