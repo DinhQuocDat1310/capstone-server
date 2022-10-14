@@ -85,6 +85,48 @@ export class VerifyCampaignService {
     }
   }
 
+  async getListCurrentCampaignByManagerId(userId: string) {
+    try {
+      return await this.prisma.campaign.findFirst({
+        where: {
+          AND: [
+            {
+              statusCampaign: {
+                in: ['OPEN', 'PAYMENT', 'WARPPING', 'RUNNING'],
+              },
+            },
+            {
+              verifyCampaign: {
+                some: {
+                  manager: {
+                    userId,
+                  },
+                },
+              },
+            },
+          ],
+        },
+        select: {
+          id: true,
+          campaignName: true,
+          quantityDriver: true,
+          startRunningDate: true,
+          locationCampaign: {
+            select: {
+              locationName: true,
+            },
+          },
+          statusCampaign: true,
+        },
+        orderBy: {
+          startRunningDate: 'asc',
+        },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
   async viewVerifyCampaignDetail(userId: string, campaignId: string) {
     const campaignDetail = await this.prisma.campaign.findFirst({
       where: {
@@ -254,12 +296,12 @@ export class VerifyCampaignService {
     let statusCampaign: CampaignStatus = CampaignStatus.NEW;
     let message = '';
     switch (dto.action) {
-      case 'ACCEPT':
-        message = `<p>Congratulations!. Your campaign information has been accepted</p>
-           <p>Please login at the website for more details</p>`;
-        status = VerifyCampaignStatus.ACCEPT;
-        this.contractService.connectContractToCampaign(verify.campaignId);
-        return `Accepted and create contract (Check in tblContractCampaign in Database). Checkout total money is being update :3`;
+      // case 'ACCEPT':
+      //   message = `<p>Congratulations!. Your campaign information has been accepted</p>
+      //      <p>Please login at the website for more details</p>`;
+      //   status = VerifyCampaignStatus.ACCEPT;
+      //   this.contractService.connectContractToCampaign(verify.campaignId);
+      //   return `Accepted and create contract (Check in tblContractCampaign in Database). Checkout total money is being update :3`;
       case 'BANNED':
         message = `<p>Your campaign has been banned for violating our terms</p>
            <p>Please contact ${this.configService.getConfig(

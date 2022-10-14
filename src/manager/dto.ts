@@ -8,27 +8,12 @@ export class ManagerVerifyDTO {
   @ApiProperty({ description: 'ID of request verify account' })
   verifyId: string;
 
-  @IsEnum(
-    [
-      VerifyAccountStatus.ACCEPT,
-      VerifyAccountStatus.BANNED,
-      VerifyAccountStatus.UPDATE,
-    ],
-    {
-      message: 'Action must be following format: [ACCEPT, BANNED, UPDATE]',
-    },
-  )
+  @IsEnum([VerifyAccountStatus.BANNED, VerifyAccountStatus.UPDATE], {
+    message: 'Action must be following format: [BANNED, UPDATE]',
+  })
   @ApiProperty({
-    enum: [
-      VerifyAccountStatus.ACCEPT,
-      VerifyAccountStatus.BANNED,
-      VerifyAccountStatus.UPDATE,
-    ],
-    example: [
-      VerifyAccountStatus.ACCEPT,
-      VerifyAccountStatus.BANNED,
-      VerifyAccountStatus.UPDATE,
-    ],
+    enum: [VerifyAccountStatus.BANNED, VerifyAccountStatus.UPDATE],
+    example: [VerifyAccountStatus.BANNED, VerifyAccountStatus.UPDATE],
     description: 'action',
   })
   action: VerifyAccountStatus;

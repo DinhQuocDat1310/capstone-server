@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { PositionWarp } from '@prisma/client';
 import {
-  IsDateString,
   IsEnum,
+  IsNotEmpty,
   IsNumberString,
   IsString,
   IsUrl,
@@ -75,4 +75,35 @@ export class CampaignVerifyInformationDTO {
   })
   @IsString()
   locationName: string;
+}
+
+export class CampaignContractDTO {
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ description: 'ID of request verify account' })
+  verifyId: string;
+
+  @ApiProperty({
+    description: `Date open register`,
+  })
+  @Matches(/(0[1-9]|1[012])[/](0[1-9]|[12][0-9]|3[01])[/](19|20)[0-9]{2}/, {
+    message: 'Date open register must be format MM/DD/YYYY',
+  })
+  dateOpenRegister: string;
+
+  @ApiProperty({
+    description: `Date payment deposit`,
+  })
+  @Matches(/(0[1-9]|1[012])[/](0[1-9]|[12][0-9]|3[01])[/](19|20)[0-9]{2}/, {
+    message: 'Date payment deposit must be format MM/DD/YYYY',
+  })
+  datePaymentDeposit: string;
+
+  @ApiProperty({
+    description: `Date wrap sticket`,
+  })
+  @Matches(/(0[1-9]|1[012])[/](0[1-9]|[12][0-9]|3[01])[/](19|20)[0-9]{2}/, {
+    message: 'Date warp sticket must be format MM/DD/YYYY',
+  })
+  dateWarpSticket: string;
 }

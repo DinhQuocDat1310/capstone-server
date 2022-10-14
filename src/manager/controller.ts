@@ -141,7 +141,7 @@ export class ManagerController {
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.MANAGER)
-  @Get('campaign/verifies')
+  @Get('campaign/verifies/waiting')
   async getListVerifyCampaign(@Request() req: RequestUser) {
     return await this.verifyCampaignService.getListVerifyCampaignPending(
       req.user.id,
@@ -207,9 +207,23 @@ export class ManagerController {
   @ApiBadRequestResponse({ description: 'Role is not valid' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.MANAGER)
-  @Get('campaign/verifieds')
+  @Get('campaign/verifieds/history')
   async getListVerifiedCampaign(@Request() req: RequestUser) {
     return await this.verifyCampaignService.getListHistoryVerifiedCampaignByManagerId(
+      req.user.id,
+    );
+  }
+
+  @ApiOperation({ summary: 'Get list current verified Campaign by Manager' })
+  @ApiForbiddenResponse({
+    description: "Account don't have permission to use this feature",
+  })
+  @ApiBadRequestResponse({ description: 'Role is not valid' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Roles(Role.MANAGER)
+  @Get('campaign/verifieds/current')
+  async getListCurrentVerifiedCampaign(@Request() req: RequestUser) {
+    return await this.verifyCampaignService.getListCurrentCampaignByManagerId(
       req.user.id,
     );
   }
