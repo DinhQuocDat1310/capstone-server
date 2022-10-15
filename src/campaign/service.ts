@@ -18,14 +18,21 @@ export class CampaignService {
         AND: [
           {
             statusCampaign: {
-              notIn: ['CANCELED', 'CLOSED'],
+              notIn: [
+                'CANCELED',
+                'CLOSED',
+                'OPEN',
+                'PAYMENT',
+                'RUNNING',
+                'WARPPING',
+              ],
             },
           },
           {
             verifyCampaign: {
               every: {
                 status: {
-                  in: ['NEW', 'PENDING', 'UPDATE'],
+                  in: ['NEW', 'PENDING', 'UPDATE', 'ACCEPT'],
                 },
               },
             },
@@ -70,6 +77,15 @@ export class CampaignService {
           {
             statusCampaign: {
               in: ['OPEN', 'PAYMENT', 'WARPPING', 'RUNNING'],
+            },
+          },
+          {
+            verifyCampaign: {
+              every: {
+                status: {
+                  notIn: ['NEW', 'PENDING', 'UPDATE', 'BANNED'],
+                },
+              },
             },
           },
           {
@@ -150,16 +166,19 @@ export class CampaignService {
       select: {
         id: true,
         campaignName: true,
+        dateOpenRegister: true,
+        startRegisterDate: true,
+        endRegisterDate: true,
+        datePaymentDeposit: true,
+        dateEndPaymentDeposit: true,
+        dateWrapSticket: true,
+        dateEndWarpSticket: true,
         startRunningDate: true,
         duration: true,
         totalKm: true,
         quantityDriver: true,
         minimumKmDrive: true,
         description: true,
-        dateOpenRegister: true,
-        startRegisterDate: true,
-        endRegisterDate: true,
-        dateWrapSticket: true,
         brand: {
           select: {
             brandName: true,
@@ -185,6 +204,15 @@ export class CampaignService {
             detail: true,
             createDate: true,
             updateAt: true,
+          },
+        },
+        contractCampaign: {
+          select: {
+            id: true,
+            contractName: true,
+            totalDriverMoney: true,
+            totalSystemMoney: true,
+            totalWarpType: true,
           },
         },
       },
@@ -315,6 +343,15 @@ export class CampaignService {
           {
             statusCampaign: {
               in: ['CANCELED', 'CLOSED'],
+            },
+          },
+          {
+            verifyCampaign: {
+              every: {
+                status: {
+                  in: ['BANNED'],
+                },
+              },
             },
           },
           {

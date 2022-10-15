@@ -86,7 +86,7 @@ export class CampaignContractDTO {
   @ApiProperty({
     description: `Date open register`,
   })
-  @Matches(/(0[1-9]|1[012])[/](0[1-9]|[12][0-9]|3[01])[/](19|20)[0-9]{2}/, {
+  @Matches(/(0[1-9]|1[012])[/]([1-9]|[12][0-9]|3[01])[/](19|20)[0-9]{2}/, {
     message: 'Date open register must be format MM/DD/YYYY',
   })
   dateOpenRegister: string;
@@ -94,7 +94,7 @@ export class CampaignContractDTO {
   @ApiProperty({
     description: `Date payment deposit`,
   })
-  @Matches(/(0[1-9]|1[012])[/](0[1-9]|[12][0-9]|3[01])[/](19|20)[0-9]{2}/, {
+  @Matches(/(0[1-9]|1[012])[/]([1-9]|[12][0-9]|3[01])[/](19|20)[0-9]{2}/, {
     message: 'Date payment deposit must be format MM/DD/YYYY',
   })
   datePaymentDeposit: string;
@@ -102,7 +102,7 @@ export class CampaignContractDTO {
   @ApiProperty({
     description: `Date wrap sticket`,
   })
-  @Matches(/(0[1-9]|1[012])[/](0[1-9]|[12][0-9]|3[01])[/](19|20)[0-9]{2}/, {
+  @Matches(/(0[1-9]|1[012])[/]([1-9]|[12][0-9]|3[01])[/](19|20)[0-9]{2}/, {
     message: 'Date warp sticket must be format MM/DD/YYYY',
   })
   dateWarpSticket: string;

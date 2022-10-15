@@ -24,14 +24,13 @@ import {
 import { AppConfigService } from 'src/config/appConfigService';
 import { PrismaService } from 'src/prisma/service';
 import { ManagerVerifyDTO } from 'src/manager/dto';
-import { ContractService } from 'src/contract/service';
+
 @Injectable()
 export class VerifyCampaignService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly mailerService: MailerService,
     private readonly configService: AppConfigService,
-    private readonly contractService: ContractService,
   ) {}
 
   async getAllVerifyCampaignNew() {
@@ -93,6 +92,15 @@ export class VerifyCampaignService {
             {
               statusCampaign: {
                 in: ['OPEN', 'PAYMENT', 'WARPPING', 'RUNNING'],
+              },
+            },
+            {
+              verifyCampaign: {
+                every: {
+                  status: {
+                    notIn: ['NEW', 'PENDING', 'UPDATE', 'BANNED'],
+                  },
+                },
               },
             },
             {
@@ -296,12 +304,6 @@ export class VerifyCampaignService {
     let statusCampaign: CampaignStatus = CampaignStatus.NEW;
     let message = '';
     switch (dto.action) {
-      // case 'ACCEPT':
-      //   message = `<p>Congratulations!. Your campaign information has been accepted</p>
-      //      <p>Please login at the website for more details</p>`;
-      //   status = VerifyCampaignStatus.ACCEPT;
-      //   this.contractService.connectContractToCampaign(verify.campaignId);
-      //   return `Accepted and create contract (Check in tblContractCampaign in Database). Checkout total money is being update :3`;
       case 'BANNED':
         message = `<p>Your campaign has been banned for violating our terms</p>
            <p>Please contact ${this.configService.getConfig(
