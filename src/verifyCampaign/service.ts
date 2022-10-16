@@ -135,65 +135,6 @@ export class VerifyCampaignService {
     }
   }
 
-  async viewVerifyCampaignDetail(userId: string, campaignId: string) {
-    const campaignDetail = await this.prisma.campaign.findFirst({
-      where: {
-        AND: [
-          {
-            id: campaignId,
-          },
-          {
-            verifyCampaign: {
-              some: {
-                manager: {
-                  userId: userId,
-                },
-              },
-            },
-          },
-        ],
-      },
-      select: {
-        id: true,
-        campaignName: true,
-        startRunningDate: true,
-        duration: true,
-        totalKm: true,
-        quantityDriver: true,
-        minimumKmDrive: true,
-        description: true,
-        brand: {
-          select: {
-            brandName: true,
-            logo: true,
-          },
-        },
-        locationCampaign: {
-          select: {
-            locationName: true,
-          },
-        },
-        wrap: {
-          select: {
-            imagePoster: true,
-            positionWarp: true,
-          },
-        },
-        verifyCampaign: {
-          select: {
-            id: true,
-            createDate: true,
-            updateAt: true,
-          },
-        },
-      },
-    });
-    if (!campaignDetail) {
-      throw new BadRequestException('Campaign ID not found');
-    }
-    return campaignDetail;
-  }
-
   async fakeAutoCreateVerifyCampaignRequest() {
     const brand = await this.prisma.user.findMany({
       where: {

@@ -148,25 +148,6 @@ export class ManagerController {
     );
   }
 
-  @ApiOperation({
-    summary: 'View verify campaign details PENDING by Campaign ID',
-  })
-  @ApiForbiddenResponse({
-    description: "Account don't have permission to use this feature",
-  })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Roles(Role.MANAGER)
-  @Get('campaign/verify/:id')
-  async viewVerifyCampaignDetails(
-    @Request() req: RequestUser,
-    @Param('id') campaignId: string,
-  ) {
-    return await this.verifyCampaignService.viewVerifyCampaignDetail(
-      req.user.id,
-      campaignId,
-    );
-  }
-
   @ApiOperation({ summary: 'Automation ACCEPT verified Brand/Driver' })
   @ApiForbiddenResponse({
     description: "Account don't have permission to use this feature",
