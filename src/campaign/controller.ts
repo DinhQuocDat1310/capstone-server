@@ -88,7 +88,7 @@ export class CampaignController {
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Roles(Role.BRAND)
+  @Roles(Role.BRAND, Role.MANAGER)
   @Status(UserStatus.VERIFIED)
   @Get('/verifies/details/:id')
   async getDetailCampaign(

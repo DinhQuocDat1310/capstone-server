@@ -118,23 +118,57 @@ export class CampaignService {
     userReq: UserSignIn,
     campaignId: string,
   ) {
-    const checkIdCampaign = await this.findCampaignByID(campaignId);
-    if (!checkIdCampaign)
-      throw new BadRequestException('Campaign ID invalid to update');
-
-    const user = await this.getUserBrandVerifyCampaign(
-      userReq.email,
-      userReq.role,
-      campaignId,
+    const checkCampaignNameUser = await this.checkCampaignNameUsed(
+      dto.campaignName,
+      userReq.id,
     );
-    const campaignToUpdate = user.brand.campaign[0]?.verifyCampaign[0]?.status;
-    if (campaignToUpdate !== 'UPDATE') {
-      throw new BadRequestException(
-        'Invalid to update your campaign, request verify campaign was handled or waiting for us to handle',
-      );
+    const findCampaignOwn = await this.findCampaignOwn(campaignId, userReq.id);
+    if (checkCampaignNameUser) {
+      throw new BadRequestException('Campaign name already used');
     }
-
-    try {
+    if (findCampaignOwn.campaignName !== dto.campaignName) {
+      const checkUniqueCampaignNameOwn = await this.findCampaignNameOwn(
+        userReq.id,
+        dto.campaignName,
+      );
+      if (checkUniqueCampaignNameOwn) {
+        throw new BadRequestException('Campaign name already used');
+      } else {
+        const user = await this.getUserBrandVerifyCampaign(
+          userReq.email,
+          userReq.role,
+          campaignId,
+        );
+        const campaignToUpdate =
+          user.brand.campaign[0]?.verifyCampaign[0]?.status;
+        if (campaignToUpdate !== 'UPDATE') {
+          throw new BadRequestException(
+            'Invalid to update your campaign, request verify campaign was handled or waiting for us to handle',
+          );
+        }
+        if (campaignToUpdate === 'UPDATE') {
+          await this.updateCampaignInformation(
+            userReq.id,
+            dto,
+            campaignId,
+            user.brand.campaign[0]?.verifyCampaign[0]?.id,
+          );
+        }
+        return 'Updated';
+      }
+    } else {
+      const user = await this.getUserBrandVerifyCampaign(
+        userReq.email,
+        userReq.role,
+        campaignId,
+      );
+      const campaignToUpdate =
+        user.brand.campaign[0]?.verifyCampaign[0]?.status;
+      if (campaignToUpdate !== 'UPDATE') {
+        throw new BadRequestException(
+          'Invalid to update your campaign, request verify campaign was handled or waiting for us to handle',
+        );
+      }
       if (campaignToUpdate === 'UPDATE') {
         await this.updateCampaignInformation(
           userReq.id,
@@ -144,8 +178,6 @@ export class CampaignService {
         );
       }
       return 'Updated';
-    } catch (e) {
-      throw new Error(e.message);
     }
   }
 
@@ -157,9 +189,22 @@ export class CampaignService {
             id: campaignId,
           },
           {
-            brand: {
-              userId,
-            },
+            OR: [
+              {
+                brand: {
+                  userId,
+                },
+              },
+              {
+                verifyCampaign: {
+                  some: {
+                    manager: {
+                      userId,
+                    },
+                  },
+                },
+              },
+            ],
           },
         ],
       },
@@ -188,14 +233,12 @@ export class CampaignService {
         locationCampaign: {
           select: {
             locationName: true,
-            price: true,
           },
         },
         wrap: {
           select: {
             imagePoster: true,
             positionWarp: true,
-            price: true,
           },
         },
         verifyCampaign: {
@@ -231,9 +274,11 @@ export class CampaignService {
   ) {
     const checkCampaignNameUsed = await this.checkCampaignNameUsed(
       dto.campaignName,
+      id,
     );
     if (checkCampaignNameUsed)
       throw new BadRequestException('Campaign name already used!');
+
     const currentDate = new Date(dto.startRunningDate);
     currentDate.setDate(currentDate.getDate() + 1);
     await this.prisma.user.update({
@@ -287,10 +332,27 @@ export class CampaignService {
     });
   }
 
-  async findCampaignByID(campaignId: string) {
+  // async findCampaignByID(campaignId: string) {
+  //   return await this.prisma.campaign.findFirst({
+  //     where: {
+  //       id: campaignId,
+  //     },
+  //   });
+  // }
+
+  async findCampaignNameOwn(userId: string, campaignName: string) {
     return await this.prisma.campaign.findFirst({
       where: {
-        id: campaignId,
+        AND: [
+          {
+            campaignName,
+          },
+          {
+            brand: {
+              userId,
+            },
+          },
+        ],
       },
     });
   }
@@ -378,7 +440,9 @@ export class CampaignService {
   async createCampaign(dto: CampaignVerifyInformationDTO, userId: string) {
     const checkCampaignNameUsed = await this.checkCampaignNameUsed(
       dto.campaignName,
+      userId,
     );
+
     if (checkCampaignNameUsed)
       throw new BadRequestException('Campaign name already used!');
     const currentDate = new Date(dto.startRunningDate);
@@ -444,10 +508,40 @@ export class CampaignService {
     return campaign;
   }
 
-  async checkCampaignNameUsed(campaignName: string) {
+  async checkCampaignNameUsed(campaignName: string, userId: string) {
     return await this.prisma.campaign.findFirst({
       where: {
-        campaignName,
+        AND: [
+          { campaignName },
+          {
+            brand: {
+              userId: {
+                not: userId,
+              },
+            },
+          },
+        ],
+      },
+      select: {
+        campaignName: true,
+      },
+    });
+  }
+
+  async findCampaignOwn(campaignId: string, userId: string) {
+    return await this.prisma.campaign.findFirst({
+      where: {
+        AND: [
+          { id: campaignId },
+          {
+            brand: {
+              userId,
+            },
+          },
+        ],
+      },
+      select: {
+        campaignName: true,
       },
     });
   }
