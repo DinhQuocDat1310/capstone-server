@@ -49,6 +49,12 @@ export class CampaignService {
         campaignName: true,
         quantityDriver: true,
         startRunningDate: true,
+        brand: {
+          select: {
+            brandName: true,
+            logo: true,
+          },
+        },
         locationCampaign: {
           select: {
             locationName: true,
@@ -100,6 +106,12 @@ export class CampaignService {
         campaignName: true,
         quantityDriver: true,
         startRunningDate: true,
+        brand: {
+          select: {
+            brandName: true,
+            logo: true,
+          },
+        },
         locationCampaign: {
           select: {
             locationName: true,
@@ -423,6 +435,12 @@ export class CampaignService {
         duration: true,
         quantityDriver: true,
         statusCampaign: true,
+        brand: {
+          select: {
+            brandName: true,
+            logo: true,
+          },
+        },
       },
       orderBy: {
         startRunningDate: 'asc',
