@@ -59,4 +59,32 @@ export class ContractController {
   async getContractByContractId(@Param('id') contractId: string) {
     return await this.contractService.getContractByContractID(contractId);
   }
+
+  @ApiOperation({ summary: 'Accept contract by Brand' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Status(UserStatus.VERIFIED)
+  @Roles(Role.BRAND)
+  @Get('/accept/:id')
+  async acceptContract(
+    @Request() req: RequestUser,
+    @Param('id') contractId: string,
+  ) {
+    return await this.contractService.acceptContract(req.user.id, contractId);
+  }
+
+  @ApiOperation({ summary: 'Cancel contract by Brand' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Status(UserStatus.VERIFIED)
+  @Roles(Role.BRAND)
+  @Get('/cancel/:id')
+  async cancelContract(
+    @Request() req: RequestUser,
+    @Param('id') contractId: string,
+  ) {
+    return await this.contractService.acceptContract(req.user.id, contractId);
+  }
 }

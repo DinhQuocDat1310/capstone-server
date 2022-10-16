@@ -202,4 +202,83 @@ export class ContractService {
       },
     });
   }
+
+  async checkContractIdOwnByBrand(userId: string, id: string) {
+    return await this.prisma.contractCampaign.findFirst({
+      where: {
+        AND: [
+          {
+            id,
+          },
+          {
+            campaign: {
+              brand: {
+                userId,
+              },
+            },
+          },
+        ],
+      },
+      select: {
+        campaign: {
+          select: {
+            dateOpenRegister: true,
+          },
+        },
+      },
+    });
+  }
+
+  async acceptContract(userId: string, contractId: string) {
+    const checkIdContract = await this.checkContractIdOwnByBrand(
+      userId,
+      contractId,
+    );
+    if (!checkIdContract)
+      throw new BadRequestException('Contract ID not found');
+    try {
+      await this.prisma.contractCampaign.update({
+        where: {
+          id: contractId,
+        },
+        data: {
+          campaign: {
+            update: {
+              statusCampaign: 'OPEN',
+            },
+          },
+        },
+      });
+      return `Accepted contract`;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async cancelContract(userId: string, contractId: string) {
+    const checkIdContract = await this.checkContractIdOwnByBrand(
+      userId,
+      contractId,
+    );
+
+    if (!checkIdContract)
+      throw new BadRequestException('Contract ID not found');
+    try {
+      await this.prisma.contractCampaign.update({
+        where: {
+          id: contractId,
+        },
+        data: {
+          campaign: {
+            update: {
+              statusCampaign: 'CANCELED',
+            },
+          },
+        },
+      });
+      return `Cancel contract`;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
 }

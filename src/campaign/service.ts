@@ -333,14 +333,6 @@ export class CampaignService {
     });
   }
 
-  // async findCampaignByID(campaignId: string) {
-  //   return await this.prisma.campaign.findFirst({
-  //     where: {
-  //       id: campaignId,
-  //     },
-  //   });
-  // }
-
   async findCampaignNameOwn(userId: string, campaignName: string) {
     return await this.prisma.campaign.findFirst({
       where: {
