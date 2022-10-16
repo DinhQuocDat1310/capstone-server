@@ -404,7 +404,7 @@ export class CampaignService {
             verifyCampaign: {
               every: {
                 status: {
-                  in: ['BANNED'],
+                  in: ['BANNED', 'ACCEPT'],
                 },
               },
             },
