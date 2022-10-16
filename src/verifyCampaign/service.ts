@@ -86,7 +86,7 @@ export class VerifyCampaignService {
 
   async getListCurrentCampaignByManagerId(userId: string) {
     try {
-      return await this.prisma.campaign.findFirst({
+      return await this.prisma.campaign.findMany({
         where: {
           AND: [
             {
@@ -98,7 +98,7 @@ export class VerifyCampaignService {
               verifyCampaign: {
                 every: {
                   status: {
-                    notIn: ['NEW', 'PENDING', 'UPDATE', 'BANNED'],
+                    in: ['ACCEPT'],
                   },
                 },
               },
