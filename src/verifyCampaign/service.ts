@@ -119,6 +119,12 @@ export class VerifyCampaignService {
           campaignName: true,
           quantityDriver: true,
           startRunningDate: true,
+          brand: {
+            select: {
+              brandName: true,
+              logo: true,
+            },
+          },
           locationCampaign: {
             select: {
               locationName: true,
@@ -324,6 +330,12 @@ export class VerifyCampaignService {
               duration: true,
               quantityDriver: true,
               totalKm: true,
+              brand: {
+                select: {
+                  brandName: true,
+                  logo: true,
+                },
+              },
               locationCampaign: {
                 select: {
                   locationName: true,
