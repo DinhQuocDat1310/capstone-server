@@ -223,6 +223,7 @@ export class ContractService {
         campaign: {
           select: {
             dateOpenRegister: true,
+            statusCampaign: true,
           },
         },
       },
@@ -236,6 +237,9 @@ export class ContractService {
     );
     if (!checkIdContract)
       throw new BadRequestException('Contract ID not found');
+    if (checkIdContract.campaign.statusCampaign === 'OPEN') {
+      throw new BadRequestException('This contract was Accepted');
+    }
     try {
       await this.prisma.contractCampaign.update({
         where: {
@@ -263,6 +267,9 @@ export class ContractService {
 
     if (!checkIdContract)
       throw new BadRequestException('Contract ID not found');
+    if (checkIdContract.campaign.statusCampaign === 'CANCELED') {
+      throw new BadRequestException('This contract was Canceled');
+    }
     try {
       await this.prisma.contractCampaign.update({
         where: {
