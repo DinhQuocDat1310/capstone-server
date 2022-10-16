@@ -243,6 +243,7 @@ export class CampaignService {
         },
         verifyCampaign: {
           select: {
+            id: true,
             status: true,
             detail: true,
             createDate: true,
