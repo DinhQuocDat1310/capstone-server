@@ -85,6 +85,6 @@ export class ContractController {
     @Request() req: RequestUser,
     @Param('id') contractId: string,
   ) {
-    return await this.contractService.acceptContract(req.user.id, contractId);
+    return await this.contractService.cancelContract(req.user.id, contractId);
   }
 }
