@@ -86,17 +86,33 @@ export class UsersService {
 
   async getUserAuthorization(userReq: UserSignIn) {
     const include = {};
+    let user = {};
     if (userReq.role && userReq.role !== 'ADMIN') {
       include[`${userReq.role.toLowerCase()}`] = true;
+      user = await this.prisma.user.findFirst({
+        where: {
+          id: userReq.id,
+        },
+        include,
+      });
     }
-    const user = await this.prisma.user.findFirst({
-      where: {
-        id: userReq.id,
-      },
-      include,
-    });
-    const { password, ...result } = user;
-    return result;
+    if (userReq.role && userReq.role === 'ADMIN') {
+      user = await this.prisma.user.findFirst({
+        where: {
+          id: userReq.id,
+        },
+        select: {
+          id: true,
+          email: true,
+          fullname: true,
+          role: true,
+          isAdmin: true,
+          isActive: true,
+          status: true,
+        },
+      });
+    }
+    return user;
   }
 
   async updateStatusUserByUserId(id: string, status: UserStatus) {
