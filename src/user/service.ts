@@ -1,3 +1,4 @@
+import { ManagerDTO } from 'src/manager/dto';
 import {
   BadRequestException,
   Body,
@@ -244,7 +245,7 @@ export class UsersService {
   }
 
   async getUserBrandInfo(email: string, role: Role) {
-    return this.prisma.user.findFirst({
+    return await this.prisma.user.findFirst({
       where: {
         email,
         role,
@@ -264,7 +265,7 @@ export class UsersService {
   }
 
   async getUserDriverInfo(phoneNumber: string, role: Role) {
-    return this.prisma.user.findFirst({
+    return await this.prisma.user.findFirst({
       where: {
         phoneNumber,
         role,
@@ -336,5 +337,54 @@ export class UsersService {
     });
     if (license)
       throw new BadRequestException('This id business license is already used');
+  }
+
+  async getListManager() {
+    return await this.prisma.user.findMany({
+      where: {
+        role: Role.MANAGER,
+      },
+      select: {
+        manager: {
+          select: {
+            id: true,
+            userId: true,
+          },
+        },
+        fullname: true,
+        email: true,
+        phoneNumber: true,
+        status: true,
+        isActive: true,
+      },
+    });
+  }
+
+  async checkManagerIdExisted(managerId: string) {
+    return await this.prisma.user.findFirst({
+      where: {
+        manager: {
+          id: managerId,
+        },
+      },
+    });
+  }
+
+  async createManager(dto: ManagerDTO) {
+    const { email, fullname, phoneNumber, password } = dto;
+    const hashPassword = await hash(password, 10);
+    return await this.prisma.user.create({
+      data: {
+        fullname,
+        email,
+        phoneNumber: convertPhoneNumberFormat(phoneNumber),
+        role: Role.MANAGER,
+        password: hashPassword,
+        status: UserStatus.VERIFIED,
+      },
+      select: {
+        id: true,
+      },
+    });
   }
 }
