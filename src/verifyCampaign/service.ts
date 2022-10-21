@@ -389,4 +389,83 @@ export class VerifyCampaignService {
       throw new InternalServerErrorException(e.message);
     }
   }
+
+  async checkManagerContraistTaskCampaign(managerId: string) {
+    const taskCampaigns = await this.prisma.verifyCampaign.findMany({
+      where: {
+        AND: [
+          { managerId },
+          {
+            status: {
+              in: ['PENDING', 'UPDATE'],
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+    const resultStatus = taskCampaigns.filter(
+      (task) => task.status === 'UPDATE',
+    );
+    if (resultStatus.length !== 0) {
+      throw new BadRequestException(
+        `This Manager has ${resultStatus.length} task Campaign processing: UPDATE. Please wait manager end task for Disable`,
+      );
+    }
+    return taskCampaigns.map((verify) => verify['id']);
+  }
+
+  async removeTaskCampaignOutOfManager(ids: string[]) {
+    await this.prisma.verifyCampaign.updateMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+      data: {
+        status: VerifyCampaignStatus.NEW,
+        managerId: null,
+      },
+    });
+  }
+
+  async getTaskCampaign(managerId: string) {
+    const taskCampaign = await this.prisma.verifyCampaign.findMany({
+      where: {
+        managerId,
+      },
+      select: {
+        campaign: {
+          select: {
+            campaignName: true,
+          },
+        },
+        status: true,
+        detail: true,
+        createDate: true,
+        updateAt: true,
+      },
+      orderBy: {
+        createDate: 'asc',
+      },
+    });
+    return taskCampaign
+      .map((task) => task)
+      .map((task) => {
+        const campaignName = task?.campaign?.campaignName;
+        delete task?.campaign;
+        task?.status === 'PENDING'
+          ? delete task?.updateAt
+          : delete task?.createDate;
+        return {
+          action: 'Verify Campaign',
+          campaignName,
+          ...task,
+        };
+      })
+      .filter((task) => Object.keys(task || {}).length !== 0);
+  }
 }

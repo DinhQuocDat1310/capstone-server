@@ -1,3 +1,5 @@
+import { VerifyCampaignService } from './../verifyCampaign/service';
+import { VerifyAccountsService } from 'src/verifyAccount/service';
 import { UserStatus } from '@prisma/client';
 import { UsersService } from './../user/service';
 import {
@@ -13,6 +15,8 @@ export class AdminService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly userService: UsersService,
+    private readonly verifyAccountsService: VerifyAccountsService,
+    private readonly verifyCampaignsService: VerifyCampaignService,
   ) {}
 
   async createManager(dto: ManagerDTO) {
@@ -74,6 +78,23 @@ export class AdminService {
     );
     if (!checkManagerIdExisted)
       throw new BadRequestException('ManagerId not found');
+    const checkManagerContraistTask =
+      await this.verifyAccountsService.checkManagerContraistTask(managerId);
+    const checkManagerContraistTaskCampaign =
+      await this.verifyCampaignsService.checkManagerContraistTaskCampaign(
+        managerId,
+      );
+    if (
+      checkManagerContraistTask.length !== 0 ||
+      checkManagerContraistTaskCampaign.length !== 0
+    ) {
+      await this.verifyAccountsService.removeTaskAccountOutOfManager(
+        checkManagerContraistTask,
+      );
+      await this.verifyCampaignsService.removeTaskCampaignOutOfManager(
+        checkManagerContraistTaskCampaign,
+      );
+    }
     try {
       await this.prisma.manager.update({
         where: {
@@ -88,7 +109,7 @@ export class AdminService {
           },
         },
       });
-      return `Disabled manager`;
+      return `Disabled manager and Removed all task Pending`;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
@@ -101,30 +122,12 @@ export class AdminService {
     if (!checkManagerIdExisted)
       throw new BadRequestException('ManagerId not found');
     try {
-      return await this.prisma.manager.findMany({
-        where: {
-          id: managerId,
-        },
-        select: {
-          verify: {
-            include: {
-              manager: {},
-            },
-            orderBy: {
-              createDate: 'asc',
-            },
-          },
-          verifyCampaign: {
-            include: {
-              manager: {},
-              campaign: {},
-            },
-            orderBy: {
-              createDate: 'asc',
-            },
-          },
-        },
-      });
+      const listTaskAccount = await this.verifyAccountsService.getTaskAccount(
+        managerId,
+      );
+      const listTaskCampaign =
+        await this.verifyCampaignsService.getTaskCampaign(managerId);
+      return [...listTaskAccount, ...listTaskCampaign];
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }

@@ -340,7 +340,7 @@ export class UsersService {
   }
 
   async getListManager() {
-    return await this.prisma.user.findMany({
+    const users = await this.prisma.user.findMany({
       where: {
         role: Role.MANAGER,
       },
@@ -348,7 +348,6 @@ export class UsersService {
         manager: {
           select: {
             id: true,
-            userId: true,
           },
         },
         fullname: true,
@@ -358,6 +357,16 @@ export class UsersService {
         isActive: true,
       },
     });
+    return users
+      .map((user) => user)
+      .map((user) => {
+        const managerId = user?.manager?.id;
+        delete user?.manager;
+        return {
+          managerId,
+          ...user,
+        };
+      });
   }
 
   async checkManagerIdExisted(managerId: string) {

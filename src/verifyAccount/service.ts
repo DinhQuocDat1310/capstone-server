@@ -685,4 +685,115 @@ export class VerifyAccountsService {
       throw new InternalServerErrorException(error.message);
     }
   }
+
+  async checkManagerContraistTask(managerId: string) {
+    const taskAccounts = await this.prisma.verifyAccount.findMany({
+      where: {
+        AND: [
+          { managerId },
+          {
+            status: {
+              in: ['PENDING', 'UPDATE'],
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+    const resultStatus = taskAccounts.filter(
+      (task) => task.status === 'UPDATE',
+    );
+    if (resultStatus.length !== 0) {
+      throw new BadRequestException(
+        `This Manager has ${resultStatus.length} task Account processing: UPDATE. Please wait manager end task for Disable.`,
+      );
+    }
+    return taskAccounts.map((verify) => verify['id']);
+  }
+
+  async removeTaskAccountOutOfManager(ids: string[]) {
+    await this.prisma.verifyAccount.updateMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+      data: {
+        status: VerifyAccountStatus.NEW,
+        managerId: null,
+      },
+    });
+  }
+
+  async getTaskAccount(managerId: string) {
+    const taskAccount = await this.prisma.verifyAccount.findMany({
+      where: {
+        managerId,
+      },
+      select: {
+        brand: {
+          select: {
+            brandName: true,
+          },
+        },
+        driver: {
+          select: {
+            user: {
+              select: {
+                fullname: true,
+              },
+            },
+          },
+        },
+        status: true,
+        detail: true,
+        createDate: true,
+        updateAt: true,
+      },
+      orderBy: {
+        createDate: 'asc',
+      },
+    });
+    const mapBrand = taskAccount
+      .map((task) => task)
+      .map((task) => {
+        const brandName = task?.brand?.brandName;
+        if (task?.brand) {
+          delete task?.brand;
+          delete task?.driver;
+          task?.status === 'PENDING'
+            ? delete task?.updateAt
+            : delete task?.createDate;
+          return {
+            action: 'Verify Brand',
+            brandName,
+            ...task,
+          };
+        }
+      })
+      .filter((task) => Object.keys(task || {}).length !== 0);
+
+    const mapDriver = taskAccount
+      .map((task) => task)
+      .map((task) => {
+        const driverName = task?.driver?.user?.fullname;
+        if (task?.driver) {
+          delete task?.driver;
+          delete task?.brand;
+          task?.status === 'PENDING'
+            ? delete task?.updateAt
+            : delete task?.createDate;
+          return {
+            action: 'Verify Driver',
+            driverName,
+            ...task,
+          };
+        }
+      })
+      .filter((task) => Object.keys(task || {}).length !== 0);
+    return [...mapBrand, ...mapDriver];
+  }
 }
