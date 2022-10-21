@@ -455,15 +455,19 @@ export class VerifyCampaignService {
     return taskCampaign
       .map((task) => task)
       .map((task) => {
-        const campaignName = task?.campaign?.campaignName;
+        let time = null;
+        const name = task?.campaign?.campaignName;
         delete task?.campaign;
         task?.status === 'PENDING'
-          ? delete task?.updateAt
-          : delete task?.createDate;
+          ? (time = task?.createDate)
+          : (time = task?.updateAt);
+        delete task?.createDate;
+        delete task?.updateAt;
         return {
           action: 'Verify Campaign',
-          campaignName,
+          name,
           ...task,
+          time,
         };
       })
       .filter((task) => Object.keys(task || {}).length !== 0);

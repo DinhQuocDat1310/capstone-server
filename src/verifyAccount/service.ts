@@ -760,17 +760,21 @@ export class VerifyAccountsService {
     const mapBrand = taskAccount
       .map((task) => task)
       .map((task) => {
-        const brandName = task?.brand?.brandName;
+        let time = null;
+        const name = task?.brand?.brandName;
+        task?.status === 'PENDING'
+          ? (time = task?.createDate)
+          : (time = task?.updateAt);
         if (task?.brand) {
           delete task?.brand;
           delete task?.driver;
-          task?.status === 'PENDING'
-            ? delete task?.updateAt
-            : delete task?.createDate;
+          delete task?.createDate;
+          delete task?.updateAt;
           return {
             action: 'Verify Brand',
-            brandName,
+            name,
             ...task,
+            time,
           };
         }
       })
@@ -779,17 +783,21 @@ export class VerifyAccountsService {
     const mapDriver = taskAccount
       .map((task) => task)
       .map((task) => {
-        const driverName = task?.driver?.user?.fullname;
+        let time = null;
+        const name = task?.driver?.user?.fullname;
+        task?.status === 'PENDING'
+          ? (time = task?.createDate)
+          : (time = task?.updateAt);
         if (task?.driver) {
           delete task?.driver;
           delete task?.brand;
-          task?.status === 'PENDING'
-            ? delete task?.updateAt
-            : delete task?.createDate;
+          delete task?.createDate;
+          delete task?.updateAt;
           return {
             action: 'Verify Driver',
-            driverName,
+            name,
             ...task,
+            time,
           };
         }
       })
