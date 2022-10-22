@@ -359,6 +359,9 @@ export class CampaignService {
           },
         ],
       },
+      select: {
+        campaignName: true,
+      },
     });
   }
 
@@ -453,8 +456,11 @@ export class CampaignService {
       dto.campaignName,
       userId,
     );
-
-    if (checkCampaignNameUsed)
+    const findCampaignNameOwn = await this.findCampaignNameOwn(
+      userId,
+      dto.campaignName,
+    );
+    if (checkCampaignNameUsed || findCampaignNameOwn)
       throw new BadRequestException('Campaign name already used!');
     const currentDate = new Date(dto.startRunningDate);
     currentDate.setDate(currentDate.getDate() + 1);
