@@ -1,3 +1,4 @@
+import { ManagerVerifyCampaignDTO } from './../manager/dto';
 import {
   FAKE_DURATION,
   FAKE_TOTALKM,
@@ -211,7 +212,7 @@ export class VerifyCampaignService {
     return `Create ${brand.length * 5} request verify NEW campaigns`;
   }
 
-  async managerVerifyCampaign(userId: string, dto: ManagerVerifyDTO) {
+  async managerVerifyCampaign(userId: string, dto: ManagerVerifyCampaignDTO) {
     const verify = await this.prisma.verifyCampaign.findFirst({
       where: {
         AND: [
@@ -468,6 +469,36 @@ export class VerifyCampaignService {
           name,
           ...task,
           time,
+        };
+      })
+      .filter((task) => Object.keys(task || {}).length !== 0);
+  }
+
+  async getAllTaskCampaignNew() {
+    const taskCampaign = await this.prisma.verifyCampaign.findMany({
+      where: {
+        status: 'NEW',
+      },
+      select: {
+        campaign: {
+          select: {
+            campaignName: true,
+          },
+        },
+      },
+      orderBy: {
+        createDate: 'asc',
+      },
+    });
+    return taskCampaign
+      .map((task) => task)
+      .map((task) => {
+        const name = task?.campaign?.campaignName;
+        delete task?.campaign;
+        return {
+          action: 'Verify Campaign',
+          name,
+          ...task,
         };
       })
       .filter((task) => Object.keys(task || {}).length !== 0);

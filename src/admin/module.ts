@@ -6,6 +6,7 @@ import { PrismaService } from 'src/prisma/service';
 import { Module } from '@nestjs/common';
 import { AdminService } from './service';
 import { AdminController } from './controller';
+import { ManagerService } from 'src/manager/service';
 
 @Module({
   controllers: [AdminController],
@@ -16,6 +17,7 @@ import { AdminController } from './controller';
     VerifyAccountsService,
     AppConfigService,
     VerifyCampaignService,
+    ManagerService,
   ],
 })
 export class AdminModule {}

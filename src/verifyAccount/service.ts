@@ -804,4 +804,62 @@ export class VerifyAccountsService {
       .filter((task) => Object.keys(task || {}).length !== 0);
     return [...mapBrand, ...mapDriver];
   }
+
+  async getAllTaskAccountNew() {
+    const taskAccount = await this.prisma.verifyAccount.findMany({
+      where: {
+        status: 'NEW',
+      },
+      select: {
+        id: true,
+        brand: {
+          select: { brandName: true },
+        },
+        driver: {
+          select: {
+            user: {
+              select: {
+                phoneNumber: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createDate: 'asc',
+      },
+    });
+    const mapBrand = taskAccount
+      .map((task) => task)
+      .map((task) => {
+        const name = task?.brand?.brandName;
+        if (task?.brand) {
+          delete task?.brand;
+          delete task?.driver;
+          return {
+            action: 'Verify Brand',
+            name,
+            ...task,
+          };
+        }
+      })
+      .filter((task) => Object.keys(task || {}).length !== 0);
+
+    const mapDriver = taskAccount
+      .map((task) => task)
+      .map((task) => {
+        const name = task?.driver?.user?.phoneNumber;
+        if (task?.driver) {
+          delete task?.driver;
+          delete task?.brand;
+          return {
+            action: 'Verify Driver',
+            name,
+            ...task,
+          };
+        }
+      })
+      .filter((task) => Object.keys(task || {}).length !== 0);
+    return [...mapBrand, ...mapDriver];
+  }
 }

@@ -15,7 +15,7 @@ import { Roles, Status } from 'src/guard/decorators';
 import { RolesGuard } from 'src/guard/roles.guard';
 import { StatusGuard } from 'src/guard/userStatus.guard';
 import { AdminService } from './service';
-import { ManagerDTO } from 'src/manager/dto';
+import { AssignDto, ManagerDTO } from 'src/manager/dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
 @Controller('admin')
@@ -80,4 +80,37 @@ export class AdminController {
   async viewTaskDetailManager(@Param('id') managerId: string) {
     return await this.adminService.viewTaskDetailManager(managerId);
   }
+
+  @ApiOperation({ summary: 'View list tasks NEW' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Status(UserStatus.VERIFIED)
+  @Roles(Role.ADMIN)
+  @Get('/manager/list/tasks')
+  async viewListTaskNew() {
+    return await this.adminService.viewListTaskNew();
+  }
+
+  @ApiOperation({ summary: 'View list managers Active' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Status(UserStatus.VERIFIED)
+  @Roles(Role.ADMIN)
+  @Get('/manager/list/active')
+  async viewManagerActive() {
+    return await this.adminService.viewListManagerActive();
+  }
+
+  // @ApiOperation({ summary: 'Assign task to Manager' })
+  // @ApiForbiddenResponse({ description: 'Forbidden' })
+  // @ApiBadRequestResponse({ description: 'Bad Request' })
+  // @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  // @Status(UserStatus.VERIFIED)
+  // @Roles(Role.ADMIN)
+  // @Post('/manager/assign/task')
+  // async assignTaskToManager(@Body() assignDto: AssignDto) {
+  //   return await this.adminService.assignTaskToManager(assignDto);
+  // }
 }

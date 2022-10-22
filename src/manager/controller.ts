@@ -24,7 +24,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { Roles } from 'src/guard/decorators';
 import { RolesGuard } from 'src/guard/roles.guard';
 import { VerifyAccountsService } from 'src/verifyAccount/service';
-import { ManagerVerifyDTO } from './dto';
+import { ManagerVerifyDTO, ManagerVerifyCampaignDTO } from './dto';
 import { ManagerService } from './service';
 
 @Controller('manager')
@@ -163,7 +163,7 @@ export class ManagerController {
   }
 
   @ApiOperation({ summary: 'Verify campaign by Manager' })
-  @ApiBody({ type: ManagerVerifyDTO })
+  @ApiBody({ type: ManagerVerifyCampaignDTO })
   @ApiForbiddenResponse({
     description: "Account don't have permission to use this feature",
   })
@@ -173,7 +173,7 @@ export class ManagerController {
   @Roles(Role.MANAGER)
   async verifyCampaign(
     @Request() req: RequestUser,
-    @Body() dto: ManagerVerifyDTO,
+    @Body() dto: ManagerVerifyCampaignDTO,
   ) {
     return await this.verifyCampaignService.managerVerifyCampaign(
       req.user.id,
