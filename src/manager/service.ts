@@ -8,6 +8,20 @@ export class ManagerService {
 
   async getManagers() {
     return await this.prisma.manager.findMany({
+      where: {
+        AND: [
+          {
+            user: {
+              status: 'VERIFIED',
+            },
+          },
+          {
+            user: {
+              isActive: true,
+            },
+          },
+        ],
+      },
       select: {
         id: true,
       },
