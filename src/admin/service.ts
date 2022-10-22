@@ -140,9 +140,7 @@ export class AdminService {
     const listCampaign =
       await this.verifyCampaignsService.getAllTaskCampaignNew();
     if (listAccount.length === 0 && listCampaign.length === 0) {
-      throw new BadRequestException(
-        'Not found tasks verify account or tasks verify campaign',
-      );
+      return [];
     }
     return [...listAccount, ...listCampaign];
   }
@@ -155,20 +153,48 @@ export class AdminService {
     return listManagers;
   }
 
-  // async assignTaskToManager(assignDto: AssignDto) {
-  //   const verifyTaskAccount = await this.prisma.verifyAccount.findFirst({
-  //     where: {
-  //       id: assignDto.verifyId,
-  //     },
-  //   });
-  //   if (!verifyTaskAccount) {
-  //   }
-  //   const verifyTaskCampaign = await this.prisma.verifyCampaign.findFirst;
-  //   return await this.prisma.manager.update({
-  //     where: {
-  //       id: assignDto.managerId,
-  //     },
-  //     data: {},
-  //   });
-  // }
+  async assignTaskToManager(assignDto: AssignDto) {
+    const verifyTaskAccount = await this.prisma.verifyAccount.findFirst({
+      where: {
+        id: assignDto.verifyId,
+        status: 'NEW',
+      },
+    });
+    const verifyTaskCampaign = await this.prisma.verifyCampaign.findFirst({
+      where: {
+        id: assignDto.verifyId,
+        status: 'NEW',
+      },
+    });
+    if (!verifyTaskAccount && !verifyTaskCampaign)
+      throw new BadRequestException('Invalid verifyID task');
+    const checkManagerID = await this.managerService.getAllManagerValid();
+    const valueCheck = checkManagerID.filter(
+      (manager) => manager.id === assignDto.managerId,
+    );
+    if (valueCheck.length === 0)
+      throw new BadRequestException('Invalid managerID to assign');
+    !verifyTaskAccount
+      ? await this.prisma.verifyCampaign.update({
+          where: {
+            id: assignDto.verifyId,
+          },
+          data: {
+            managerId: assignDto.managerId,
+            status: 'PENDING',
+            assignBy: 'ADMIN',
+          },
+        })
+      : await this.prisma.verifyAccount.update({
+          where: {
+            id: assignDto.verifyId,
+          },
+          data: {
+            managerId: assignDto.managerId,
+            status: 'PENDING',
+            assignBy: 'ADMIN',
+          },
+        });
+    return `Assigned task to manager`;
+  }
 }

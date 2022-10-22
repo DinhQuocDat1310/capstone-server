@@ -45,6 +45,7 @@ export class ManagerService {
             },
             data: {
               status: 'PENDING',
+              assignBy: 'SYSTEM',
             },
           },
         },
