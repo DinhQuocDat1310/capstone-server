@@ -207,3 +207,10 @@ model ContractCampaign {
   campaign         Campaign? @relation(fields: [campaignId], references: [id])
   campaignId       String?   @unique
 }
+
+model FAQs {
+  id       String  @id @default(uuid())
+  question String
+  answer   String
+  isActive Boolean @default(true)
+}
