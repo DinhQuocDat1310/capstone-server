@@ -91,4 +91,33 @@ export class ManagerService {
       },
     });
   }
+
+  async getAllManagerValid() {
+    return await this.prisma.manager.findMany({
+      where: {
+        user: {
+          AND: [
+            {
+              status: {
+                not: 'BANNED',
+              },
+            },
+            {
+              isActive: {
+                not: false,
+              },
+            },
+          ],
+        },
+      },
+      select: {
+        id: true,
+        user: {
+          select: {
+            fullname: true,
+          },
+        },
+      },
+    });
+  }
 }

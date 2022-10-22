@@ -7,14 +7,16 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { ManagerDTO } from 'src/manager/dto';
+import { ManagerDTO, AssignDto } from 'src/manager/dto';
 import { PrismaService } from 'src/prisma/service';
+import { ManagerService } from 'src/manager/service';
 
 @Injectable()
 export class AdminService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly userService: UsersService,
+    private readonly managerService: ManagerService,
     private readonly verifyAccountsService: VerifyAccountsService,
     private readonly verifyCampaignsService: VerifyCampaignService,
   ) {}
@@ -40,7 +42,7 @@ export class AdminService {
 
   async getListManager() {
     const listManagers = await this.userService.getListManager();
-    if (!listManagers) {
+    if (listManagers.length === 0) {
       throw new BadRequestException('Not found any Managers');
     }
     return listManagers;
@@ -132,4 +134,41 @@ export class AdminService {
       throw new InternalServerErrorException(error.message);
     }
   }
+
+  async viewListTaskNew() {
+    const listAccount = await this.verifyAccountsService.getAllTaskAccountNew();
+    const listCampaign =
+      await this.verifyCampaignsService.getAllTaskCampaignNew();
+    if (listAccount.length === 0 && listCampaign.length === 0) {
+      throw new BadRequestException(
+        'Not found tasks verify account or tasks verify campaign',
+      );
+    }
+    return [...listAccount, ...listCampaign];
+  }
+
+  async viewListManagerActive() {
+    const listManagers = await this.managerService.getAllManagerValid();
+    if (listManagers.length === 0) {
+      throw new BadRequestException('Not found any manager active');
+    }
+    return listManagers;
+  }
+
+  // async assignTaskToManager(assignDto: AssignDto) {
+  //   const verifyTaskAccount = await this.prisma.verifyAccount.findFirst({
+  //     where: {
+  //       id: assignDto.verifyId,
+  //     },
+  //   });
+  //   if (!verifyTaskAccount) {
+  //   }
+  //   const verifyTaskCampaign = await this.prisma.verifyCampaign.findFirst;
+  //   return await this.prisma.manager.update({
+  //     where: {
+  //       id: assignDto.managerId,
+  //     },
+  //     data: {},
+  //   });
+  // }
 }

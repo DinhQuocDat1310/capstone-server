@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { VerifyAccountStatus } from '@prisma/client';
+import { VerifyAccountStatus, VerifyCampaignStatus } from '@prisma/client';
 import {
   IsEmail,
   IsEnum,
@@ -15,15 +15,54 @@ export class ManagerVerifyDTO {
   @ApiProperty({ description: 'ID of request verify account' })
   verifyId: string;
 
-  @IsEnum([VerifyAccountStatus.BANNED, VerifyAccountStatus.UPDATE], {
-    message: 'Action must be following format: [BANNED, UPDATE]',
-  })
+  @IsEnum(
+    [
+      VerifyAccountStatus.BANNED,
+      VerifyAccountStatus.UPDATE,
+      VerifyAccountStatus.ACCEPT,
+    ],
+    {
+      message: 'Action must be following format: [BANNED, UPDATE, ACCEPT]',
+    },
+  )
   @ApiProperty({
-    enum: [VerifyAccountStatus.BANNED, VerifyAccountStatus.UPDATE],
-    example: [VerifyAccountStatus.BANNED, VerifyAccountStatus.UPDATE],
+    enum: [
+      VerifyAccountStatus.BANNED,
+      VerifyAccountStatus.UPDATE,
+      VerifyAccountStatus.ACCEPT,
+    ],
+    example: [
+      VerifyAccountStatus.BANNED,
+      VerifyAccountStatus.UPDATE,
+      VerifyAccountStatus.ACCEPT,
+    ],
     description: 'action',
   })
   action: VerifyAccountStatus;
+
+  @IsString()
+  @ApiProperty()
+  @ValidateIf(
+    (verify) => verify.action === 'UPDATE' || verify.action === 'BANNED',
+  )
+  detail: string;
+}
+
+export class ManagerVerifyCampaignDTO {
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ description: 'ID of request verify account' })
+  verifyId: string;
+
+  @IsEnum([VerifyCampaignStatus.BANNED, VerifyCampaignStatus.UPDATE], {
+    message: 'Action must be following format: [BANNED, UPDATE]',
+  })
+  @ApiProperty({
+    enum: [VerifyCampaignStatus.BANNED, VerifyCampaignStatus.UPDATE],
+    example: [VerifyCampaignStatus.BANNED, VerifyCampaignStatus.UPDATE],
+    description: 'action',
+  })
+  action: VerifyCampaignStatus;
 
   @IsString()
   @ApiProperty()
@@ -59,4 +98,14 @@ export class ManagerDTO {
     },
   )
   password: string;
+}
+
+export class AssignDto {
+  @IsString()
+  @ApiProperty({ type: String, description: 'Verify ID' })
+  verifyId: string;
+
+  @IsEmail()
+  @ApiProperty({ type: String, description: 'Manager ID' })
+  managerId: string;
 }
