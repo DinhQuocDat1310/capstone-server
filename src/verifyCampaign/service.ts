@@ -24,7 +24,6 @@ import {
 } from '@nestjs/common';
 import { AppConfigService } from 'src/config/appConfigService';
 import { PrismaService } from 'src/prisma/service';
-import { ManagerVerifyDTO } from 'src/manager/dto';
 
 @Injectable()
 export class VerifyCampaignService {
@@ -429,6 +428,7 @@ export class VerifyCampaignService {
       data: {
         status: VerifyCampaignStatus.NEW,
         managerId: null,
+        assignBy: null,
       },
     });
   }
@@ -480,6 +480,7 @@ export class VerifyCampaignService {
         status: 'NEW',
       },
       select: {
+        id: true,
         campaign: {
           select: {
             campaignName: true,

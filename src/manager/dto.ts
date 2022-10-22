@@ -105,7 +105,7 @@ export class AssignDto {
   @ApiProperty({ type: String, description: 'Verify ID' })
   verifyId: string;
 
-  @IsEmail()
+  @IsString()
   @ApiProperty({ type: String, description: 'Manager ID' })
   managerId: string;
 }

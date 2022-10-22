@@ -724,6 +724,7 @@ export class VerifyAccountsService {
       data: {
         status: VerifyAccountStatus.NEW,
         managerId: null,
+        assignBy: null,
       },
     });
   }

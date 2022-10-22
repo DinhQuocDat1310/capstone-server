@@ -103,14 +103,14 @@ export class AdminController {
     return await this.adminService.viewListManagerActive();
   }
 
-  // @ApiOperation({ summary: 'Assign task to Manager' })
-  // @ApiForbiddenResponse({ description: 'Forbidden' })
-  // @ApiBadRequestResponse({ description: 'Bad Request' })
-  // @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  // @Status(UserStatus.VERIFIED)
-  // @Roles(Role.ADMIN)
-  // @Post('/manager/assign/task')
-  // async assignTaskToManager(@Body() assignDto: AssignDto) {
-  //   return await this.adminService.assignTaskToManager(assignDto);
-  // }
+  @ApiOperation({ summary: 'Assign task to Manager' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Status(UserStatus.VERIFIED)
+  @Roles(Role.ADMIN)
+  @Post('/manager/assign/task')
+  async assignTaskToManager(@Body() assignDto: AssignDto) {
+    return await this.adminService.assignTaskToManager(assignDto);
+  }
 }
