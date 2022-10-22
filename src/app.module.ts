@@ -18,6 +18,7 @@ import { DriverModule } from './driver/module';
 import { CampaignModule } from './campaign/module';
 import { ContractModule } from './contract/module';
 import { AdminModule } from './admin/module';
+import { FaqModule } from './faq/module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { AdminModule } from './admin/module';
     CampaignModule,
     ContractModule,
     AdminModule,
+    FaqModule,
   ],
   providers: [AppConfigService, UsersService, PrismaService],
   controllers: [],
