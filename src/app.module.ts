@@ -19,6 +19,7 @@ import { CampaignModule } from './campaign/module';
 import { ContractModule } from './contract/module';
 import { AdminModule } from './admin/module';
 import { FaqModule } from './faq/module';
+import { AutoAssignModule } from './autoAssign/module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { FaqModule } from './faq/module';
     ContractModule,
     AdminModule,
     FaqModule,
+    AutoAssignModule,
   ],
   providers: [AppConfigService, UsersService, PrismaService],
   controllers: [],
