@@ -113,28 +113,6 @@ export class ManagerController {
     );
   }
 
-  @ApiOperation({ summary: 'Automation create request for brand/driver' })
-  @ApiForbiddenResponse({
-    description: "Account don't have permission to use this feature",
-  })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Roles(Role.MANAGER)
-  @Get('fake/account/autoCreateNewRequest')
-  async addFakeData() {
-    return this.verifyAccountService.fakeAutoCreateVerifyRequest();
-  }
-
-  @ApiOperation({ summary: 'Automation create request for campaign' })
-  @ApiForbiddenResponse({
-    description: "Account don't have permission to use this feature",
-  })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Roles(Role.MANAGER)
-  @Get('fake/campaign/autoCreateNewRequest')
-  async addFakeDataCampaign() {
-    return this.verifyCampaignService.fakeAutoCreateVerifyCampaignRequest();
-  }
-
   @ApiOperation({ summary: 'Get list verifies campaign pending' })
   @ApiForbiddenResponse({
     description: "Account don't have permission to use this feature",
@@ -146,20 +124,6 @@ export class ManagerController {
     return await this.verifyCampaignService.getListVerifyCampaignPending(
       req.user.id,
     );
-  }
-
-  @ApiOperation({ summary: 'Automation ACCEPT verified Brand/Driver' })
-  @ApiForbiddenResponse({
-    description: "Account don't have permission to use this feature",
-  })
-  @ApiNotFoundResponse({
-    description: 'Not found any verify account request',
-  })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Roles(Role.MANAGER)
-  @Get('fake/autoVerifiedAccountRequest/')
-  async fakeVerifyDataAccount(@Request() req: RequestUser) {
-    return this.verifyAccountService.fakeAutoVerifyAccountRequest(req.user.id);
   }
 
   @ApiOperation({ summary: 'Verify campaign by Manager' })

@@ -626,4 +626,25 @@ export class CampaignService {
       throw new InternalServerErrorException(e.message);
     }
   }
+
+  async getAmountDriverJoinCampaign(userId: string, campaignId: string) {
+    const isOwnCampaign = await this.prisma.campaign.findFirst({
+      where: {
+        id: campaignId,
+        brand: {
+          userId,
+        },
+      },
+    });
+    console.log(isOwnCampaign);
+    if (!isOwnCampaign)
+      throw new BadRequestException('You are not the owner this campaign!');
+
+    const count = await this.prisma.driverJoinCampaign.count({
+      where: {
+        campaignId,
+      },
+    });
+    return count;
+  }
 }

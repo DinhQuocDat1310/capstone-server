@@ -13,6 +13,7 @@ import {
   ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiOperation,
+  ApiProperty,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -23,7 +24,7 @@ import { Roles, Status } from 'src/guard/decorators';
 import { RolesGuard } from 'src/guard/roles.guard';
 import { StatusGuard } from 'src/guard/userStatus.guard';
 import { VerifyAccountsService } from 'src/verifyAccount/service';
-import { DriverVerifyInformationDTO } from './dto';
+import { DriverJoinCampaign, DriverVerifyInformationDTO } from './dto';
 import { DriversService } from './service';
 
 @Controller('driver')
@@ -61,5 +62,34 @@ export class DriverController {
   @Get('account/verify')
   async getListVerifyBrand(@Request() req: RequestUser) {
     return await this.verifyAccountService.getListVerifyByUserId(req.user.id);
+  }
+
+  @ApiBody({
+    type: DriverJoinCampaign,
+  })
+  @ApiOperation({ summary: 'Driver join campaign' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Roles(Role.DRIVER)
+  @Status(UserStatus.VERIFIED)
+  @Post('join-campaign')
+  async joinVerifyCampaigns(
+    @Request() req: RequestUser,
+    @Body() campaign: { id: string },
+  ) {
+    return await this.driverService.driverJoinCampaigin(campaign.id, req.user);
+  }
+
+  @ApiOperation({ summary: 'Get the current driver join campaign' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiCreatedResponse({ description: 'Create' })
+  @Roles(Role.DRIVER)
+  @Status(UserStatus.VERIFIED)
+  @Get('/list-campaigns')
+  async getListCampaignForDriver(@Request() req: RequestUser) {
+    await this.driverService.getListCampaigns(req.user.address);
   }
 }

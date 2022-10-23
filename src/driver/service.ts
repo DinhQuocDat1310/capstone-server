@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   InternalServerErrorException,
 } from '@nestjs/common';
 import { UserSignIn } from 'src/auth/dto';
@@ -13,6 +14,7 @@ import { DriverVerifyInformationDTO } from './dto';
 
 @Injectable()
 export class DriversService {
+  private readonly logger = new Logger(DriversService.name);
   constructor(
     private readonly prisma: PrismaService,
     private readonly verifyAccountService: VerifyAccountsService,
@@ -86,5 +88,127 @@ export class DriversService {
     } catch (e) {
       throw new InternalServerErrorException(e.message);
     }
+  }
+
+  async driverJoinCampaigin(campaignId: string, userReq: UserSignIn) {
+    try {
+      const driver = await this.prisma.driver.findFirst({
+        where: {
+          userId: userReq.id,
+        },
+      });
+      const campaign = await this.prisma.campaign.findFirst({
+        where: {
+          id: campaignId,
+        },
+      });
+      if (!campaign)
+        throw new BadRequestException(
+          'The campaignId is not exist!. Please make sure you join correct Campaign',
+        );
+      const listDriversJoinCampaign =
+        await this.prisma.driverJoinCampaign.findMany({
+          where: {
+            campaignId,
+          },
+        });
+      if (listDriversJoinCampaign.find((o) => o.driverId === userReq.id))
+        throw new BadRequestException('You already join this campaign');
+
+      if (listDriversJoinCampaign.length >= Number(campaign.quantityDriver))
+        throw new BadRequestException(
+          'This Campaign is full, Please join the other campaigns',
+        );
+
+      const isDriverInCampaign = await this.prisma.driverJoinCampaign.findMany({
+        where: {
+          driverId: driver.id,
+        },
+        orderBy: {
+          createDate: 'desc',
+        },
+        include: {
+          campaign: true,
+        },
+      });
+      const latestCampaign =
+        isDriverInCampaign.length !== 0 && isDriverInCampaign[0];
+      if (latestCampaign) {
+        if (
+          ['OPEN', 'PAYMENT', 'WARPPING', 'RUNNING'].includes(
+            latestCampaign.campaign.statusCampaign,
+          )
+        ) {
+          throw new BadRequestException(
+            'You are already in campaign, you cannot join two campaigns in the same time',
+          );
+        }
+      }
+
+      this.logger.debug(
+        'Number of Drivers join campaign: ',
+        listDriversJoinCampaign.length,
+      );
+
+      const isConfirmCampaign =
+        listDriversJoinCampaign.length >=
+        Math.floor((Number(campaign.quantityDriver) * 80) / 100);
+
+      await this.prisma.driverJoinCampaign.create({
+        data: {
+          campaign: {
+            connect: {
+              id: campaignId,
+            },
+          },
+          driver: {
+            connect: {
+              userId: userReq.id,
+            },
+          },
+          isJoined: isConfirmCampaign ? true : false,
+        },
+      });
+      const isUpdateAllDriverJoinCampaign =
+        listDriversJoinCampaign.length + 1 ===
+        Math.floor((Number(campaign.quantityDriver) * 80) / 100);
+      if (isUpdateAllDriverJoinCampaign) {
+        this.logger.log('Tada >= 80% driver :)), enough for campaign working');
+        const listDriver = await this.prisma.driverJoinCampaign.findMany({
+          where: {
+            campaignId,
+          },
+        });
+        await this.prisma.driverJoinCampaign.updateMany({
+          where: {
+            campaignId,
+          },
+          data: {
+            isJoined: true,
+          },
+        });
+        for (let i = 0; i <= listDriver.length; i++) {
+          await this.prisma.driverJoinCampaign.deleteMany({
+            where: {
+              driverId: listDriver[i].driverId,
+              isJoined: false,
+            },
+          });
+        }
+      }
+    } catch (e) {
+      this.logger.error(e.message);
+      throw new InternalServerErrorException(e.message);
+    }
+  }
+
+  async getListCampaigns(address: string) {
+    return this.prisma.campaign.findMany({
+      where: {
+        locationCampaign: {
+          locationName: address,
+        },
+      },
+    });
   }
 }

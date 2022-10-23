@@ -148,4 +148,22 @@ export class CampaignController {
   ) {
     return await this.campaignService.cancelCampaign(req.user.id, campaignId);
   }
+
+  @ApiOperation({ summary: 'Get the current driver join campaign' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiCreatedResponse({ description: 'Create' })
+  @Roles(Role.BRAND)
+  @Status(UserStatus.VERIFIED)
+  @Get('/quantity-driver-join/:id')
+  async getCurrentDriverJoinCampaign(
+    @Request() req: RequestUser,
+    @Param('id') campaignId: string,
+  ) {
+    return await this.campaignService.getAmountDriverJoinCampaign(
+      req.user.id,
+      campaignId,
+    );
+  }
 }

@@ -95,3 +95,11 @@ export class DriverVerifyInformationDTO {
   @IsUrl(undefined)
   imageCarLeft: string;
 }
+
+export class DriverJoinCampaign {
+  @ApiProperty({
+    description: 'Id of the campaign',
+    default: 'uuid',
+  })
+  id: string;
+}
