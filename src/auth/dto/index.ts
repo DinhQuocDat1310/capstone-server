@@ -18,4 +18,5 @@ export class UserSignIn {
   phoneNumber: string;
   role: Role;
   status: UserStatus;
+  address: string;
 }
