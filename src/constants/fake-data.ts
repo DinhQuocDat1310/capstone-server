@@ -1,4 +1,4 @@
-import { PositionWarp } from '@prisma/client';
+import { PositionWrap } from '@prisma/client';
 
 export const FAKE_LOGO = [
   'https://th.bing.com/th/id/OIP._ATdCQVSmjrY1dVNpWAQWAHaE8?w=265&h=180&c=7&r=0&o=5&pid=1.7',
@@ -124,6 +124,17 @@ export const FAKE_ADDRESS = [
   'Tây Ninh',
   'Bình Dương',
   'TP Hồ Chí Minh',
+];
+
+export const FAKE_ADDRESS_ACCOUNT = [
+  'Bà Rịa - Vũng Tàu',
+  'Bình Định',
+  'Đà Nẵng',
+  'Hà Nội',
+  'Lâm Đồng',
+  'Tây Ninh',
+  'Bình Dương',
+  'TP Hồ Chí Minh',
   'Bà Rịa - Vũng Tàu',
   'Bình Định',
   'Đà Nẵng',
@@ -138,12 +149,15 @@ export const FAKE_ADDRESS = [
   'Hà Nội',
 ];
 
-export const FAKE_LOCATION_PRICE = [
-  '2,000,000',
-  '2,000,000',
-  '2,000,000',
-  '3,000,000',
-  '2,000,000',
+export const FAKE_PRICE_PER_KM = [
+  '10000',
+  '10000',
+  '15000',
+  '15000',
+  '10000',
+  '10000',
+  '10000',
+  '15000',
 ];
 
 export const FAKE_OWNER_BUSINESS = [
@@ -194,7 +208,7 @@ export const FAKE_IMAGE_CAR = [
 
 export const FAKE_DURATION = ['30', '60', '90', '30', '60'];
 
-export const FAKE_TOTALKM = ['27,000', '36,000', '42,000', '48,000', '54,000'];
+export const FAKE_TOTALKM = ['27000', '36000', '42000', '48000', '54000'];
 
 export const FAKE_QUANTITY_DRIVER = ['45', '30', '35', '80', '45'];
 
@@ -207,17 +221,53 @@ export const FAKE_CAMPAIGN_NAME = [
 ];
 
 export const FAKE_POSITION_WRAP = [
-  PositionWarp.ONE_SIDE,
-  PositionWarp.BOTH_SIDE,
-  PositionWarp.ONE_SIDE,
-  PositionWarp.BOTH_SIDE,
-  PositionWarp.ONE_SIDE,
+  PositionWrap.ONE_SIDE_RIGHT,
+  PositionWrap.BOTH_SIDE,
+  PositionWrap.ONE_SIDE_LEFT,
+  PositionWrap.ONE_SIDE_RIGHT,
+  PositionWrap.BOTH_SIDE,
 ];
 
-export const FAKE_PRICE_POSITION = [
-  '500,000',
-  '1,000,000',
-  '500,000',
-  '1,000,000',
-  '500,000',
+export const POSITION_WRAP = [
+  PositionWrap.ONE_SIDE_RIGHT,
+  PositionWrap.BOTH_SIDE,
+  PositionWrap.ONE_SIDE_LEFT,
+  PositionWrap.ONE_SIDE_RIGHT,
+  PositionWrap.BOTH_SIDE,
+  PositionWrap.ONE_SIDE_LEFT,
+  PositionWrap.ONE_SIDE_RIGHT,
+  PositionWrap.BOTH_SIDE,
+  PositionWrap.ONE_SIDE_LEFT,
+];
+
+export const PRICE_POSITION_WRAP = [
+  '300000',
+  '600000',
+  '300000',
+  '500000',
+  '1000000',
+  '500000',
+  '700000',
+  '1400000',
+  '700000',
+];
+
+export const DURATION_WRAP = [
+  '30',
+  '30',
+  '30',
+  '60',
+  '60',
+  '60',
+  '90',
+  '90',
+  '90',
+];
+
+export const FAKE_PRICE_POSITION_WRAP = [
+  '300000',
+  '1000000',
+  '700000',
+  '300000',
+  '1000000',
 ];

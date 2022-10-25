@@ -55,6 +55,7 @@ export class ContractService {
     );
     const parseEndWarpSticket = new Date(dateEndWarpSticket);
     const dateEndWarpStick = parseEndWarpSticket.toISOString();
+
     try {
       const verifyCampaign = await this.prisma.verifyCampaign.update({
         where: {
@@ -64,13 +65,10 @@ export class ContractService {
           status: VerifyCampaignStatus.ACCEPT,
           campaign: {
             update: {
-              dateOpenRegister: dateOpenRegis,
               startRegisterDate: dateOpenRegis,
               endRegisterDate: dateEndRegis,
-              datePaymentDeposit: datePaymentDepose,
-              dateEndPaymentDeposit: dateEndPaymentDepose,
-              dateWrapSticket: dateWrapStick,
-              dateEndWarpSticket: dateEndWarpStick,
+              startWrapDate: dateWrapStick,
+              endWrapDate: dateEndWarpStick,
             },
           },
         },
@@ -79,6 +77,22 @@ export class ContractService {
           campaign: {
             select: {
               campaignName: true,
+              duration: true,
+              minimumKmDrive: true,
+              quantityDriver: true,
+              totalKm: true,
+              locationCampaign: {
+                select: {
+                  locationName: true,
+                },
+              },
+              locationPricePerKm: true,
+              wrap: {
+                select: {
+                  positionWrap: true,
+                },
+              },
+              wrapPrice: true,
               brand: {
                 select: {
                   brandName: true,
@@ -98,6 +112,37 @@ export class ContractService {
           },
         },
       });
+      const totalDriverMoney =
+        parseFloat(verifyCampaign.campaign.minimumKmDrive) *
+        parseFloat(verifyCampaign.campaign.locationPricePerKm) *
+        parseFloat(verifyCampaign.campaign.quantityDriver) *
+        parseFloat(verifyCampaign.campaign.duration);
+      const totalWrapMoney =
+        parseFloat(verifyCampaign.campaign.wrapPrice) *
+        parseFloat(verifyCampaign.campaign.quantityDriver);
+      const totalMoney = totalDriverMoney + totalWrapMoney;
+      const totalDeposit = totalMoney * 0.2;
+      const totalSystemMoney = totalMoney * 0.1;
+      const totalDriverMoneyVND = new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND',
+      }).format(Number(totalDriverMoney));
+
+      const totalWrapMoneyVND = new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND',
+      }).format(Number(totalWrapMoney));
+
+      const totalDepositVND = new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND',
+      }).format(Number(totalDeposit));
+
+      const totalSystemMoneyVND = new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND',
+      }).format(Number(totalSystemMoney));
+
       await this.prisma.contractCampaign.create({
         data: {
           contractName: 'Contract ' + verifyCampaign.campaignId,
@@ -106,6 +151,23 @@ export class ContractService {
               id: verifyCampaign.campaignId,
             },
           },
+          totalDriverMoney: totalDriverMoneyVND.toString(),
+          totalWrapMoney: totalWrapMoneyVND.toString(),
+          totalSystemMoney: totalSystemMoneyVND.toString(),
+          isAccept: false,
+        },
+      });
+      await this.prisma.paymentDebit.create({
+        data: {
+          campaign: {
+            connect: {
+              id: verifyCampaign.campaignId,
+            },
+          },
+          type: 'PREPAY',
+          paidDate: datePaymentDepose,
+          expiredDate: dateEndPaymentDepose,
+          price: totalDepositVND.toString(),
         },
       });
       const message = `<p>Congratulations!. Your campaign information has been accepted</p>
@@ -149,19 +211,29 @@ export class ContractService {
           select: {
             id: true,
             campaignName: true,
-            dateOpenRegister: true,
             startRegisterDate: true,
             endRegisterDate: true,
-            datePaymentDeposit: true,
-            dateEndPaymentDeposit: true,
-            dateWrapSticket: true,
-            dateEndWarpSticket: true,
             startRunningDate: true,
+            startWrapDate: true,
+            endWrapDate: true,
+            poster: true,
             totalKm: true,
             description: true,
             duration: true,
             minimumKmDrive: true,
             quantityDriver: true,
+            locationPricePerKm: true,
+            wrapPrice: true,
+            detailMessage: true,
+            paymentDebit: {
+              select: {
+                id: true,
+                paidDate: true,
+                expiredDate: true,
+                price: true,
+                type: true,
+              },
+            },
             brand: {
               select: {
                 id: true,
@@ -176,8 +248,7 @@ export class ContractService {
             },
             wrap: {
               select: {
-                imagePoster: true,
-                positionWarp: true,
+                positionWrap: true,
               },
             },
             contractCampaign: {
@@ -186,7 +257,7 @@ export class ContractService {
                 contractName: true,
                 totalDriverMoney: true,
                 totalSystemMoney: true,
-                totalWarpType: true,
+                totalWrapMoney: true,
               },
             },
           },
@@ -222,7 +293,6 @@ export class ContractService {
       select: {
         campaign: {
           select: {
-            dateOpenRegister: true,
             statusCampaign: true,
           },
         },
@@ -246,6 +316,7 @@ export class ContractService {
           id: contractId,
         },
         data: {
+          isAccept: true,
           campaign: {
             update: {
               statusCampaign: 'OPEN',
@@ -276,6 +347,7 @@ export class ContractService {
           id: contractId,
         },
         data: {
+          isAccept: false,
           campaign: {
             update: {
               statusCampaign: 'CANCELED',

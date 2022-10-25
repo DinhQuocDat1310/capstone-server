@@ -7,6 +7,7 @@ import { Module } from '@nestjs/common';
 import { AdminService } from './service';
 import { AdminController } from './controller';
 import { ManagerService } from 'src/manager/service';
+import { LocationService } from 'src/location/service';
 
 @Module({
   controllers: [AdminController],
@@ -18,6 +19,7 @@ import { ManagerService } from 'src/manager/service';
     AppConfigService,
     VerifyCampaignService,
     ManagerService,
+    LocationService,
   ],
 })
 export class AdminModule {}
