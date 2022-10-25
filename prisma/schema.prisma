@@ -264,3 +264,10 @@ model FAQs {
   answer   String
   status   Status @default(ENABLE)
 }
+
+model Policies {
+  id       String @id @default(uuid())
+  question String
+  answer   String
+  status   Status @default(ENABLE)
+}

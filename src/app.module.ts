@@ -20,6 +20,7 @@ import { ContractModule } from './contract/module';
 import { AdminModule } from './admin/module';
 import { FaqModule } from './faq/module';
 import { AutoAssignModule } from './autoAssign/module';
+import { PolicyModule } from './policy/module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { AutoAssignModule } from './autoAssign/module';
     AdminModule,
     FaqModule,
     AutoAssignModule,
+    PolicyModule,
   ],
   providers: [AppConfigService, UsersService, PrismaService],
   controllers: [],

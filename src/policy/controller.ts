@@ -1,6 +1,7 @@
-import { UserStatus, Role } from '@prisma/client';
-import { FAQDto } from './dto';
+import { Status } from './../guard/decorators';
+import { PolicyDto } from './dto';
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { PolicyService } from './service';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -11,21 +12,21 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { Role, UserStatus } from '@prisma/client';
+import { Roles } from 'src/guard/decorators';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/guard/roles.guard';
 import { StatusGuard } from 'src/guard/userStatus.guard';
-import { FaqService } from './service';
-import { Roles, Status } from 'src/guard/decorators';
 
-@Controller('faq')
+@Controller('policy')
 @UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
 @ApiBearerAuth('access-token')
-@ApiTags('FAQs')
-export class FaqController {
-  constructor(private readonly faqService: FaqService) {}
+@ApiTags('Policies')
+export class PolicyController {
+  constructor(private readonly policyService: PolicyService) {}
 
-  @ApiBody({ type: FAQDto })
-  @ApiOperation({ summary: 'Create a FAQ' })
+  @ApiBody({ type: PolicyDto })
+  @ApiOperation({ summary: 'Create a Policy' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
@@ -33,40 +34,40 @@ export class FaqController {
   @Status(UserStatus.VERIFIED)
   @Roles(Role.ADMIN)
   @Post('/create')
-  async createFAQ(@Body() dto: FAQDto) {
-    return await this.faqService.createFAQ(dto);
+  async createPolicy(@Body() dto: PolicyDto) {
+    return await this.policyService.createPolicy(dto);
   }
 
-  @ApiOperation({ summary: 'View list FAQs' })
+  @ApiOperation({ summary: 'View list Policies' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Status(UserStatus.VERIFIED)
   @Roles(Role.ADMIN, Role.BRAND, Role.MANAGER)
   @Get('/list')
-  async viewListFAQ() {
-    return await this.faqService.viewListFAQs();
+  async viewListPolicy() {
+    return await this.policyService.viewListPolicy();
   }
 
-  @ApiOperation({ summary: 'Enable a FAQ by FAQId' })
+  @ApiOperation({ summary: 'Enable a Policy by PolicyId' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Status(UserStatus.VERIFIED)
   @Roles(Role.ADMIN)
   @Get('/enable/:id')
-  async enableFaq(@Param('id') id: string) {
-    return await this.faqService.enableFaq(id);
+  async enablePolicy(@Param('id') id: string) {
+    return await this.policyService.enablePolicy(id);
   }
 
-  @ApiOperation({ summary: 'Disable a FAQ by FAQId' })
+  @ApiOperation({ summary: 'Disable a Policy by PolicyId' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Status(UserStatus.VERIFIED)
   @Roles(Role.ADMIN)
   @Get('/disable/:id')
-  async disableFaq(@Param('id') id: string) {
-    return await this.faqService.disableFaq(id);
+  async disablePolicy(@Param('id') id: string) {
+    return await this.policyService.disablePolicy(id);
   }
 }
