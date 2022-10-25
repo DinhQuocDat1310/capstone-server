@@ -27,7 +27,7 @@ export class FaqService {
         id,
       },
       data: {
-        isActive: true,
+        status: 'ENABLE',
       },
     });
     return `Enable Faq`;
@@ -40,7 +40,7 @@ export class FaqService {
         id,
       },
       data: {
-        isActive: false,
+        status: 'DISABLE',
       },
     });
     return `Disable Faq`;

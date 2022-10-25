@@ -1,8 +1,6 @@
-import { PositionWrap } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 import {
-  IsEnum,
   IsNotEmpty,
   IsNumberString,
   IsString,
@@ -24,6 +22,18 @@ export class CampaignVerifyInformationDTO {
   idWrap: string;
 
   @ApiProperty({
+    description: 'Price location',
+  })
+  @IsNumberString()
+  priceLocation: string;
+
+  @ApiProperty({
+    description: 'Price wrap',
+  })
+  @IsNumberString()
+  priceWrap: string;
+
+  @ApiProperty({
     description: 'Name of Campaign',
   })
   @IsString()
@@ -38,7 +48,7 @@ export class CampaignVerifyInformationDTO {
   startRunningDate: string;
 
   @ApiProperty({
-    description: 'Duration of campaign',
+    description: 'Duration running Campaign',
   })
   @IsNumberString()
   duration: string;
@@ -72,27 +82,7 @@ export class CampaignVerifyInformationDTO {
     default: 'image.com',
   })
   @IsUrl(undefined)
-  imagePoster: string;
-
-  @IsEnum(
-    [
-      PositionWrap.ONE_SIDE_RIGHT,
-      PositionWrap.ONE_SIDE_LEFT,
-      PositionWrap.BOTH_SIDE,
-    ],
-    {
-      message: 'Position warp must be following format: [ONE_SIDE, BOTH_SIDE]',
-    },
-  )
-  @ApiProperty({
-    enum: [
-      PositionWrap.ONE_SIDE_RIGHT,
-      PositionWrap.ONE_SIDE_LEFT,
-      PositionWrap.BOTH_SIDE,
-    ],
-    description: 'Position wrap',
-  })
-  positionWrap: PositionWrap;
+  poster: string;
 }
 
 export class CampaignContractDTO {

@@ -26,6 +26,8 @@ import { AdminService } from './service';
 import { AssignDto, ManagerDTO } from 'src/manager/dto';
 import { LocationService } from 'src/location/service';
 import { LocationDTO } from 'src/location/dto';
+import { WrapDTO } from 'src/wrap/dto';
+import { WrapService } from 'src/wrap/service';
 
 @UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
 @Controller('admin')
@@ -35,6 +37,7 @@ export class AdminController {
   constructor(
     private readonly adminService: AdminService,
     private readonly locationService: LocationService,
+    private readonly wrapService: WrapService,
   ) {}
 
   @ApiBody({ type: ManagerDTO })
@@ -160,5 +163,17 @@ export class AdminController {
   @Put('/location')
   async updateLocation(@Body() dto: LocationDTO) {
     return await this.locationService.updateLocation(dto);
+  }
+
+  @ApiBody({ type: WrapDTO })
+  @ApiOperation({ summary: 'Update location' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Status(UserStatus.VERIFIED)
+  @Roles(Role.ADMIN)
+  @Put('/wrap')
+  async updateWrap(@Body() dto: WrapDTO) {
+    return await this.wrapService.updateWrap(dto);
   }
 }

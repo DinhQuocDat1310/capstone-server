@@ -9,6 +9,7 @@
   - You are about to drop the column `dateWrapSticket` on the `Campaign` table. All the data in the column will be lost.
   - You are about to drop the column `warpId` on the `Campaign` table. All the data in the column will be lost.
   - You are about to drop the column `totalWarpType` on the `ContractCampaign` table. All the data in the column will be lost.
+  - You are about to drop the column `isActive` on the `FAQs` table. All the data in the column will be lost.
   - You are about to drop the `Warp` table. If the table is not empty, all the data it contains will be lost.
   - Added the required column `poster` to the `Campaign` table without a default value. This is not possible if the table is not empty.
   - Added the required column `wrapPrice` to the `Campaign` table without a default value. This is not possible if the table is not empty.
@@ -16,10 +17,13 @@
 
 */
 -- CreateEnum
-CREATE TYPE "PositionWrap" AS ENUM ('BOTH_SIDE', 'ONE_SIDE_LEFT', 'ONE_SIDE_RIGHT');
+CREATE TYPE "PositionWrap" AS ENUM ('BOTH_SIDE', 'LEFT_SIDE', 'RIGHT_SIDE');
 
 -- CreateEnum
 CREATE TYPE "TypePayment" AS ENUM ('POSTPAID', 'PREPAY');
+
+-- CreateEnum
+CREATE TYPE "StatusTerm" AS ENUM ('ENABLE', 'DISABLE');
 
 -- AlterEnum
 BEGIN;
@@ -63,6 +67,10 @@ ADD COLUMN     "message" TEXT,
 ADD COLUMN     "totalWrapMoney" TEXT;
 
 -- AlterTable
+ALTER TABLE "FAQs" DROP COLUMN "isActive",
+ADD COLUMN     "status" "StatusTerm" NOT NULL DEFAULT 'ENABLE';
+
+-- AlterTable
 ALTER TABLE "LocationCampaignPerKm" ADD COLUMN     "createDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 ADD COLUMN     "isActive" BOOLEAN NOT NULL DEFAULT true,
 ADD COLUMN     "updateAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
@@ -77,7 +85,6 @@ DROP TYPE "PositionWarp";
 CREATE TABLE "Wrap" (
     "id" TEXT NOT NULL,
     "positionWrap" "PositionWrap" NOT NULL,
-    "duration" TEXT NOT NULL,
     "price" TEXT NOT NULL,
     "updateAt" TIMESTAMP(3) NOT NULL,
 

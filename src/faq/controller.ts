@@ -42,7 +42,7 @@ export class FaqController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Status(UserStatus.VERIFIED)
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.BRAND, Role.MANAGER)
   @Get('/list')
   async viewListFAQ() {
     return await this.faqService.viewListFAQs();
