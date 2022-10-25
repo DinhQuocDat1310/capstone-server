@@ -20,6 +20,7 @@ export class WrapService {
       },
       data: {
         price: dto.price,
+        status: dto.status,
       },
     });
   }
