@@ -4,6 +4,8 @@ import {
   FAKE_TOTALKM,
   FAKE_QUANTITY_DRIVER,
   FAKE_LOGO,
+  FAKE_PRICE_POSITION_WRAP,
+  FAKE_PRICE_PER_KM,
 } from './../constants/fake-data';
 import {
   CampaignStatus,
@@ -155,14 +157,12 @@ export class VerifyCampaignService {
     const dataLocation = await this.prisma.locationCampaignPerKm.findMany({
       select: {
         id: true,
-        price: true,
       },
     });
 
     const dataWrap = await this.prisma.wrap.findMany({
       select: {
         id: true,
-        price: true,
       },
     });
     if (brand.length === 0) {
@@ -185,8 +185,8 @@ export class VerifyCampaignService {
             totalKm: FAKE_TOTALKM[j],
             description: 'Description ' + (j + 1),
             poster: FAKE_LOGO[j],
-            wrapPrice: dataWrap[j].price,
-            locationPricePerKm: dataLocation[j].price,
+            wrapPrice: FAKE_PRICE_POSITION_WRAP[j],
+            locationPricePerKm: FAKE_PRICE_PER_KM[j],
             brand: {
               connect: {
                 id: brand[i].brand.id,

@@ -221,48 +221,20 @@ export const FAKE_CAMPAIGN_NAME = [
 ];
 
 export const FAKE_POSITION_WRAP = [
-  PositionWrap.ONE_SIDE_RIGHT,
+  PositionWrap.LEFT_SIDE,
   PositionWrap.BOTH_SIDE,
-  PositionWrap.ONE_SIDE_LEFT,
-  PositionWrap.ONE_SIDE_RIGHT,
+  PositionWrap.RIGHT_SIDE,
+  PositionWrap.LEFT_SIDE,
   PositionWrap.BOTH_SIDE,
 ];
 
 export const POSITION_WRAP = [
-  PositionWrap.ONE_SIDE_RIGHT,
+  PositionWrap.LEFT_SIDE,
   PositionWrap.BOTH_SIDE,
-  PositionWrap.ONE_SIDE_LEFT,
-  PositionWrap.ONE_SIDE_RIGHT,
-  PositionWrap.BOTH_SIDE,
-  PositionWrap.ONE_SIDE_LEFT,
-  PositionWrap.ONE_SIDE_RIGHT,
-  PositionWrap.BOTH_SIDE,
-  PositionWrap.ONE_SIDE_LEFT,
+  PositionWrap.RIGHT_SIDE,
 ];
 
-export const PRICE_POSITION_WRAP = [
-  '300000',
-  '600000',
-  '300000',
-  '500000',
-  '1000000',
-  '500000',
-  '700000',
-  '1400000',
-  '700000',
-];
-
-export const DURATION_WRAP = [
-  '30',
-  '30',
-  '30',
-  '60',
-  '60',
-  '60',
-  '90',
-  '90',
-  '90',
-];
+export const PRICE_POSITION_WRAP = ['300000', '600000', '300000'];
 
 export const FAKE_PRICE_POSITION_WRAP = [
   '300000',

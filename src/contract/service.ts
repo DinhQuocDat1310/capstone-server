@@ -81,12 +81,12 @@ export class ContractService {
               minimumKmDrive: true,
               quantityDriver: true,
               totalKm: true,
+              locationPricePerKm: true,
               locationCampaign: {
                 select: {
                   locationName: true,
                 },
               },
-              locationPricePerKm: true,
               wrap: {
                 select: {
                   positionWrap: true,
@@ -112,36 +112,23 @@ export class ContractService {
           },
         },
       });
+      const isBothSide =
+        verifyCampaign.campaign.wrap.positionWrap === 'BOTH_SIDE';
+      const extraWrapMoney = isBothSide ? 400000 : 200000;
+      const priceWrap = parseFloat(verifyCampaign.campaign.wrapPrice);
+      const numDriver = parseInt(verifyCampaign.campaign.quantityDriver);
+      const time = parseInt(verifyCampaign.campaign.duration) / 30 - 1;
+      const totalWrapMoney = (priceWrap + time * extraWrapMoney) * numDriver;
+
       const totalDriverMoney =
         parseFloat(verifyCampaign.campaign.minimumKmDrive) *
         parseFloat(verifyCampaign.campaign.locationPricePerKm) *
         parseFloat(verifyCampaign.campaign.quantityDriver) *
         parseFloat(verifyCampaign.campaign.duration);
-      const totalWrapMoney =
-        parseFloat(verifyCampaign.campaign.wrapPrice) *
-        parseFloat(verifyCampaign.campaign.quantityDriver);
+
       const totalMoney = totalDriverMoney + totalWrapMoney;
       const totalDeposit = totalMoney * 0.2;
       const totalSystemMoney = totalMoney * 0.1;
-      const totalDriverMoneyVND = new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND',
-      }).format(Number(totalDriverMoney));
-
-      const totalWrapMoneyVND = new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND',
-      }).format(Number(totalWrapMoney));
-
-      const totalDepositVND = new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND',
-      }).format(Number(totalDeposit));
-
-      const totalSystemMoneyVND = new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND',
-      }).format(Number(totalSystemMoney));
 
       await this.prisma.contractCampaign.create({
         data: {
@@ -151,9 +138,9 @@ export class ContractService {
               id: verifyCampaign.campaignId,
             },
           },
-          totalDriverMoney: totalDriverMoneyVND.toString(),
-          totalWrapMoney: totalWrapMoneyVND.toString(),
-          totalSystemMoney: totalSystemMoneyVND.toString(),
+          totalDriverMoney: totalDriverMoney.toString(),
+          totalWrapMoney: totalWrapMoney.toString(),
+          totalSystemMoney: totalSystemMoney.toString(),
           isAccept: false,
         },
       });
@@ -167,7 +154,7 @@ export class ContractService {
           type: 'PREPAY',
           paidDate: datePaymentDepose,
           expiredDate: dateEndPaymentDepose,
-          price: totalDepositVND.toString(),
+          price: totalDeposit.toString(),
         },
       });
       const message = `<p>Congratulations!. Your campaign information has been accepted</p>

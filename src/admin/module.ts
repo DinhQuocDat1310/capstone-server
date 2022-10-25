@@ -8,6 +8,7 @@ import { AdminService } from './service';
 import { AdminController } from './controller';
 import { ManagerService } from 'src/manager/service';
 import { LocationService } from 'src/location/service';
+import { WrapService } from 'src/wrap/service';
 
 @Module({
   controllers: [AdminController],
@@ -20,6 +21,7 @@ import { LocationService } from 'src/location/service';
     VerifyCampaignService,
     ManagerService,
     LocationService,
+    WrapService,
   ],
 })
 export class AdminModule {}

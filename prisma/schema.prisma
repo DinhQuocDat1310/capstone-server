@@ -192,7 +192,6 @@ model LocationCampaignPerKm {
 model Wrap {
   id           String       @id @default(uuid())
   positionWrap PositionWrap
-  duration     String
   price        String
   updateAt     DateTime     @updatedAt
   campaign     Campaign[]
@@ -200,8 +199,8 @@ model Wrap {
 
 enum PositionWrap {
   BOTH_SIDE
-  ONE_SIDE_LEFT
-  ONE_SIDE_RIGHT
+  LEFT_SIDE
+  RIGHT_SIDE
 }
 
 model VerifyCampaign {
@@ -254,8 +253,13 @@ model ContractCampaign {
 }
 
 model FAQs {
-  id       String  @id @default(uuid())
+  id       String     @id @default(uuid())
   question String
   answer   String
-  isActive Boolean @default(true)
+  status   StatusTerm @default(ENABLE)
+}
+
+enum StatusTerm {
+  ENABLE
+  DISABLE
 }

@@ -325,12 +325,11 @@ export class CampaignService {
                 data: {
                   campaignName: dto.campaignName,
                   startRunningDate: currentDate.toISOString(),
-                  duration: dto.duration,
                   totalKm: dto.totalKm,
                   quantityDriver: dto.quantityDriver,
                   minimumKmDrive: dto.minimumKmDrive,
                   description: dto.description,
-                  poster: dto.imagePoster,
+                  poster: dto.poster,
                   wrapPrice: dataWrap.price,
                   locationPricePerKm: dataLocation.price,
                   verifyCampaign: {
@@ -472,26 +471,28 @@ export class CampaignService {
       throw new BadRequestException('Campaign name already used!');
     const currentDate = new Date(dto.startRunningDate);
     currentDate.setDate(currentDate.getDate() + 1);
-    const dataLocation = await this.prisma.locationCampaignPerKm.findFirst({
-      where: {
-        id: dto.idLocation,
-      },
-    });
-    const dataWrap = await this.prisma.wrap.findFirst({
-      where: {
-        id: dto.idWrap,
-      },
-    });
+    // const dataLocation = await this.prisma.locationCampaignPerKm.findFirst({
+    //   where: {
+    //     id: dto.idLocation,
+    //   },
+    // });
+    // const dataWrap = await this.prisma.wrap.findFirst({
+    //   where: {
+    //     id: dto.idWrap,
+    //   },
+    // });
     const campaign = await this.prisma.campaign.create({
       data: {
         campaignName: dto.campaignName,
         startRunningDate: currentDate.toISOString(),
-        duration: dto.duration,
         quantityDriver: dto.quantityDriver,
         totalKm: dto.totalKm,
         description: dto.description,
-        poster: dto.imagePoster,
+        poster: dto.poster,
         minimumKmDrive: dto.minimumKmDrive,
+        locationPricePerKm: dto.priceLocation,
+        wrapPrice: dto.priceWrap,
+        duration: dto.duration,
         brand: {
           connect: {
             userId,
@@ -502,13 +503,11 @@ export class CampaignService {
             id: dto.idLocation,
           },
         },
-        locationPricePerKm: dataLocation.price,
         wrap: {
           connect: {
             id: dto.idWrap,
           },
         },
-        wrapPrice: dataWrap.price,
       },
       select: {
         id: true,
