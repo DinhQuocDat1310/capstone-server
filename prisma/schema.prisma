@@ -185,8 +185,13 @@ model LocationCampaignPerKm {
   updateAt     DateTime   @default(now()) @updatedAt
   locationName String
   price        String
-  isActive     Boolean    @default(true)
+  status       Status 
   campaign     Campaign[]
+}
+
+enum Status {
+  ENABLE
+  DISABLE 
 }
 
 model Wrap {
