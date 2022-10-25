@@ -667,6 +667,9 @@ export class CampaignService {
         campaignId,
       },
     });
-    return count;
+    return {
+      amountDriver: count,
+      totalDriver: isOwnCampaign.quantityDriver,
+    };
   }
 }

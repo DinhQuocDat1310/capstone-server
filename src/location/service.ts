@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { Status } from '@prisma/client';
 import { PrismaService } from 'src/prisma/service';
 import { LocationDTO } from './dto';
 
@@ -17,26 +18,31 @@ export class LocationService {
         locationName: location.locationName,
       },
     });
-    if (campaign) throw new BadRequestException('Campaign is already exist');
-    await this.prisma.locationCampaignPerKm.create({
+    if (campaign) throw new BadRequestException('Location is already exist');
+    const newLocation = await this.prisma.locationCampaignPerKm.create({
       data: {
         locationName: location.locationName,
         price: location.price,
+        status: Status.ENABLE,
       },
     });
+    return newLocation.status;
   }
 
   async updateLocation(location: LocationDTO) {
     const campaign = await this.prisma.locationCampaignPerKm.findFirst({
       where: {
-        locationName: location.locationName,
+        locationName: location.id,
       },
     });
-    if (campaign) throw new BadRequestException('Campaign is already exist');
-    await this.prisma.locationCampaignPerKm.create({
+    if (!campaign) throw new BadRequestException('The id is not exist!!!');
+    await this.prisma.locationCampaignPerKm.update({
+      where: {
+        id: location.id,
+      },
       data: {
-        locationName: location.locationName,
         price: location.price,
+        status: location.status,
       },
     });
   }
