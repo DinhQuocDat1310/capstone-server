@@ -14,16 +14,17 @@
   - Added the required column `poster` to the `Campaign` table without a default value. This is not possible if the table is not empty.
   - Added the required column `wrapPrice` to the `Campaign` table without a default value. This is not possible if the table is not empty.
   - Added the required column `isAccept` to the `ContractCampaign` table without a default value. This is not possible if the table is not empty.
+  - Added the required column `status` to the `LocationCampaignPerKm` table without a default value. This is not possible if the table is not empty.
 
 */
+-- CreateEnum
+CREATE TYPE "Status" AS ENUM ('ENABLE', 'DISABLE');
+
 -- CreateEnum
 CREATE TYPE "PositionWrap" AS ENUM ('BOTH_SIDE', 'LEFT_SIDE', 'RIGHT_SIDE');
 
 -- CreateEnum
 CREATE TYPE "TypePayment" AS ENUM ('POSTPAID', 'PREPAY');
-
--- CreateEnum
-CREATE TYPE "StatusTerm" AS ENUM ('ENABLE', 'DISABLE');
 
 -- AlterEnum
 BEGIN;
@@ -68,11 +69,11 @@ ADD COLUMN     "totalWrapMoney" TEXT;
 
 -- AlterTable
 ALTER TABLE "FAQs" DROP COLUMN "isActive",
-ADD COLUMN     "status" "StatusTerm" NOT NULL DEFAULT 'ENABLE';
+ADD COLUMN     "status" "Status" NOT NULL DEFAULT 'ENABLE';
 
 -- AlterTable
 ALTER TABLE "LocationCampaignPerKm" ADD COLUMN     "createDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN     "isActive" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN     "status" "Status" NOT NULL,
 ADD COLUMN     "updateAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
 -- DropTable
@@ -87,6 +88,7 @@ CREATE TABLE "Wrap" (
     "positionWrap" "PositionWrap" NOT NULL,
     "price" TEXT NOT NULL,
     "updateAt" TIMESTAMP(3) NOT NULL,
+    "status" "Status" NOT NULL,
 
     CONSTRAINT "Wrap_pkey" PRIMARY KEY ("id")
 );

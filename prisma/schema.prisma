@@ -185,13 +185,13 @@ model LocationCampaignPerKm {
   updateAt     DateTime   @default(now()) @updatedAt
   locationName String
   price        String
-  status       Status 
+  status       Status
   campaign     Campaign[]
 }
 
 enum Status {
   ENABLE
-  DISABLE 
+  DISABLE
 }
 
 model Wrap {
@@ -199,6 +199,7 @@ model Wrap {
   positionWrap PositionWrap
   price        String
   updateAt     DateTime     @updatedAt
+  status       Status
   campaign     Campaign[]
 }
 
@@ -258,13 +259,8 @@ model ContractCampaign {
 }
 
 model FAQs {
-  id       String     @id @default(uuid())
+  id       String @id @default(uuid())
   question String
   answer   String
-  status   StatusTerm @default(ENABLE)
-}
-
-enum StatusTerm {
-  ENABLE
-  DISABLE
+  status   Status @default(ENABLE)
 }
