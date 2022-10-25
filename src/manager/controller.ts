@@ -13,7 +13,6 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiForbiddenResponse,
-  ApiNotFoundResponse,
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,

@@ -86,10 +86,10 @@ model Driver {
 }
 
 model DriverJoinCampaign {
-  id         String   @id  @default(uuid())
+  id         String   @id @default(uuid())
   isJoined   Boolean  @default(false)
   createDate DateTime @default(now())
-  
+
   driverId String
   driver   Driver @relation(fields: [driverId], references: [id])
 
@@ -134,40 +134,46 @@ enum VerifyAccountStatus {
 }
 
 model Campaign {
-  id                    String         @id @default(uuid())
-  campaignName          String         @unique
-  startRunningDate      DateTime
-  dateOpenRegister      DateTime?
-  startRegisterDate     DateTime?
-  endRegisterDate       DateTime?
-  datePaymentDeposit    DateTime?
-  statusCampaign        CampaignStatus @default(NEW)
-  duration              String
-  totalKm               String
-  quantityDriver        String
-  description           String?
-  minimumKmDrive        String         @default("20")
-  dateWrapSticket       DateTime?
-  dateEndWarpSticket    DateTime?
-  dateEndPaymentDeposit DateTime?
+  id                String         @id @default(uuid())
+  campaignName      String         @unique
+  startRegisterDate DateTime?
+  endRegisterDate   DateTime?
+  startRunningDate  DateTime
+  statusCampaign    CampaignStatus @default(NEW)
+  detailMessage     String?
+  duration          String
+  totalKm           String
+  quantityDriver    String
+  description       String?
+  minimumKmDrive    String         @default("20")
 
-  brand              Brand?                 @relation(fields: [brandId], references: [id])
-  brandId            String?
+  startWrapDate DateTime?
+  endWrapDate   DateTime?
+  wrapPrice     String
+  poster        String
+
+  brand   Brand?  @relation(fields: [brandId], references: [id])
+  brandId String?
+
+  locationPricePerKm String?
+
   locationCampaign   LocationCampaignPerKm? @relation(fields: [locationCampaignId], references: [id])
-  locationCampaignId String                 @unique
-  wrap               Warp?                  @relation(fields: [warpId], references: [id])
-  warpId             String?                @unique
-  verifyCampaign     VerifyCampaign[]
-  contractCampaign   ContractCampaign?
+  locationCampaignId String
+
+  wrap             Wrap?             @relation(fields: [wrapId], references: [id])
+  wrapId           String?
+  verifyCampaign   VerifyCampaign[]
+  contractCampaign ContractCampaign?
 
   driverJoinCampaign DriverJoinCampaign[]
+  paymentDebit       PaymentDebit[]
 }
 
 enum CampaignStatus {
   NEW
   OPEN
   PAYMENT
-  WARPPING
+  WRAPPING
   RUNNING
   CLOSED
   CANCELED
@@ -175,22 +181,27 @@ enum CampaignStatus {
 
 model LocationCampaignPerKm {
   id           String     @id @default(uuid())
+  createDate   DateTime   @default(now())
+  updateAt     DateTime   @default(now()) @updatedAt
   locationName String
   price        String
+  isActive     Boolean    @default(true)
   campaign     Campaign[]
 }
 
-model Warp {
+model Wrap {
   id           String       @id @default(uuid())
-  imagePoster  String
-  positionWarp PositionWarp
+  positionWrap PositionWrap
+  duration     String
   price        String
-  campaign     Campaign?
+  updateAt     DateTime     @updatedAt
+  campaign     Campaign[]
 }
 
-enum PositionWarp {
+enum PositionWrap {
   BOTH_SIDE
-  ONE_SIDE
+  ONE_SIDE_LEFT
+  ONE_SIDE_RIGHT
 }
 
 model VerifyCampaign {
@@ -214,12 +225,30 @@ enum VerifyCampaignStatus {
   UPDATE
 }
 
+model PaymentDebit {
+  id          String      @id @default(uuid())
+  price       String
+  type        TypePayment
+  createDate  DateTime    @default(now())
+  paidDate    DateTime
+  expiredDate DateTime
+  campaign    Campaign?   @relation(fields: [campaignId], references: [id])
+  campaignId  String
+}
+
+enum TypePayment {
+  POSTPAID
+  PREPAY
+}
+
 model ContractCampaign {
   id               String    @id @default(uuid())
   contractName     String
   totalDriverMoney String?
   totalSystemMoney String?
-  totalWarpType    String?
+  totalWrapMoney   String?
+  isAccept         Boolean
+  message          String?
   campaign         Campaign? @relation(fields: [campaignId], references: [id])
   campaignId       String?   @unique
 }

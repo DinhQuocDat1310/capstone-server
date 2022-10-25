@@ -13,7 +13,6 @@ import {
   ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiOperation,
-  ApiProperty,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -23,6 +22,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { Roles, Status } from 'src/guard/decorators';
 import { RolesGuard } from 'src/guard/roles.guard';
 import { StatusGuard } from 'src/guard/userStatus.guard';
+import { LocationService } from 'src/location/service';
 import { VerifyAccountsService } from 'src/verifyAccount/service';
 import { DriverJoinCampaign, DriverVerifyInformationDTO } from './dto';
 import { DriversService } from './service';
@@ -35,6 +35,7 @@ export class DriverController {
   constructor(
     private readonly driverService: DriversService,
     private readonly verifyAccountService: VerifyAccountsService,
+    private readonly locationService: LocationService,
   ) {}
 
   @ApiBody({ type: DriverVerifyInformationDTO })
@@ -91,5 +92,17 @@ export class DriverController {
   @Get('/list-campaigns')
   async getListCampaignForDriver(@Request() req: RequestUser) {
     await this.driverService.getListCampaigns(req.user.address);
+  }
+
+  @ApiOperation({ summary: 'get location' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiCreatedResponse({ description: 'Create' })
+  @Roles(Role.DRIVER)
+  @Status(UserStatus.VERIFIED)
+  @Get('/locations')
+  async getListLocations() {
+    await this.locationService.getListLocation();
   }
 }

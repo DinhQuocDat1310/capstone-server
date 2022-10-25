@@ -7,6 +7,7 @@ import {
   FAKE_ADDRESS,
   FAKE_OWNER_BUSINESS,
   FAKE_IMAGE_CAR,
+  FAKE_ADDRESS_ACCOUNT,
 } from './../constants/fake-data';
 import { PrismaService } from './../prisma/service';
 import {
@@ -406,7 +407,7 @@ export class VerifyAccountsService {
               imageCitizenFront: FAKE_FRONT_CARDLICENSE[random],
               imageCitizenBack: FAKE_BACK_CARDLICENSE[random],
               idCitizen: randomIdCitizen.toString(),
-              address: FAKE_ADDRESS[random],
+              address: FAKE_ADDRESS_ACCOUNT[random],
               phoneNumber: `+84${randomPhone + i}`,
             },
           },
@@ -453,7 +454,7 @@ export class VerifyAccountsService {
               imageCitizenFront: FAKE_FRONT_CARDLICENSE[random],
               imageCitizenBack: FAKE_BACK_CARDLICENSE[random],
               idCitizen: randomIdCitizend.toString(),
-              address: FAKE_ADDRESS[random],
+              address: FAKE_ADDRESS_ACCOUNT[random],
               email: `driver${i}@gmail.com`,
             },
           },

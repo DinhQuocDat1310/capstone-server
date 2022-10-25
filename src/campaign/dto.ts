@@ -1,5 +1,6 @@
+import { PositionWrap } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { PositionWarp } from '@prisma/client';
+
 import {
   IsEnum,
   IsNotEmpty,
@@ -10,6 +11,18 @@ import {
 } from 'class-validator';
 
 export class CampaignVerifyInformationDTO {
+  @ApiProperty({
+    description: 'Id location',
+  })
+  @IsString()
+  idLocation: string;
+
+  @ApiProperty({
+    description: 'Id Wrap',
+  })
+  @IsString()
+  idWrap: string;
+
   @ApiProperty({
     description: 'Name of Campaign',
   })
@@ -61,20 +74,25 @@ export class CampaignVerifyInformationDTO {
   @IsUrl(undefined)
   imagePoster: string;
 
-  @IsEnum([PositionWarp.ONE_SIDE, PositionWarp.BOTH_SIDE], {
-    message: 'Position warp must be following format: [ONE_SIDE, BOTH_SIDE]',
-  })
+  @IsEnum(
+    [
+      PositionWrap.ONE_SIDE_RIGHT,
+      PositionWrap.ONE_SIDE_LEFT,
+      PositionWrap.BOTH_SIDE,
+    ],
+    {
+      message: 'Position warp must be following format: [ONE_SIDE, BOTH_SIDE]',
+    },
+  )
   @ApiProperty({
-    enum: [PositionWarp.ONE_SIDE, PositionWarp.BOTH_SIDE],
-    description: 'Position warp',
+    enum: [
+      PositionWrap.ONE_SIDE_RIGHT,
+      PositionWrap.ONE_SIDE_LEFT,
+      PositionWrap.BOTH_SIDE,
+    ],
+    description: 'Position wrap',
   })
-  positionWarp: PositionWarp;
-
-  @ApiProperty({
-    description: 'Location running campaign',
-  })
-  @IsString()
-  locationName: string;
+  positionWrap: PositionWrap;
 }
 
 export class CampaignContractDTO {

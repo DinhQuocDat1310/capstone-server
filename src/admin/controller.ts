@@ -1,4 +1,12 @@
-import { Controller, UseGuards, Post, Body, Get, Param } from '@nestjs/common';
+import {
+  Controller,
+  UseGuards,
+  Post,
+  Body,
+  Get,
+  Param,
+  Put,
+} from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -16,13 +24,18 @@ import { RolesGuard } from 'src/guard/roles.guard';
 import { StatusGuard } from 'src/guard/userStatus.guard';
 import { AdminService } from './service';
 import { AssignDto, ManagerDTO } from 'src/manager/dto';
+import { LocationService } from 'src/location/service';
+import { LocationDTO } from 'src/location/dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
 @Controller('admin')
 @ApiBearerAuth('access-token')
 @ApiTags('Admin')
 export class AdminController {
-  constructor(private readonly adminService: AdminService) {}
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly locationService: LocationService,
+  ) {}
 
   @ApiBody({ type: ManagerDTO })
   @ApiOperation({ summary: 'Create a Manager' })
@@ -112,5 +125,40 @@ export class AdminController {
   @Post('/manager/assign/task')
   async assignTaskToManager(@Body() assignDto: AssignDto) {
     return await this.adminService.assignTaskToManager(assignDto);
+  }
+
+  @ApiOperation({ summary: 'Get list location' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Status(UserStatus.VERIFIED)
+  @Roles(Role.ADMIN)
+  @Get('/locations')
+  async getListLocation() {
+    return await this.locationService.getListLocation();
+  }
+
+  @ApiBody({ type: LocationDTO })
+  @ApiOperation({ summary: 'Create location' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Status(UserStatus.VERIFIED)
+  @Roles(Role.ADMIN)
+  @Post('/location')
+  async createLocation(@Body() dto: LocationDTO) {
+    return await this.locationService.createNewLocation(dto);
+  }
+
+  @ApiBody({ type: LocationDTO })
+  @ApiOperation({ summary: 'Update location' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Status(UserStatus.VERIFIED)
+  @Roles(Role.ADMIN)
+  @Put('/location')
+  async updateLocation(@Body() dto: LocationDTO) {
+    return await this.locationService.updateLocation(dto);
   }
 }

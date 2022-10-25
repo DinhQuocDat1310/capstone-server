@@ -24,7 +24,7 @@ export class CampaignService {
                 'OPEN',
                 'PAYMENT',
                 'RUNNING',
-                'WARPPING',
+                'WRAPPING',
               ],
             },
           },
@@ -82,7 +82,7 @@ export class CampaignService {
         AND: [
           {
             statusCampaign: {
-              in: ['OPEN', 'PAYMENT', 'WARPPING', 'RUNNING'],
+              in: ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING'],
             },
           },
           {
@@ -223,36 +223,20 @@ export class CampaignService {
       select: {
         id: true,
         campaignName: true,
-        dateOpenRegister: true,
         startRegisterDate: true,
         endRegisterDate: true,
-        datePaymentDeposit: true,
-        dateEndPaymentDeposit: true,
-        dateWrapSticket: true,
-        dateEndWarpSticket: true,
         startRunningDate: true,
+        detailMessage: true,
+        poster: true,
         duration: true,
         totalKm: true,
         quantityDriver: true,
         minimumKmDrive: true,
         description: true,
-        brand: {
-          select: {
-            brandName: true,
-            logo: true,
-          },
-        },
-        locationCampaign: {
-          select: {
-            locationName: true,
-          },
-        },
-        wrap: {
-          select: {
-            imagePoster: true,
-            positionWarp: true,
-          },
-        },
+        startWrapDate: true,
+        endWrapDate: true,
+        wrapPrice: true,
+        statusCampaign: true,
         verifyCampaign: {
           select: {
             id: true,
@@ -262,13 +246,42 @@ export class CampaignService {
             updateAt: true,
           },
         },
+        brand: {
+          select: {
+            id: true,
+            brandName: true,
+            logo: true,
+          },
+        },
+        wrap: {
+          select: {
+            positionWrap: true,
+            price: true,
+          },
+        },
+        locationCampaign: {
+          select: {
+            locationName: true,
+            price: true,
+          },
+        },
         contractCampaign: {
           select: {
             id: true,
             contractName: true,
             totalDriverMoney: true,
             totalSystemMoney: true,
-            totalWarpType: true,
+            totalWrapMoney: true,
+          },
+        },
+        paymentDebit: {
+          select: {
+            id: true,
+            createDate: true,
+            expiredDate: true,
+            paidDate: true,
+            type: true,
+            price: true,
           },
         },
       },
@@ -285,13 +298,16 @@ export class CampaignService {
     campaignId: string,
     verifyCampaignId: string,
   ) {
-    const checkCampaignNameUsed = await this.checkCampaignNameUsed(
-      dto.campaignName,
-      id,
-    );
-    if (checkCampaignNameUsed)
-      throw new BadRequestException('Campaign name already used!');
-
+    const dataLocation = await this.prisma.locationCampaignPerKm.findFirst({
+      where: {
+        id: dto.idLocation,
+      },
+    });
+    const dataWrap = await this.prisma.wrap.findFirst({
+      where: {
+        id: dto.idWrap,
+      },
+    });
     const currentDate = new Date(dto.startRunningDate);
     currentDate.setDate(currentDate.getDate() + 1);
     await this.prisma.user.update({
@@ -314,17 +330,9 @@ export class CampaignService {
                   quantityDriver: dto.quantityDriver,
                   minimumKmDrive: dto.minimumKmDrive,
                   description: dto.description,
-                  wrap: {
-                    update: {
-                      imagePoster: dto.imagePoster,
-                      positionWarp: dto.positionWarp,
-                    },
-                  },
-                  locationCampaign: {
-                    update: {
-                      locationName: dto.locationName,
-                    },
-                  },
+                  poster: dto.imagePoster,
+                  wrapPrice: dataWrap.price,
+                  locationPricePerKm: dataLocation.price,
                   verifyCampaign: {
                     update: {
                       where: {
@@ -452,18 +460,28 @@ export class CampaignService {
   }
 
   async createCampaign(dto: CampaignVerifyInformationDTO, userId: string) {
-    const checkCampaignNameUsed = await this.checkCampaignNameUsed(
-      dto.campaignName,
-      userId,
-    );
-    const findCampaignNameOwn = await this.findCampaignNameOwn(
-      userId,
-      dto.campaignName,
-    );
-    if (checkCampaignNameUsed || findCampaignNameOwn)
+    const isCampaignNameExist = await this.prisma.campaign.findFirst({
+      where: {
+        campaignName: dto.campaignName,
+        brand: {
+          userId,
+        },
+      },
+    });
+    if (isCampaignNameExist)
       throw new BadRequestException('Campaign name already used!');
     const currentDate = new Date(dto.startRunningDate);
     currentDate.setDate(currentDate.getDate() + 1);
+    const dataLocation = await this.prisma.locationCampaignPerKm.findFirst({
+      where: {
+        id: dto.idLocation,
+      },
+    });
+    const dataWrap = await this.prisma.wrap.findFirst({
+      where: {
+        id: dto.idWrap,
+      },
+    });
     const campaign = await this.prisma.campaign.create({
       data: {
         campaignName: dto.campaignName,
@@ -472,24 +490,25 @@ export class CampaignService {
         quantityDriver: dto.quantityDriver,
         totalKm: dto.totalKm,
         description: dto.description,
+        poster: dto.imagePoster,
+        minimumKmDrive: dto.minimumKmDrive,
         brand: {
           connect: {
             userId,
           },
         },
         locationCampaign: {
-          create: {
-            locationName: dto.locationName,
-            price: '1,000,000',
+          connect: {
+            id: dto.idLocation,
           },
         },
+        locationPricePerKm: dataLocation.price,
         wrap: {
-          create: {
-            positionWarp: dto.positionWarp,
-            imagePoster: dto.imagePoster,
-            price: dto.positionWarp === 'ONE_SIDE' ? '500,000' : '1,000,000',
+          connect: {
+            id: dto.idWrap,
           },
         },
+        wrapPrice: dataWrap.price,
       },
       select: {
         id: true,
@@ -500,15 +519,19 @@ export class CampaignService {
         quantityDriver: true,
         minimumKmDrive: true,
         startRunningDate: true,
+        poster: true,
         locationCampaign: {
           select: {
+            id: true,
             locationName: true,
+            price: true,
           },
         },
         wrap: {
           select: {
-            imagePoster: true,
-            positionWarp: true,
+            id: true,
+            positionWrap: true,
+            price: true,
           },
         },
       },
@@ -636,7 +659,6 @@ export class CampaignService {
         },
       },
     });
-    console.log(isOwnCampaign);
     if (!isOwnCampaign)
       throw new BadRequestException('You are not the owner this campaign!');
 

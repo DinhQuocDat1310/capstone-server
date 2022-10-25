@@ -3,11 +3,7 @@ import {
   FAKE_DURATION,
   FAKE_TOTALKM,
   FAKE_QUANTITY_DRIVER,
-  FAKE_ADDRESS,
-  FAKE_LOCATION_PRICE,
-  FAKE_POSITION_WRAP,
   FAKE_LOGO,
-  FAKE_PRICE_POSITION,
 } from './../constants/fake-data';
 import {
   CampaignStatus,
@@ -91,7 +87,7 @@ export class VerifyCampaignService {
           AND: [
             {
               statusCampaign: {
-                in: ['OPEN', 'PAYMENT', 'WARPPING', 'RUNNING'],
+                in: ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING'],
               },
             },
             {
@@ -156,9 +152,23 @@ export class VerifyCampaignService {
       },
     });
 
+    const dataLocation = await this.prisma.locationCampaignPerKm.findMany({
+      select: {
+        id: true,
+        price: true,
+      },
+    });
+
+    const dataWrap = await this.prisma.wrap.findMany({
+      select: {
+        id: true,
+        price: true,
+      },
+    });
     if (brand.length === 0) {
       return 'Nothing Brand Verified';
     }
+
     for (let i = 0; i < brand.length; i++) {
       for (let j = 0; j < 5; j++) {
         const campaignId = await this.prisma.campaign.create({
@@ -173,23 +183,23 @@ export class VerifyCampaignService {
             duration: FAKE_DURATION[j],
             quantityDriver: FAKE_QUANTITY_DRIVER[j],
             totalKm: FAKE_TOTALKM[j],
-            description: 'Decription ' + (j + 1),
+            description: 'Description ' + (j + 1),
+            poster: FAKE_LOGO[j],
+            wrapPrice: dataWrap[j].price,
+            locationPricePerKm: dataLocation[j].price,
             brand: {
               connect: {
                 id: brand[i].brand.id,
               },
             },
             locationCampaign: {
-              create: {
-                locationName: FAKE_ADDRESS[j],
-                price: FAKE_LOCATION_PRICE[j],
+              connect: {
+                id: dataLocation[j].id,
               },
             },
             wrap: {
-              create: {
-                positionWarp: FAKE_POSITION_WRAP[j],
-                imagePoster: FAKE_LOGO[j],
-                price: FAKE_PRICE_POSITION[j],
+              connect: {
+                id: dataWrap[j].id,
               },
             },
           },
@@ -271,6 +281,7 @@ export class VerifyCampaignService {
       },
       data: {
         statusCampaign,
+        detailMessage: dto.detail,
         verifyCampaign: {
           update: {
             data: {

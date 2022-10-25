@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Post,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Request, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiForbiddenResponse,
@@ -63,7 +56,7 @@ export class AutoAssignController {
     description: 'Not found any verify account request',
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Roles(Role.ADMIN)
+  @Roles(Role.MANAGER)
   @Get('fake/autoVerifiedAccountRequest/')
   async fakeVerifyDataAccount(@Request() req: RequestUser) {
     return this.verifyAccountService.fakeAutoVerifyAccountRequest(req.user.id);
