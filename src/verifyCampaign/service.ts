@@ -165,6 +165,12 @@ export class VerifyCampaignService {
         id: true,
       },
     });
+
+    const arrIDWrap = [
+      ...dataWrap.map((idWrap) => idWrap.id),
+      ...dataWrap.map((idWrap) => idWrap.id),
+    ];
+
     if (brand.length === 0) {
       return 'Nothing Brand Verified';
     }
@@ -199,7 +205,7 @@ export class VerifyCampaignService {
             },
             wrap: {
               connect: {
-                id: dataWrap[j].id,
+                id: arrIDWrap[j],
               },
             },
           },

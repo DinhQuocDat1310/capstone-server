@@ -1,3 +1,4 @@
+import { Role } from '@prisma/client';
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/service';
 import { WrapDTO } from './dto';
@@ -23,5 +24,15 @@ export class WrapService {
         status: dto.status,
       },
     });
+  }
+
+  async getListWrap(userRole: string) {
+    return userRole === Role.ADMIN
+      ? await this.prisma.wrap.findMany({})
+      : await this.prisma.wrap.findMany({
+          where: {
+            status: 'ENABLE',
+          },
+        });
   }
 }

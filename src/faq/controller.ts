@@ -1,6 +1,15 @@
+import { RequestUser } from './../auth/dto/index';
 import { UserStatus, Role } from '@prisma/client';
 import { FAQDto } from './dto';
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -42,10 +51,10 @@ export class FaqController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Status(UserStatus.VERIFIED)
-  @Roles(Role.ADMIN, Role.BRAND, Role.MANAGER)
+  @Roles(Role.ADMIN, Role.BRAND, Role.MANAGER, Role.DRIVER)
   @Get('/list')
-  async viewListFAQ() {
-    return await this.faqService.viewListFAQs();
+  async viewListFAQ(@Request() userReq: RequestUser) {
+    return await this.faqService.viewListFAQs(userReq.user.role);
   }
 
   @ApiOperation({ summary: 'Enable a FAQ by FAQId' })

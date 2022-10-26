@@ -91,7 +91,7 @@ export class DriverController {
   @Status(UserStatus.VERIFIED)
   @Get('/list-campaigns')
   async getListCampaignForDriver(@Request() req: RequestUser) {
-    await this.driverService.getListCampaigns(req.user.address);
+    return await this.driverService.getListCampaigns(req.user.address);
   }
 
   @ApiOperation({ summary: 'get location' })
@@ -102,7 +102,7 @@ export class DriverController {
   @Roles(Role.DRIVER)
   @Status(UserStatus.VERIFIED)
   @Get('/locations')
-  async getListLocations() {
-    await this.locationService.getListLocation();
+  async getListLocations(@Request() req: RequestUser) {
+    return await this.locationService.getListLocation(req.user.role);
   }
 }
