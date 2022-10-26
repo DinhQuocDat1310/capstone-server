@@ -205,8 +205,25 @@ export class DriversService {
   async getListCampaigns(address: string) {
     return this.prisma.campaign.findMany({
       where: {
+        statusCampaign: {
+          in: ['OPEN'],
+        },
         locationCampaign: {
           locationName: address,
+        },
+      },
+      include: {
+        locationCampaign: {
+          select: {
+            id: true,
+            locationName: true,
+          },
+        },
+        wrap: {
+          select: {
+            id: true,
+            positionWrap: true,
+          },
         },
       },
     });

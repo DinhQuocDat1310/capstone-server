@@ -18,14 +18,13 @@ export class ContractService {
   ) {}
 
   async createCampaignContract(userId: string, dto: CampaignContractDTO) {
-    const checkCampaignHaveContract = await this.checkCampaignHaveContract(
-      dto.verifyId,
-    );
-    if (checkCampaignHaveContract) {
-      throw new BadRequestException(
-        'This campaign already Accepted and have unique contract',
-      );
+    await this.checkVerifyCampaignId(dto.verifyId);
+    const checkCampaignInvalidToVerify =
+      await this.checkCampaignInvalidToVerify(dto.verifyId);
+    if (checkCampaignInvalidToVerify) {
+      throw new BadRequestException('This campaign already verified');
     }
+
     const parseDateOpenRegister = new Date(dto.dateOpenRegister);
     parseDateOpenRegister.setDate(parseDateOpenRegister.getDate() + 1);
     const dateOpenRegis = parseDateOpenRegister.toISOString();
@@ -177,12 +176,28 @@ export class ContractService {
     }
   }
 
-  async checkCampaignHaveContract(id: string) {
+  async checkCampaignInvalidToVerify(id: string) {
     return await this.prisma.verifyCampaign.findFirst({
       where: {
-        AND: [{ id }, { status: 'ACCEPT' }],
+        AND: [
+          { id },
+          {
+            status: {
+              in: ['NEW', 'BANNED', 'BANNED', 'UPDATE', 'ACCEPT'],
+            },
+          },
+        ],
       },
     });
+  }
+
+  async checkVerifyCampaignId(id: string) {
+    const verifyId = await this.prisma.verifyCampaign.findFirst({
+      where: {
+        id,
+      },
+    });
+    if (!verifyId) throw new BadRequestException('VerifyID not found');
   }
 
   async getContractByContractID(contractId: string) {

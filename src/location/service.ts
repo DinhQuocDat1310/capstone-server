@@ -9,13 +9,13 @@ export class LocationService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getListLocation(userRole: string) {
-    return userRole === Role.ADMIN
-      ? await this.prisma.locationCampaignPerKm.findMany({})
-      : await this.prisma.locationCampaignPerKm.findMany({
+    return userRole === Role.BRAND
+      ? await this.prisma.locationCampaignPerKm.findMany({
           where: {
             status: 'ENABLE',
           },
-        });
+        })
+      : await this.prisma.locationCampaignPerKm.findMany({});
   }
 
   async createNewLocation(location: LocationDTO) {
