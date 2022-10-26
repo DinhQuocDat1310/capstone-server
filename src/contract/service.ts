@@ -1,3 +1,4 @@
+import { CancelContractDTO } from './dto';
 import { AppConfigService } from 'src/config/appConfigService';
 import { MailerService } from '@nestjs-modules/mailer';
 import { VerifyCampaignStatus } from '@prisma/client';
@@ -332,10 +333,10 @@ export class ContractService {
     }
   }
 
-  async cancelContract(userId: string, contractId: string) {
+  async cancelContract(userId: string, dto: CancelContractDTO) {
     const checkIdContract = await this.checkContractIdOwnByBrand(
       userId,
-      contractId,
+      dto.contractId,
     );
 
     if (!checkIdContract)
@@ -346,10 +347,11 @@ export class ContractService {
     try {
       await this.prisma.contractCampaign.update({
         where: {
-          id: contractId,
+          id: dto.contractId,
         },
         data: {
           isAccept: false,
+          message: dto.message,
           campaign: {
             update: {
               statusCampaign: 'CANCELED',
