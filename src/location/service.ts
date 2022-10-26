@@ -38,7 +38,7 @@ export class LocationService {
   async updateLocation(location: LocationDTO) {
     const campaign = await this.prisma.locationCampaignPerKm.findFirst({
       where: {
-        locationName: location.id,
+        id: location.id,
       },
     });
     if (!campaign) throw new BadRequestException('The id is not exist!!!');
