@@ -1,3 +1,4 @@
+import { Role } from '@prisma/client';
 import { PolicyDto } from './dto';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/service';
@@ -16,8 +17,14 @@ export class PolicyService {
     return `Created`;
   }
 
-  async viewListPolicy() {
-    return await this.prisma.policies.findMany({});
+  async viewListPolicy(userRole: string) {
+    return userRole === Role.ADMIN
+      ? await this.prisma.policies.findMany({})
+      : await this.prisma.policies.findMany({
+          where: {
+            status: 'ENABLE',
+          },
+        });
   }
 
   async enablePolicy(id: string) {

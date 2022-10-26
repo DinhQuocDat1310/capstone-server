@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { Status } from '@prisma/client';
+import { Role, Status } from '@prisma/client';
 import { PrismaService } from 'src/prisma/service';
 import { LocationDTO } from './dto';
 
@@ -8,8 +8,14 @@ export class LocationService {
   private readonly logger = new Logger(LocationService.name);
   constructor(private readonly prisma: PrismaService) {}
 
-  async getListLocation() {
-    return await this.prisma.locationCampaignPerKm.findMany();
+  async getListLocation(userRole: string) {
+    return userRole === Role.ADMIN
+      ? await this.prisma.locationCampaignPerKm.findMany({})
+      : await this.prisma.locationCampaignPerKm.findMany({
+          where: {
+            status: 'ENABLE',
+          },
+        });
   }
 
   async createNewLocation(location: LocationDTO) {

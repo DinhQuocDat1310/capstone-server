@@ -1,3 +1,5 @@
+import { WrapService } from './../wrap/service';
+import { LocationService } from './../location/service';
 import { UsersService } from 'src/user/service';
 import { PrismaService } from 'src/prisma/service';
 import { Module } from '@nestjs/common';
@@ -16,6 +18,8 @@ import { VerifyAccountsService } from 'src/verifyAccount/service';
     VerifyAccountsService,
     AppConfigService,
     ManagerService,
+    LocationService,
+    WrapService,
   ],
 })
 export class BrandModule {}

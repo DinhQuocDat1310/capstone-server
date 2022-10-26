@@ -1,6 +1,15 @@
+import { RequestUser } from './../auth/dto/index';
 import { Status } from './../guard/decorators';
 import { PolicyDto } from './dto';
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { PolicyService } from './service';
 import {
   ApiBadRequestResponse,
@@ -43,10 +52,10 @@ export class PolicyController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Status(UserStatus.VERIFIED)
-  @Roles(Role.ADMIN, Role.BRAND, Role.MANAGER)
+  @Roles(Role.ADMIN, Role.BRAND, Role.MANAGER, Role.DRIVER)
   @Get('/list')
-  async viewListPolicy() {
-    return await this.policyService.viewListPolicy();
+  async viewListPolicy(@Request() userReq: RequestUser) {
+    return await this.policyService.viewListPolicy(userReq.user.role);
   }
 
   @ApiOperation({ summary: 'Enable a Policy by PolicyId' })

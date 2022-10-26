@@ -1,3 +1,4 @@
+import { RequestUser } from 'src/auth/dto';
 import {
   Controller,
   UseGuards,
@@ -6,6 +7,7 @@ import {
   Get,
   Param,
   Put,
+  Request,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -137,8 +139,8 @@ export class AdminController {
   @Status(UserStatus.VERIFIED)
   @Roles(Role.ADMIN)
   @Get('/locations')
-  async getListLocation() {
-    return await this.locationService.getListLocation();
+  async getListLocation(@Request() userReq: RequestUser) {
+    return await this.locationService.getListLocation(userReq.user.role);
   }
 
   @ApiBody({ type: LocationDTO })
@@ -165,8 +167,19 @@ export class AdminController {
     return await this.locationService.updateLocation(dto);
   }
 
+  @ApiOperation({ summary: 'Get list wrap' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Status(UserStatus.VERIFIED)
+  @Roles(Role.ADMIN)
+  @Get('/wraps')
+  async getListWrap(@Request() userReq: RequestUser) {
+    return await this.wrapService.getListWrap(userReq.user.role);
+  }
+
   @ApiBody({ type: WrapDTO })
-  @ApiOperation({ summary: 'Update location' })
+  @ApiOperation({ summary: 'Update wrap' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
