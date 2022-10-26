@@ -14,8 +14,15 @@ export class LocationService {
           where: {
             status: 'ENABLE',
           },
+          orderBy: {
+            locationName: 'asc',
+          },
         })
-      : await this.prisma.locationCampaignPerKm.findMany({});
+      : await this.prisma.locationCampaignPerKm.findMany({
+          orderBy: {
+            locationName: 'asc',
+          },
+        });
   }
 
   async createNewLocation(location: LocationDTO) {
