@@ -1,15 +1,6 @@
-import { RequestUser } from './../auth/dto/index';
 import { UserStatus, Role } from '@prisma/client';
 import { FAQDto } from './dto';
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  UseGuards,
-  Request,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -27,13 +18,13 @@ import { FaqService } from './service';
 import { Roles, Status } from 'src/guard/decorators';
 
 @Controller('faq')
-@UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
-@ApiBearerAuth('access-token')
 @ApiTags('FAQs')
 export class FaqController {
   constructor(private readonly faqService: FaqService) {}
 
   @ApiBody({ type: FAQDto })
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
   @ApiOperation({ summary: 'Create a FAQ' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
@@ -46,18 +37,29 @@ export class FaqController {
     return await this.faqService.createFAQ(dto);
   }
 
-  @ApiOperation({ summary: 'View list FAQs' })
+  @ApiOperation({ summary: 'View list FAQs for User' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Get('/list/user')
+  async viewListFAQUser() {
+    return await this.faqService.viewListFAQsUser();
+  }
+
+  @ApiOperation({ summary: 'View list FAQs for Admin' })
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @Roles(Role.ADMIN)
   @Status(UserStatus.VERIFIED)
-  @Roles(Role.ADMIN, Role.BRAND, Role.MANAGER, Role.DRIVER)
-  @Get('/list')
-  async viewListFAQ(@Request() userReq: RequestUser) {
-    return await this.faqService.viewListFAQs(userReq.user.role);
+  @Get('/list/admin')
+  async viewListFAQAdmin() {
+    return await this.faqService.viewListFAQsAdmin();
   }
 
   @ApiOperation({ summary: 'Enable a FAQ by FAQId' })
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
@@ -69,6 +71,8 @@ export class FaqController {
   }
 
   @ApiOperation({ summary: 'Disable a FAQ by FAQId' })
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })

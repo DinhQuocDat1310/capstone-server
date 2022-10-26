@@ -25,6 +25,7 @@ import { Roles, Status } from 'src/guard/decorators';
 import { RolesGuard } from 'src/guard/roles.guard';
 import { StatusGuard } from 'src/guard/userStatus.guard';
 import { ContractService } from './service';
+import { CancelContractDTO } from './dto';
 
 @Controller('contract')
 @ApiBearerAuth('access-token')
@@ -74,17 +75,18 @@ export class ContractController {
     return await this.contractService.acceptContract(req.user.id, contractId);
   }
 
+  @ApiBody({ type: CancelContractDTO })
   @ApiOperation({ summary: 'Cancel contract by Brand' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Status(UserStatus.VERIFIED)
   @Roles(Role.BRAND)
-  @Get('/cancel/:id')
+  @Get('/cancel')
   async cancelContract(
     @Request() req: RequestUser,
-    @Param('id') contractId: string,
+    @Body() dto: CancelContractDTO,
   ) {
-    return await this.contractService.cancelContract(req.user.id, contractId);
+    return await this.contractService.cancelContract(req.user.id, dto);
   }
 }

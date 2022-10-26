@@ -1,4 +1,3 @@
-import { Role } from '@prisma/client';
 import { FAQDto } from './dto';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/service';
@@ -17,14 +16,16 @@ export class FaqService {
     return `Created`;
   }
 
-  async viewListFAQs(userRole: string) {
-    return userRole === Role.ADMIN
-      ? await this.prisma.fAQs.findMany({})
-      : await this.prisma.fAQs.findMany({
-          where: {
-            status: 'ENABLE',
-          },
-        });
+  async viewListFAQsAdmin() {
+    return await this.prisma.fAQs.findMany({});
+  }
+
+  async viewListFAQsUser() {
+    return await this.prisma.fAQs.findMany({
+      where: {
+        status: 'ENABLE',
+      },
+    });
   }
 
   async enableFaq(id: string) {
