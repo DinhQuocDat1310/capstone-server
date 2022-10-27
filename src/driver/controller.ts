@@ -100,7 +100,7 @@ export class DriverController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiCreatedResponse({ description: 'Create' })
   @Roles(Role.DRIVER)
-  @Status(UserStatus.VERIFIED)
+  @Status(UserStatus.NEW, UserStatus.UPDATE, UserStatus.VERIFIED)
   @Get('/locations')
   async getListLocations(@Request() req: RequestUser) {
     return await this.locationService.getListLocation(req.user.role);
