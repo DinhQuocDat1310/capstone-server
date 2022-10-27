@@ -82,7 +82,7 @@ export class ContractController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Status(UserStatus.VERIFIED)
   @Roles(Role.BRAND)
-  @Get('/cancel')
+  @Post('/cancel')
   async cancelContract(
     @Request() req: RequestUser,
     @Body() dto: CancelContractDTO,
