@@ -88,7 +88,7 @@ export class BrandController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.BRAND)
-  @Status(UserStatus.VERIFIED)
+  @Status(UserStatus.NEW, UserStatus.UPDATE, UserStatus.VERIFIED)
   @Get('/locations')
   async getListLocations(@Request() req: RequestUser) {
     return await this.locationService.getListLocation(req.user.role);

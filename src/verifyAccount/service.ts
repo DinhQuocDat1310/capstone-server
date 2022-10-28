@@ -47,7 +47,7 @@ export class VerifyAccountsService {
   async createPendingRequestVerifyDriverAccount(id: string, managerId: string) {
     const verify = await this.prisma.verifyAccount.findFirst({
       where: {
-        brandId: id,
+        driverId: id,
       },
       select: {
         createDate: true,
