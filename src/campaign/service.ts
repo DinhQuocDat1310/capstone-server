@@ -462,25 +462,12 @@ export class CampaignService {
     const isCampaignNameExist = await this.prisma.campaign.findFirst({
       where: {
         campaignName: dto.campaignName,
-        brand: {
-          userId,
-        },
       },
     });
     if (isCampaignNameExist)
       throw new BadRequestException('Campaign name already used!');
     const currentDate = new Date(dto.startRunningDate);
     currentDate.setDate(currentDate.getDate() + 1);
-    // const dataLocation = await this.prisma.locationCampaignPerKm.findFirst({
-    //   where: {
-    //     id: dto.idLocation,
-    //   },
-    // });
-    // const dataWrap = await this.prisma.wrap.findFirst({
-    //   where: {
-    //     id: dto.idWrap,
-    //   },
-    // });
     const campaign = await this.prisma.campaign.create({
       data: {
         campaignName: dto.campaignName,

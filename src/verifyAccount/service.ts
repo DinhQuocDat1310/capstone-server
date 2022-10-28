@@ -432,6 +432,11 @@ export class VerifyAccountsService {
         Math.random() * (Math.pow(10, 5) * 9.9 - Math.pow(10, 5) + 1) +
           Math.pow(10, 5),
       );
+
+      const randomAccountNumber = Math.floor(
+        Math.random() * (Math.pow(10, 5) * 9.9 - Math.pow(10, 5) + 1) +
+          Math.pow(10, 5),
+      );
       await this.prisma.driver.update({
         where: {
           id: driversFilter[i].driver.id,
@@ -442,9 +447,9 @@ export class VerifyAccountsService {
           imageCarFront: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
           imageCarLeft: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
           imageCarRight: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
-          idCar: `TEST-${randomIdCar}`,
+          idCar: `51F-${randomIdCar}`,
           bankName: 'AGRIBANK',
-          bankAccountNumber: `${i}`,
+          bankAccountNumber: `${randomAccountNumber}`,
           bankAccountOwner: FAKE_OWNER_BUSINESS[random],
           user: {
             update: {
