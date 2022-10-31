@@ -1,0 +1,12 @@
+{
+    "duration": [
+        "30",
+        "60",
+        "90",
+        "120"
+    ],
+    "minimumKmDrive": "20",
+    "gapOpenRegisterForm": "2",
+    "gapPaymentDeposit": "10",
+    "gapWrapping": "5"
+}
