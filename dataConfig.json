@@ -3,10 +3,11 @@
         "30",
         "60",
         "90",
-        "120"
+        "120",
+        "150"
     ],
     "minimumKmDrive": "20",
-    "gapOpenRegisterForm": "2",
-    "gapPaymentDeposit": "10",
-    "gapWrapping": "5"
+    "gapOpenRegisterForm": "5",
+    "gapPaymentDeposit": "3",
+    "gapWrapping": "3"
 }
