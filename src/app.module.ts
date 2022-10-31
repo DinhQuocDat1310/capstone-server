@@ -21,6 +21,7 @@ import { AdminModule } from './admin/module';
 import { FaqModule } from './faq/module';
 import { AutoAssignModule } from './autoAssign/module';
 import { PolicyModule } from './policy/module';
+import { ConfigJsonModule } from './config-json/module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { PolicyModule } from './policy/module';
     FaqModule,
     AutoAssignModule,
     PolicyModule,
+    ConfigJsonModule,
   ],
   providers: [AppConfigService, UsersService, PrismaService],
   controllers: [],

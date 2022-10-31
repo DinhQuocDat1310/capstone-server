@@ -7,7 +7,6 @@ import {
   IsUrl,
   Matches,
 } from 'class-validator';
-
 export class CampaignVerifyInformationDTO {
   @ApiProperty({
     description: 'Id location',

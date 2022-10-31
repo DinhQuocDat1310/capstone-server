@@ -9,6 +9,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/service';
+import * as fs from 'fs';
 
 @Injectable()
 export class ContractService {
@@ -26,12 +27,17 @@ export class ContractService {
       throw new BadRequestException('This campaign already verified');
     }
 
+    const objDataConfig = JSON.parse(
+      fs.readFileSync('./dataConfig.json', 'utf-8'),
+    );
+
     const parseDateOpenRegister = new Date(dto.dateOpenRegister);
     parseDateOpenRegister.setDate(parseDateOpenRegister.getDate() + 1);
     const dateOpenRegis = parseDateOpenRegister.toISOString();
 
     const dateEndRegister = parseDateOpenRegister.setDate(
-      parseDateOpenRegister.getDate() + 5,
+      parseDateOpenRegister.getDate() +
+        parseInt(objDataConfig.gapOpenRegisterForm),
     );
     const parseDateEndRegister = new Date(dateEndRegister);
     const dateEndRegis = parseDateEndRegister.toISOString();
@@ -41,7 +47,8 @@ export class ContractService {
     const datePaymentDepose = parseDatePaymentDeposit.toISOString();
 
     const dateEndPaymentDeposit = parseDatePaymentDeposit.setDate(
-      parseDatePaymentDeposit.getDate() + 3,
+      parseDatePaymentDeposit.getDate() +
+        parseInt(objDataConfig.gapPaymentDeposit),
     );
     const parseEndDatePaymentDeposit = new Date(dateEndPaymentDeposit);
     const dateEndPaymentDepose = parseEndDatePaymentDeposit.toISOString();
@@ -51,11 +58,54 @@ export class ContractService {
     const dateWrapStick = parseDateWarpSticket.toISOString();
 
     const dateEndWarpSticket = parseDateWarpSticket.setDate(
-      parseDateWarpSticket.getDate() + 3,
+      parseDateWarpSticket.getDate() + parseInt(objDataConfig.gapWrapping),
     );
     const parseEndWarpSticket = new Date(dateEndWarpSticket);
     const dateEndWarpStick = parseEndWarpSticket.toISOString();
 
+    const inputDateOpenRegis = new Date(dateOpenRegis).getDate();
+
+    const inputDatePayment = new Date(datePaymentDepose).getDate();
+
+    const validDatePayment = new Date(dateEndRegis);
+
+    if (
+      inputDatePayment - inputDateOpenRegis !==
+      parseInt(objDataConfig.gapOpenRegisterForm) + 1
+    )
+      throw new BadRequestException(
+        `Gap Date Open Register must be in ${
+          objDataConfig.gapOpenRegisterForm
+        } day(s). Date Payment must be: ${
+          validDatePayment.getMonth() +
+          1 +
+          '/' +
+          validDatePayment.getDate() +
+          '/' +
+          validDatePayment.getFullYear()
+        }`,
+      );
+
+    const inputDateWrap = new Date(dateWrapStick).getDate();
+
+    const validDateWrap = new Date(dateEndPaymentDepose);
+
+    if (
+      inputDateWrap - inputDatePayment !==
+      parseInt(objDataConfig.gapPaymentDeposit) + 1
+    )
+      throw new BadRequestException(
+        `Gap Date Payment Deposit must be in ${
+          objDataConfig.gapPaymentDeposit
+        } day(s). Date Wrapping must be: ${
+          validDateWrap.getMonth() +
+          1 +
+          '/' +
+          validDateWrap.getDate() +
+          '/' +
+          validDateWrap.getFullYear()
+        }`,
+      );
     try {
       const verifyCampaign = await this.prisma.verifyCampaign.update({
         where: {
