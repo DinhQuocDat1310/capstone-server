@@ -47,7 +47,7 @@ export class DriverController {
   @Status(UserStatus.NEW, UserStatus.UPDATE)
   @Roles(Role.DRIVER)
   @Post('account/verify')
-  async updateBrandInformation(
+  async updateDriverInformation(
     @Request() req: RequestUser,
     @Body() dto: DriverVerifyInformationDTO,
   ) {
@@ -61,7 +61,7 @@ export class DriverController {
   @Roles(Role.DRIVER)
   @Status(UserStatus.UPDATE)
   @Get('account/verify')
-  async getListVerifyBrand(@Request() req: RequestUser) {
+  async getListVerifyDriver(@Request() req: RequestUser) {
     return await this.verifyAccountService.getListVerifyByUserId(req.user.id);
   }
 

@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -29,7 +29,7 @@ export class ConfigJsonController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Status(UserStatus.VERIFIED)
   @Roles(Role.ADMIN, Role.BRAND, Role.MANAGER)
-  @Post('/list')
+  @Get('/list')
   loadDataConfig() {
     return this.configJsonService.listDataConfig();
   }

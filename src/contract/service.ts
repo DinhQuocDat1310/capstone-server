@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/service';
 import * as fs from 'fs';
+import * as moment from 'moment';
 
 @Injectable()
 export class ContractService {
@@ -63,14 +64,12 @@ export class ContractService {
     const parseEndWarpSticket = new Date(dateEndWarpSticket);
     const dateEndWarpStick = parseEndWarpSticket.toISOString();
 
-    const inputDateOpenRegis = new Date(dateOpenRegis).getDate();
-
-    const inputDatePayment = new Date(datePaymentDepose).getDate();
-
+    const inputDateOpenRegis = moment(dto.dateOpenRegister, 'MM-DD-YYYY');
+    const inputDatePayment = moment(dto.datePaymentDeposit, 'MM-DD-YYYY');
     const validDatePayment = new Date(dateEndRegis);
-
+    const diffDateOpenRegis = inputDateOpenRegis.diff(inputDatePayment, 'days');
     if (
-      inputDatePayment - inputDateOpenRegis !==
+      Math.abs(diffDateOpenRegis) !==
       parseInt(objDataConfig.gapOpenRegisterForm) + 1
     )
       throw new BadRequestException(
@@ -86,12 +85,12 @@ export class ContractService {
         }`,
       );
 
-    const inputDateWrap = new Date(dateWrapStick).getDate();
-
+    const inputDateWrap = moment(dto.dateWarpSticket, 'MM-DD-YYYY');
+    const diffDatePayment = inputDatePayment.diff(inputDateWrap, 'days');
     const validDateWrap = new Date(dateEndPaymentDepose);
 
     if (
-      inputDateWrap - inputDatePayment !==
+      Math.abs(diffDatePayment) !==
       parseInt(objDataConfig.gapPaymentDeposit) + 1
     )
       throw new BadRequestException(

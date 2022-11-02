@@ -7,7 +7,7 @@
         "150"
     ],
     "minimumKmDrive": "20",
-    "gapOpenRegisterForm": "5",
-    "gapPaymentDeposit": "3",
-    "gapWrapping": "3"
+    "gapOpenRegisterForm": "10",
+    "gapPaymentDeposit": "10",
+    "gapWrapping": "5"
 }
