@@ -238,8 +238,8 @@ export const PRICE_POSITION_WRAP = ['300000', '600000', '300000'];
 
 export const FAKE_PRICE_POSITION_WRAP = [
   '300000',
-  '1000000',
-  '700000',
+  '600000',
   '300000',
-  '1000000',
+  '300000',
+  '600000',
 ];
