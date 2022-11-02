@@ -86,15 +86,22 @@ model Driver {
 }
 
 model DriverJoinCampaign {
-  id         String   @id @default(uuid())
-  isJoined   Boolean  @default(false)
-  createDate DateTime @default(now())
+  id          String           @id @default(uuid())
+  status      StatusDriverJoin @default(JOIN)
+  createDate  DateTime         @default(now())
+  updateDate  DateTime         @updatedAt
+  description String? 
 
-  driverId String
-  driver   Driver @relation(fields: [driverId], references: [id])
-
+  driverId   String
+  driver     Driver @relation(fields: [driverId], references: [id])
   campaignId String
   campaign   Campaign @relation(fields: [campaignId], references: [id])
+}
+
+enum StatusDriverJoin {
+  JOIN
+  APPROVE
+  CANCEL
 }
 
 model Manager {

@@ -114,3 +114,11 @@ export class CampaignContractDTO {
   })
   dateWarpSticket: string;
 }
+
+export class StepsCampaignDTO {
+  @ApiProperty({ description: 'Step Campaign' })
+  step: string;
+
+  @ApiProperty({ description: 'id campaign' })
+  campaignId: string;
+}

@@ -22,7 +22,7 @@ import {
 import { Role, UserStatus } from '@prisma/client';
 import { RequestUser } from 'src/auth/dto';
 import { Roles, Status } from 'src/guard/decorators';
-import { CampaignVerifyInformationDTO } from './dto';
+import { CampaignVerifyInformationDTO, StepsCampaignDTO } from './dto';
 import { CampaignService } from './service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/guard/roles.guard';
@@ -165,5 +165,16 @@ export class CampaignController {
       req.user.id,
       campaignId,
     );
+  }
+
+  @ApiOperation({ summary: 'Move to next step for campaigns' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiCreatedResponse({ description: 'Create' })
+  @Roles(Role.ADMIN)
+  @Post('/steps')
+  async moveToNextStepCampaign(@Body() dto: StepsCampaignDTO) {
+    this.campaignService.moveToNextStepCampaign(dto);
   }
 }
