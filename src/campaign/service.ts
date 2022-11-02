@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { UserSignIn } from 'src/auth/dto';
 import { PrismaService } from 'src/prisma/service';
-import { CampaignVerifyInformationDTO } from './dto';
+import { CampaignVerifyInformationDTO, StepsCampaignDTO } from './dto';
 import { Role } from '@prisma/client';
 
 @Injectable()
@@ -657,5 +657,15 @@ export class CampaignService {
       amountDriver: count,
       totalDriver: isOwnCampaign.quantityDriver,
     };
+  }
+
+  async moveToNextStepCampaign(dto: StepsCampaignDTO) {
+    const isCampaignExist = await this.prisma.campaign.findFirst({
+      where: {
+        id: dto.campaignId,
+      },
+    });
+    if (isCampaignExist)
+      throw new BadRequestException('Campaign ID is not exist');
   }
 }

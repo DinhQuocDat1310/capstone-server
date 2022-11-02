@@ -11,6 +11,8 @@ import { convertPhoneNumberFormat } from 'src/utilities';
 import { VerifyAccountsService } from 'src/verifyAccount/service';
 import { PrismaService } from './../prisma/service';
 import { DriverVerifyInformationDTO } from './dto';
+import * as moment from 'moment';
+import { StatusDriverJoin } from '@prisma/client';
 
 @Injectable()
 export class DriversService {
@@ -96,33 +98,54 @@ export class DriversService {
         where: {
           userId: userReq.id,
         },
+        include: {
+          user: true,
+        },
       });
       const campaign = await this.prisma.campaign.findFirst({
         where: {
           id: campaignId,
+        },
+        include: {
+          locationCampaign: true,
         },
       });
       if (!campaign)
         throw new BadRequestException(
           'The campaignId is not exist!. Please make sure you join correct Campaign',
         );
+
+      if (driver.user.address !== campaign.locationCampaign.locationName) {
+        throw new Error('This campaign is not host in your location!!!');
+      }
+
+      const now = moment();
+      if (
+        now < moment(campaign.startRegisterDate) ||
+        now > moment(campaign.endRegisterDate)
+      ) {
+        throw new BadRequestException(
+          'This campaign is not open for register, can you re-check the date!',
+        );
+      }
       const listDriversJoinCampaign =
         await this.prisma.driverJoinCampaign.findMany({
           where: {
             campaignId,
           },
         });
-      if (listDriversJoinCampaign.find((o) => o.driverId === userReq.id))
+      if (listDriversJoinCampaign.find((o) => o.driverId === driver.id))
         throw new BadRequestException('You already join this campaign');
 
       if (listDriversJoinCampaign.length >= Number(campaign.quantityDriver))
         throw new BadRequestException(
-          'This Campaign is full, Please join the other campaigns',
+          'This Campaign is full now, Please join the other campaigns',
         );
 
-      const isDriverInCampaign = await this.prisma.driverJoinCampaign.findMany({
+      const latestCampaign = await this.prisma.driverJoinCampaign.findFirst({
         where: {
           driverId: driver.id,
+          status: StatusDriverJoin.APPROVE,
         },
         orderBy: {
           createDate: 'desc',
@@ -131,8 +154,6 @@ export class DriversService {
           campaign: true,
         },
       });
-      const latestCampaign =
-        isDriverInCampaign.length !== 0 && isDriverInCampaign[0];
       if (latestCampaign) {
         if (
           ['OPEN', 'PAYMENT', 'WARPPING', 'RUNNING'].includes(
@@ -150,7 +171,7 @@ export class DriversService {
         listDriversJoinCampaign.length,
       );
 
-      const isConfirmCampaign =
+      const isApproveCampaign =
         listDriversJoinCampaign.length >=
         Math.floor((Number(campaign.quantityDriver) * 80) / 100);
 
@@ -163,15 +184,20 @@ export class DriversService {
           },
           driver: {
             connect: {
-              userId: userReq.id,
+              id: driver.id,
             },
           },
-          isJoined: isConfirmCampaign ? true : false,
+          status: isApproveCampaign
+            ? StatusDriverJoin.APPROVE
+            : StatusDriverJoin.JOIN,
         },
       });
+
       const isUpdateAllDriverJoinCampaign =
         listDriversJoinCampaign.length + 1 ===
         Math.floor((Number(campaign.quantityDriver) * 80) / 100);
+
+      //Just wanna this method is running only one
       if (isUpdateAllDriverJoinCampaign) {
         this.logger.log('Tada >= 80% driver :)), enough for campaign working');
         const listDriver = await this.prisma.driverJoinCampaign.findMany({
@@ -179,19 +205,27 @@ export class DriversService {
             campaignId,
           },
         });
+
         await this.prisma.driverJoinCampaign.updateMany({
           where: {
             campaignId,
           },
           data: {
-            isJoined: true,
+            status: StatusDriverJoin.APPROVE,
           },
         });
-        for (let i = 0; i <= listDriver.length; i++) {
-          await this.prisma.driverJoinCampaign.deleteMany({
+
+        for (let i = 0; i < listDriver.length; i++) {
+          await this.prisma.driverJoinCampaign.updateMany({
             where: {
               driverId: listDriver[i].driverId,
-              isJoined: false,
+              NOT: {
+                campaignId,
+              },
+            },
+            data: {
+              status: StatusDriverJoin.CANCEL,
+              description: `this campaign ${campaign.campaignName} is eligible to start!`,
             },
           });
         }
@@ -203,7 +237,7 @@ export class DriversService {
   }
 
   async getListCampaigns(address: string) {
-    return this.prisma.campaign.findMany({
+    const campaigns = await this.prisma.campaign.findMany({
       where: {
         statusCampaign: {
           in: ['OPEN'],
@@ -227,5 +261,23 @@ export class DriversService {
         },
       },
     });
+
+    for (let i = 0; i < campaigns.length; i++) {
+      const countDriver = await this.prisma.driverJoinCampaign.count({
+        where: {
+          campaignId: campaigns[i].id,
+        },
+      });
+      const totalMoneyPerDriver =
+        Number(campaigns[i].wrapPrice) +
+        Number(campaigns[i].minimumKmDrive) *
+          Number(campaigns[i].duration) *
+          Number(campaigns[i].locationPricePerKm);
+
+      campaigns[i]['totalMoneyPerDriver'] = totalMoneyPerDriver;
+      campaigns[i]['quantityDriverJoinning'] = countDriver;
+    }
+
+    return campaigns;
   }
 }
