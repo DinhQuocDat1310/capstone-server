@@ -1,5 +1,5 @@
 import { VariableConfig } from './dto';
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import * as fs from 'fs';
 
 @Injectable()
@@ -12,6 +12,11 @@ export class ConfigJsonService {
     const listDataDuration = this.listDataConfig().duration;
     const listDtoDuration = dto.duration;
     const uniqueListDtoDuration = Array.from(new Set(listDtoDuration));
+    const inputDuration = listDtoDuration.some(
+      (duration, index) => index !== listDtoDuration.indexOf(duration),
+    );
+    if (inputDuration)
+      throw new BadRequestException('Duplicate duration input');
     const duplicateDuration = listDataDuration.filter(
       (data: string) => uniqueListDtoDuration.indexOf(data) !== -1,
     );
