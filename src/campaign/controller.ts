@@ -161,7 +161,7 @@ export class CampaignController {
     @Request() req: RequestUser,
     @Param('id') campaignId: string,
   ) {
-    return await this.campaignService.getAmountDriverJoinCampaign(
+    return await this.campaignService.getAmountDriverJoinCampaignBrand(
       req.user.id,
       campaignId,
     );

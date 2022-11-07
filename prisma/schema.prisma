@@ -242,7 +242,7 @@ model PaymentDebit {
   price       String
   type        TypePayment
   createDate  DateTime    @default(now())
-  paidDate    DateTime
+  paidDate    DateTime?
   expiredDate DateTime
   campaign    Campaign?   @relation(fields: [campaignId], references: [id])
   campaignId  String

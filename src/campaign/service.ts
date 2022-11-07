@@ -6,7 +6,8 @@ import {
 import { UserSignIn } from 'src/auth/dto';
 import { PrismaService } from 'src/prisma/service';
 import { CampaignVerifyInformationDTO, StepsCampaignDTO } from './dto';
-import { Role } from '@prisma/client';
+import { CampaignStatus, Role } from '@prisma/client';
+import * as moment from 'moment';
 
 @Injectable()
 export class CampaignService {
@@ -636,7 +637,7 @@ export class CampaignService {
     }
   }
 
-  async getAmountDriverJoinCampaign(userId: string, campaignId: string) {
+  async getAmountDriverJoinCampaignBrand(userId: string, campaignId: string) {
     const isOwnCampaign = await this.prisma.campaign.findFirst({
       where: {
         id: campaignId,
@@ -667,5 +668,39 @@ export class CampaignService {
     });
     if (isCampaignExist)
       throw new BadRequestException('Campaign ID is not exist');
+  }
+
+  async getAllCampaignIsExpired() {
+    const now = moment();
+    const campaigns = await this.prisma.campaign.findMany({
+      where: {
+        statusCampaign: 'OPEN',
+      },
+    });
+    return campaigns.filter((c) => now >= moment(c.endRegisterDate));
+  }
+
+  async getAmountDriverJoinCampaignTask(campaignId: string) {
+    return await this.prisma.driverJoinCampaign.count({
+      where: {
+        campaignId,
+      },
+    });
+  }
+
+  async updateStatusCampaign(
+    campaignId: string,
+    status: CampaignStatus,
+    description?: string,
+  ) {
+    await this.prisma.campaign.update({
+      where: {
+        id: campaignId,
+      },
+      data: {
+        statusCampaign: status,
+        description,
+      },
+    });
   }
 }
