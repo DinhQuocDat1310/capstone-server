@@ -280,4 +280,20 @@ export class DriversService {
 
     return campaigns;
   }
+
+  async updateAllStatusDriverJoinCampaign(
+    campaignId: string,
+    status: StatusDriverJoin,
+    description?: string,
+  ) {
+    await this.prisma.driverJoinCampaign.updateMany({
+      where: {
+        campaignId,
+      },
+      data: {
+        description,
+        status,
+      },
+    });
+  }
 }

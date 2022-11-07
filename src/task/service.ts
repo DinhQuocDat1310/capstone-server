@@ -3,6 +3,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { ManagerService } from 'src/manager/service';
 import { VerifyAccountsService } from 'src/verifyAccount/service';
+import { CampaignService } from 'src/campaign/service';
+import { CampaignStatus, StatusDriverJoin } from '@prisma/client';
+import { PaymentService } from 'src/payment/service';
+import { DriversService } from 'src/driver/service';
 
 @Injectable()
 export class TasksService {
@@ -11,7 +15,51 @@ export class TasksService {
     private readonly verifyAccountService: VerifyAccountsService,
     private readonly managerService: ManagerService,
     private readonly verifyCampaignService: VerifyCampaignService,
+    private readonly campaignsService: CampaignService,
+    private readonly paymentService: PaymentService,
+    private readonly driverService: DriversService,
   ) {}
+
+  @Cron('0 */1 * * * *')
+  async handleCompleteRegisterCampaignPhase() {
+    const campaigns = await this.campaignsService.getAllCampaignIsExpired();
+    if (campaigns.length === 0) {
+      this.logger.debug('No campaigns is end register phase today');
+      return;
+    }
+    for (let i = 0; i < campaigns.length; i++) {
+      const amountDriverJoin =
+        await this.campaignsService.getAmountDriverJoinCampaignTask(
+          campaigns[i].id,
+        );
+      if (amountDriverJoin >= Number(campaigns[i].quantityDriver) * 0.8) {
+        await this.campaignsService.updateStatusCampaign(
+          campaigns[i].id,
+          CampaignStatus.PAYMENT,
+        );
+        await this.driverService.updateAllStatusDriverJoinCampaign(
+          campaigns[i].id,
+          StatusDriverJoin.APPROVE,
+        );
+        await this.paymentService.createPaymentPrePayForCampaign(
+          campaigns[i].id,
+        );
+      } else {
+        const messageDesc = 'lack of quantity driver';
+        await this.campaignsService.updateStatusCampaign(
+          campaigns[i].id,
+          CampaignStatus.CANCELED,
+          messageDesc,
+        );
+        await this.driverService.updateAllStatusDriverJoinCampaign(
+          campaigns[i].id,
+          StatusDriverJoin.CANCEL,
+          messageDesc,
+        );
+      }
+    }
+    this.logger.debug(campaigns);
+  }
 
   @Cron('0 */3 * * * *')
   async handleAddManagerVerifyAccountData() {

@@ -22,6 +22,7 @@ import { FaqModule } from './faq/module';
 import { AutoAssignModule } from './autoAssign/module';
 import { PolicyModule } from './policy/module';
 import { ConfigJsonModule } from './config-json/module';
+import { PaymentModule } from './payment/module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { ConfigJsonModule } from './config-json/module';
     FaqModule,
     AutoAssignModule,
     PolicyModule,
+    PaymentModule,
     ConfigJsonModule,
   ],
   providers: [AppConfigService, UsersService, PrismaService],
