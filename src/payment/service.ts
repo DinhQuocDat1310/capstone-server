@@ -11,17 +11,14 @@ export class PaymentService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async createOrder(contractId: string) {
+  async createOrder(campaignId: string) {
     const contract = await this.prisma.contractCampaign.findFirst({
       where: {
-        id: contractId,
+        campaignId,
       },
     });
     if (!contract)
       throw new BadRequestException('Please input correct contract ID');
-
-    const totalMoney =
-      Number(contract.totalWrapMoney) + Number(contract.totalDriverMoney);
 
     const accessToken = await this.generateAccessToken();
     const url = `${process.env.BASE}/v2/checkout/orders`;
@@ -37,7 +34,10 @@ export class PaymentService {
           {
             amount: {
               currency_code: 'USD',
-              value: (totalMoney / 24500) * 0.2,
+              value: (
+                (Number(contract.totalDriverMoney) / 24500) *
+                0.2
+              ).toFixed(0),
             },
           },
         ],
