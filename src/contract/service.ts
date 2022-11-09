@@ -177,7 +177,7 @@ export class ContractService {
 
       const totalMoney = totalDriverMoney + totalWrapMoney;
       const totalDeposit = totalMoney * 0.2;
-      const totalSystemMoney = totalMoney * 0.1;
+      const totalSystemMoney = totalDriverMoney * 0.1;
 
       await this.prisma.contractCampaign.create({
         data: {
@@ -201,9 +201,10 @@ export class ContractService {
             },
           },
           type: 'PREPAY',
-          paidDate: datePaymentDepose,
+          createDate: datePaymentDepose,
           expiredDate: dateEndPaymentDepose,
           price: totalDeposit.toString(),
+          paidDate: null,
         },
       });
       const message = `<p>Congratulations!. Your campaign information has been accepted</p>
