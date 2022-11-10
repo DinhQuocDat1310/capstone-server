@@ -1,6 +1,6 @@
 import { VerifyCampaignService } from './../verifyCampaign/service';
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { ManagerService } from 'src/manager/service';
 import { VerifyAccountsService } from 'src/verifyAccount/service';
 import { CampaignService } from 'src/campaign/service';
@@ -20,9 +20,10 @@ export class TasksService {
     private readonly driverService: DriversService,
   ) {}
 
-  @Cron('0 */1 * * * *')
+  @Cron(CronExpression.MONDAY_TO_FRIDAY_AT_11PM)
   async handleCompleteRegisterCampaignPhase() {
-    const campaigns = await this.campaignsService.getAllCampaignIsExpired();
+    const campaigns =
+      await this.campaignsService.getAllCampaignRegisterIsExpired();
     if (campaigns.length === 0) {
       this.logger.debug('No campaigns is end register phase today');
       return;
@@ -61,7 +62,22 @@ export class TasksService {
     this.logger.debug(campaigns);
   }
 
-  @Cron('0 */3 * * * *')
+  @Cron(CronExpression.MONDAY_TO_FRIDAY_AT_11PM)
+  async handleCompleteWrappingCampaignPhase() {
+    const campaigns = await this.campaignsService.getAllCampaignWrapIsExpired();
+    if (campaigns.length === 0) {
+      this.logger.debug('No campaigns is end wrapping phase today');
+      return;
+    }
+    for (let i = 0; i < campaigns.length; i++) {
+      await this.campaignsService.updateStatusCampaign(
+        campaigns[i].id,
+        CampaignStatus.RUNNING,
+      );
+    }
+  }
+
+  @Cron(CronExpression.MONDAY_TO_FRIDAY_AT_11PM)
   async handleAddManagerVerifyAccountData() {
     try {
       //Add mananger verify Account
@@ -104,7 +120,7 @@ export class TasksService {
     }
   }
 
-  @Cron('0 */3 * * * *')
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async handleAddManagerVerifyCampaignData() {
     try {
       //Add mananger verify Campaign
