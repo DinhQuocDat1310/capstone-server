@@ -670,7 +670,7 @@ export class CampaignService {
       throw new BadRequestException('Campaign ID is not exist');
   }
 
-  async getAllCampaignIsExpired() {
+  async getAllCampaignRegisterIsExpired() {
     const now = moment();
     const campaigns = await this.prisma.campaign.findMany({
       where: {
@@ -678,6 +678,16 @@ export class CampaignService {
       },
     });
     return campaigns.filter((c) => now >= moment(c.endRegisterDate));
+  }
+
+  async getAllCampaignWrapIsExpired() {
+    const now = moment();
+    const campaigns = await this.prisma.campaign.findMany({
+      where: {
+        statusCampaign: 'WRAPPING',
+      },
+    });
+    return campaigns.filter((c) => now >= moment(c.endWrapDate));
   }
 
   async getAmountDriverJoinCampaignTask(campaignId: string) {

@@ -47,9 +47,9 @@ export class PaymentService {
     return await this.handleResponse(response);
   }
 
-  async capturePayment(orderId: string) {
+  async capturePrepayTransaction(orderId: string, campaignId: string) {
     const accessToken = await this.generateAccessToken();
-    const url = `${process.env.BASE}/v2/checkout/orders/${orderId}/capture`;
+    const url = `${process.env.BASE}/v2/checkout/orders/${orderId}/capture/${campaignId}`;
     const response = await fetch(url, {
       method: 'post',
       headers: {
@@ -58,7 +58,36 @@ export class PaymentService {
       },
     });
 
-    return await this.handleResponse(response);
+    if (response.status === 200 || response.status === 201) {
+      try {
+        const prePay = await this.prisma.paymentDebit.findFirst({
+          where: {
+            campaignId,
+            type: 'PREPAY',
+          },
+        });
+        await this.prisma.paymentDebit.update({
+          where: {
+            id: prePay.id,
+          },
+          data: {
+            paidDate: new Date(),
+          },
+        });
+        await this.prisma.campaign.update({
+          where: {
+            id: campaignId,
+          },
+          data: {
+            statusCampaign: 'WRAPPING',
+          },
+        });
+        return response.json();
+      } catch (error) {}
+    }
+
+    const errorMessage = await response.text();
+    throw new BadRequestException(errorMessage);
   }
 
   private async generateAccessToken() {

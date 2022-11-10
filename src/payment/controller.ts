@@ -24,9 +24,15 @@ export class PaymentController {
   }
 
   @ApiOperation({ summary: 'Checkout transaction' })
-  @Post('/orders/:id/capture')
-  async captureTransaction(@Param('id') orderId: string) {
-    return await this.paymentService.capturePayment(orderId);
+  @Post('/orders/:orderId/capture-prepay/:campaignId')
+  async capturePrepayTransaction(
+    @Param('orderId') orderId: string,
+    @Param('campaignId') campaignId: string,
+  ) {
+    return await this.paymentService.capturePrepayTransaction(
+      orderId,
+      campaignId,
+    );
   }
 
   @All('/webhook')
