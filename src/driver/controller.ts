@@ -105,4 +105,15 @@ export class DriverController {
   async getListLocations(@Request() req: RequestUser) {
     return await this.locationService.getListLocation(req.user.role);
   }
+
+  @ApiOperation({ summary: 'Get list campaign joining and joined' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Roles(Role.DRIVER)
+  @Status(UserStatus.VERIFIED)
+  @Get('/joining-joined')
+  async getListJoiningJoinedCampaign(@Request() req: RequestUser) {
+    return await this.driverService.getCampaignJoiningAndJoined(req.user.id);
+  }
 }
