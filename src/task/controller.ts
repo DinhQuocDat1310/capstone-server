@@ -1,13 +1,5 @@
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import {
-  All,
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiForbiddenResponse,

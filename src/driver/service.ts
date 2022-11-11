@@ -296,4 +296,115 @@ export class DriversService {
       },
     });
   }
+
+  async getCampaignJoiningAndJoined(userId: string) {
+    let driverJoinedCampaign = null;
+    let filterFormatJoinedCampaign = null;
+    const listCampaignJoining = await this.prisma.driverJoinCampaign.findMany({
+      where: {
+        driver: {
+          userId,
+        },
+        status: 'JOIN',
+      },
+      select: {
+        campaign: {
+          include: {
+            locationCampaign: {
+              select: {
+                id: true,
+                locationName: true,
+              },
+            },
+            wrap: {
+              select: {
+                id: true,
+                positionWrap: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    for (let i = 0; i < listCampaignJoining.length; i++) {
+      const countDriver = await this.prisma.driverJoinCampaign.count({
+        where: {
+          campaignId: listCampaignJoining[i].campaign.id,
+        },
+      });
+      const totalMoneyPerDriver =
+        Number(listCampaignJoining[i].campaign.wrapPrice) +
+        Number(listCampaignJoining[i].campaign.minimumKmDrive) *
+          Number(listCampaignJoining[i].campaign.duration) *
+          Number(listCampaignJoining[i].campaign.locationPricePerKm);
+
+      listCampaignJoining[i].campaign['totalMoneyPerDriver'] =
+        totalMoneyPerDriver;
+      listCampaignJoining[i].campaign['quantityDriverJoinning'] = countDriver;
+    }
+    const filterFormatListJoining = listCampaignJoining.map(
+      (campaign) => campaign.campaign,
+    );
+
+    driverJoinedCampaign = await this.prisma.driverJoinCampaign.findFirst({
+      where: {
+        driver: {
+          userId,
+        },
+        status: 'APPROVE',
+      },
+      select: {
+        campaign: {
+          include: {
+            locationCampaign: {
+              select: {
+                id: true,
+                locationName: true,
+              },
+            },
+            wrap: {
+              select: {
+                id: true,
+                positionWrap: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    if (driverJoinedCampaign !== null) {
+      const countDriver = await this.prisma.driverJoinCampaign.count({
+        where: {
+          campaignId: driverJoinedCampaign.campaign.id,
+        },
+      });
+
+      const totalMoneyPerDriver =
+        Number(driverJoinedCampaign.campaign.wrapPrice) +
+        Number(driverJoinedCampaign.campaign.minimumKmDrive) *
+          Number(driverJoinedCampaign.campaign.duration) *
+          Number(driverJoinedCampaign.campaign.locationPricePerKm);
+
+      const now = moment();
+      let countDay = 0;
+      if (now > moment(driverJoinedCampaign.campaign.startRunningDate)) {
+        countDay =
+          now.diff(
+            moment(driverJoinedCampaign.campaign.startRunningDate),
+            'days',
+          ) + 2;
+      }
+
+      driverJoinedCampaign.campaign['totalMoneyPerDriver'] =
+        totalMoneyPerDriver;
+      driverJoinedCampaign.campaign['quantityDriverJoinning'] = countDriver;
+      driverJoinedCampaign.campaign['campaignDayCount'] = Math.abs(countDay);
+      filterFormatJoinedCampaign = driverJoinedCampaign.campaign;
+    }
+
+    return {
+      driverJoiningCampaign: filterFormatListJoining,
+      driverJoinedCampaign: filterFormatJoinedCampaign,
+    };
+  }
 }
