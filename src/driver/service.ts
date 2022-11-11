@@ -399,6 +399,9 @@ export class DriversService {
         totalMoneyPerDriver;
       driverJoinedCampaign.campaign['quantityDriverJoinning'] = countDriver;
       driverJoinedCampaign.campaign['campaignDayCount'] = Math.abs(countDay);
+      driverJoinedCampaign.campaign['checkPointAddress'] = null;
+      driverJoinedCampaign.campaign['totalKmTraveled'] = null;
+      driverJoinedCampaign.campaign['totalDriverKm'] = null;
       filterFormatJoinedCampaign = driverJoinedCampaign.campaign;
     }
 
