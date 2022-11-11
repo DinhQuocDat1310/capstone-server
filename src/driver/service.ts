@@ -299,7 +299,7 @@ export class DriversService {
 
   async getCampaignJoiningAndJoined(userId: string) {
     let driverJoinedCampaign = null;
-    let filterFormatJoinedCampaign = null;
+    let filterFormatJoinedCampaign = {};
     const listCampaignJoining = await this.prisma.driverJoinCampaign.findMany({
       where: {
         driver: {
