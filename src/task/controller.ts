@@ -1,7 +1,16 @@
+import { RequestUser } from 'src/auth/dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiForbiddenResponse,
   ApiOperation,
   ApiTags,
@@ -11,13 +20,18 @@ import { TasksService } from './service';
 import { RolesGuard } from 'src/guard/roles.guard';
 import { Roles } from 'src/guard/decorators';
 import { Role } from '@prisma/client';
+import { LocationCoordinateDTO } from 'src/location/dto';
+import { LocationService } from 'src/location/service';
 
 @Controller('manual')
 @ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiTags('Cron-job manually')
 export class TaskController {
-  constructor(private readonly taskService: TasksService) {}
+  constructor(
+    private readonly taskService: TasksService,
+    private readonly locationService: LocationService,
+  ) {}
 
   @ApiOperation({ summary: 'Add manager to verify account manually' })
   @ApiForbiddenResponse({
@@ -61,5 +75,23 @@ export class TaskController {
   @Get('/complete/wrap-phase')
   async CompleteWrapCampaignPhase() {
     return await this.taskService.handleCompleteWrappingCampaignPhase();
+  }
+
+  @ApiBody({ type: LocationCoordinateDTO })
+  @ApiOperation({ summary: 'Haversine distance formular' })
+  @ApiForbiddenResponse({
+    description: "Account don't have permission to use this feature",
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Roles(Role.ADMIN)
+  @Post('/calculate/long-lat')
+  async CalCulateLongLatDistance(
+    @Request() req: RequestUser,
+    @Body() dto: LocationCoordinateDTO,
+  ) {
+    return await this.locationService.CalculateLatLongToMetersDistance(
+      dto.pointA,
+      dto.pointB,
+    );
   }
 }
