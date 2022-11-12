@@ -1,7 +1,8 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { Role, Status } from '@prisma/client';
 import { PrismaService } from 'src/prisma/service';
-import { LocationDTO } from './dto';
+import { LocationDTO, LocationCoordinate } from './dto';
+import * as haversine from 'haversine-distance';
 
 @Injectable()
 export class LocationService {
@@ -58,5 +59,13 @@ export class LocationService {
         status: location.status,
       },
     });
+  }
+
+  async CalculateLatLongToMetersDistance(
+    pointA: LocationCoordinate,
+    pointB: LocationCoordinate,
+  ) {
+    console.log(pointA, pointB);
+    return haversine(pointA, pointB);
   }
 }
