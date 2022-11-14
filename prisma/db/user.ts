@@ -1,3 +1,4 @@
+import { FAKE_ADDRESS } from './../../src/constants/fake-data';
 import { Role, UserStatus } from '@prisma/client';
 import { hash } from 'bcrypt';
 export const users = async (): Promise<any[]> => {
@@ -5,7 +6,7 @@ export const users = async (): Promise<any[]> => {
   const brands = [];
   const drivers = [];
   const managers = [];
-
+  const reporter = [];
   const admin = {
     email: 'admin@gmail.com',
     password,
@@ -27,6 +28,7 @@ export const users = async (): Promise<any[]> => {
       },
     });
   }
+
   for (let i = 0; i < 20; i++) {
     brands.push({
       email: `brand${i + 1}@gmail.com`,
@@ -40,6 +42,7 @@ export const users = async (): Promise<any[]> => {
       },
     });
   }
+
   for (let i = 0; i < 100; i++) {
     drivers.push({
       phoneNumber: i >= 9 ? `+840000000${i + 1}` : `+8400000000${i + 1}`,
@@ -52,5 +55,19 @@ export const users = async (): Promise<any[]> => {
       },
     });
   }
-  return [...managers, ...drivers, ...brands, admin];
+
+  for (let i = 0; i < FAKE_ADDRESS.length; i++) {
+    reporter.push({
+      email: `reporter${i + 1}@gmail.com`,
+      password,
+      role: Role.REPORTER,
+      fullname: `Reporter ${i + 1}`,
+      status: UserStatus.VERIFIED,
+      address: FAKE_ADDRESS[i],
+      reporter: {
+        create: {},
+      },
+    });
+  }
+  return [...managers, ...drivers, ...brands, admin, ...reporter];
 };

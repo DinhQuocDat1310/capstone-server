@@ -30,7 +30,7 @@ model User {
   brand    Brand?
   driver   Driver?
   manager  Manager?
-  Reporter Reporter?
+  reporter Reporter?
 }
 
 enum Role {
@@ -98,7 +98,7 @@ model DriverJoinCampaign {
   driver                 Driver                   @relation(fields: [driverId], references: [id])
   campaignId             String
   campaign               Campaign                 @relation(fields: [campaignId], references: [id])
-  ReporterDriverCampaign ReporterDriverCampaign[]
+  reporterDriverCampaign ReporterDriverCampaign[]
 }
 
 enum StatusDriverJoin {
@@ -113,7 +113,7 @@ model Reporter {
   user   User   @relation(fields: [userId], references: [id])
   userId String @unique
 
-  ReporterDriverCampaign ReporterDriverCampaign[]
+  reporterDriverCampaign ReporterDriverCampaign[]
 }
 
 model ReporterDriverCampaign {
@@ -127,7 +127,7 @@ model ReporterDriverCampaign {
 
   reporter             Reporter           @relation(fields: [reporterId], references: [id])
   reporterId           String
-  DriverJoinCampaign   DriverJoinCampaign @relation(fields: [driverJoinCampaignId], references: [id])
+  driverJoinCampaign   DriverJoinCampaign @relation(fields: [driverJoinCampaignId], references: [id])
   driverJoinCampaignId String
 }
 

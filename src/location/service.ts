@@ -1,5 +1,6 @@
+import { hash } from 'bcrypt';
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { Role, Status } from '@prisma/client';
+import { Role, Status, UserStatus } from '@prisma/client';
 import { PrismaService } from 'src/prisma/service';
 import { LocationDTO, LocationCoordinate } from './dto';
 import * as haversine from 'haversine-distance';
@@ -38,6 +39,28 @@ export class LocationService {
         locationName: location.locationName,
         price: location.price,
         status: Status.ENABLE,
+      },
+      select: {
+        id: true,
+        locationName: true,
+        status: true,
+      },
+    });
+    const password: string = await hash('123456aA!', 10);
+    const randomKeyEmail = Math.floor(Math.random() * 99999);
+
+    await this.prisma.reporter.create({
+      data: {
+        user: {
+          create: {
+            email: `reporter${randomKeyEmail}@gmail.com`,
+            password,
+            role: Role.REPORTER,
+            fullname: `Reporter ${randomKeyEmail}`,
+            status: UserStatus.VERIFIED,
+            address: newLocation.locationName,
+          },
+        },
       },
     });
     return newLocation.status;
