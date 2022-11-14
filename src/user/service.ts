@@ -369,6 +369,36 @@ export class UsersService {
       });
   }
 
+  async getListReporters() {
+    const users = await this.prisma.user.findMany({
+      where: {
+        role: Role.REPORTER,
+      },
+      select: {
+        reporter: {
+          select: {
+            id: true,
+          },
+        },
+        fullname: true,
+        email: true,
+        phoneNumber: true,
+        status: true,
+        isActive: true,
+      },
+    });
+    return users
+      .map((user) => user)
+      .map((user) => {
+        const reporterId = user?.reporter?.id;
+        delete user?.reporter;
+        return {
+          reporterId,
+          ...user,
+        };
+      });
+  }
+
   async checkManagerIdExisted(managerId: string) {
     return await this.prisma.user.findFirst({
       where: {

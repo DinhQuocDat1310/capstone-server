@@ -283,6 +283,7 @@ export class ContractService {
                 id: true,
                 paidDate: true,
                 expiredDate: true,
+                createDate: true,
                 price: true,
                 type: true,
               },

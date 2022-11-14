@@ -23,6 +23,7 @@ import { AutoAssignModule } from './autoAssign/module';
 import { PolicyModule } from './policy/module';
 import { ConfigJsonModule } from './config-json/module';
 import { PaymentModule } from './payment/module';
+import { ReporterModule } from './reporter/module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { PaymentModule } from './payment/module';
     PolicyModule,
     PaymentModule,
     ConfigJsonModule,
+    ReporterModule,
   ],
   providers: [AppConfigService, UsersService, PrismaService],
   controllers: [],
