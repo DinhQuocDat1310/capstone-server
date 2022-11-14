@@ -29,13 +29,51 @@ export class ReporterService {
         },
       },
     });
-    return await this.prisma.campaign.findMany({
+
+    const resultCampaign = await this.prisma.campaign.findMany({
       where: {
-        campaignName: getLocationReporter.user.address,
+        locationCampaign: {
+          locationName: getLocationReporter.user.address,
+        },
         statusCampaign: {
           in: ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING', 'CLOSED'],
         },
       },
+      select: {
+        id: true,
+        campaignName: true,
+        locationCampaign: {
+          select: {
+            locationName: true,
+          },
+        },
+        startRunningDate: true,
+        duration: true,
+        quantityDriver: true,
+        statusCampaign: true,
+      },
+    });
+    for (let i = 0; i < resultCampaign.length; i++) {
+      const countDriver = await this.prisma.driverJoinCampaign.count({
+        where: {
+          campaignId: resultCampaign[i].id,
+        },
+      });
+      const dateEndCampaign = new Date(resultCampaign[i].startRunningDate);
+      dateEndCampaign.setDate(
+        dateEndCampaign.getDate() + Number(resultCampaign[i].duration),
+      );
+
+      resultCampaign[i]['endDateCampaign'] = dateEndCampaign;
+      resultCampaign[i]['quantityDriverJoinning'] = countDriver;
+    }
+    return resultCampaign.map((campaign) => {
+      const locationName = campaign.locationCampaign.locationName;
+      delete campaign.locationCampaign;
+      return {
+        ...campaign,
+        locationName,
+      };
     });
   }
 }
