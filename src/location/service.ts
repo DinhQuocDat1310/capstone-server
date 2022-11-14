@@ -48,7 +48,8 @@ export class LocationService {
     });
     const password: string = await hash('123456aA!', 10);
     const randomKeyEmail = Math.floor(Math.random() * 99999);
-
+    const randomPhone =
+      Math.floor(Math.random() * (999999999 - 100000000)) + 100000000;
     await this.prisma.reporter.create({
       data: {
         user: {
@@ -56,6 +57,7 @@ export class LocationService {
             email: `reporter${randomKeyEmail}@gmail.com`,
             password,
             role: Role.REPORTER,
+            phoneNumber: `+84${randomPhone}`,
             fullname: `Reporter ${randomKeyEmail}`,
             status: UserStatus.VERIFIED,
             address: newLocation.locationName,

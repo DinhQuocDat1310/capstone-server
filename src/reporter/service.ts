@@ -15,4 +15,27 @@ export class ReporterService {
     }
     return listReporters;
   }
+
+  async getListCampaignInReporterLocation(userId: string) {
+    const getLocationReporter = await this.prisma.reporter.findFirst({
+      where: {
+        userId,
+      },
+      select: {
+        user: {
+          select: {
+            address: true,
+          },
+        },
+      },
+    });
+    return await this.prisma.campaign.findMany({
+      where: {
+        campaignName: getLocationReporter.user.address,
+        statusCampaign: {
+          in: ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING', 'CLOSED'],
+        },
+      },
+    });
+  }
 }

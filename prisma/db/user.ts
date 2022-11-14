@@ -59,6 +59,7 @@ export const users = async (): Promise<any[]> => {
   for (let i = 0; i < FAKE_ADDRESS.length; i++) {
     reporter.push({
       email: `reporter${i + 1}@gmail.com`,
+      phoneNumber: i >= 9 ? `+8400000${i + 999}` : `+84000000${i + 999}`,
       password,
       role: Role.REPORTER,
       fullname: `Reporter ${i + 1}`,

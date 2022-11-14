@@ -385,6 +385,7 @@ export class UsersService {
         phoneNumber: true,
         status: true,
         isActive: true,
+        address: true,
       },
     });
     return users
