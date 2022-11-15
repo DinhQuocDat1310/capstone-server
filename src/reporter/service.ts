@@ -1,3 +1,4 @@
+import { CreateReportDriverCampaignDTO } from './dto';
 import { UsersService } from 'src/user/service';
 import { Injectable } from '@nestjs/common';
 import { BadRequestException } from '@nestjs/common';
@@ -122,6 +123,30 @@ export class ReporterService {
             },
           },
         },
+      },
+    });
+  }
+
+  async createReporterDriverCampaign(
+    dto: CreateReportDriverCampaignDTO,
+    userId: string,
+  ) {
+    const reporterId = await this.prisma.reporter.findFirst({
+      where: {
+        userId,
+      },
+      select: {
+        id: true,
+      },
+    });
+    await this.prisma.reporterDriverCampaign.create({
+      data: {
+        imageCarBack: dto.imageCarBack,
+        imageCarLeft: dto.imageCarLeft,
+        imageCarRight: dto.imageCarRight,
+        isChecked: dto.isChecked,
+        driverJoinCampaignId: dto.driverJoinCampaignId,
+        reporterId: reporterId.id,
       },
     });
   }

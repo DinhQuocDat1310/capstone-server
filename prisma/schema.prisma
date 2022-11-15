@@ -117,14 +117,14 @@ model Reporter {
 }
 
 model ReporterDriverCampaign {
-  id                String   @id @default(uuid())
-  imageCarBack      String
-  imageCarLeft      String
-  imageCarRight     String
-  imageCarOdoBefore String?
-  imageCarOdoAfter  String?
-  createDate        DateTime @default(now())
-
+  id                   String             @id @default(uuid())
+  imageCarBack         String
+  imageCarLeft         String
+  imageCarRight        String
+  imageCarOdoBefore    String?
+  imageCarOdoAfter     String?
+  createDate           DateTime           @default(now())
+  isChecked            Boolean            @default(false)
   reporter             Reporter           @relation(fields: [reporterId], references: [id])
   reporterId           String
   driverJoinCampaign   DriverJoinCampaign @relation(fields: [driverJoinCampaignId], references: [id])
