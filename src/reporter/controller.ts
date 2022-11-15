@@ -6,6 +6,7 @@ import {
   Param,
   Request,
   Body,
+  Post,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -79,7 +80,7 @@ export class ReporterController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Status(UserStatus.VERIFIED)
   @Roles(Role.REPORTER)
-  @Get('/check/driver')
+  @Post('/check/driver')
   async submitCheckDriverRun(
     @Body() dto: CreateReportDriverCampaignDTO,
     @Request() req: RequestUser,
