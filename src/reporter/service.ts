@@ -16,10 +16,16 @@ export class ReporterService {
     return listReporters;
   }
 
-  async getListCampaignInReporterLocation(userId: string) {
+  async getListCampaignInReporterLocation(reporterId: string) {
+    const checkReporterId = await this.prisma.reporter.findFirst({
+      where: {
+        id: reporterId,
+      },
+    });
+    if (!checkReporterId) throw new BadRequestException('Not found reporterId');
     const getLocationReporter = await this.prisma.reporter.findFirst({
       where: {
-        userId,
+        id: reporterId,
       },
       select: {
         user: {

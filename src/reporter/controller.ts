@@ -1,4 +1,4 @@
-import { Controller, UseGuards, Get, Request } from '@nestjs/common';
+import { Controller, UseGuards, Get, Param } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -8,7 +8,6 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { Role, UserStatus } from '@prisma/client';
-import { RequestUser } from 'src/auth/dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { Roles, Status } from 'src/guard/decorators';
 import { RolesGuard } from 'src/guard/roles.guard';
@@ -38,11 +37,11 @@ export class ReporterController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Status(UserStatus.VERIFIED)
-  @Roles(Role.REPORTER)
-  @Get('/list/campaign')
-  async viewListCampaignReporterLocation(@Request() req: RequestUser) {
+  @Roles(Role.ADMIN)
+  @Get('/list/campaign/:id')
+  async viewListCampaignReporterLocation(@Param('id') reporterId: string) {
     return await this.reporterService.getListCampaignInReporterLocation(
-      req.user.id,
+      reporterId,
     );
   }
 }
