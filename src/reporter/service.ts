@@ -82,4 +82,47 @@ export class ReporterService {
       };
     });
   }
+
+  async getDriverDetailByCarId(carId: string, userId: string) {
+    const checkCarIdExist = await this.prisma.driver.findMany({
+      where: {
+        idCar: carId,
+      },
+    });
+    if (checkCarIdExist.length === 0)
+      throw new BadRequestException('Not found Car ID');
+    return await this.prisma.reporterDriverCampaign.findMany({
+      where: {
+        reporter: {
+          userId,
+        },
+        driverJoinCampaign: {
+          driver: {
+            idCar: carId,
+          },
+        },
+      },
+      select: {
+        driverJoinCampaign: {
+          include: {
+            driver: {
+              include: {
+                user: true,
+                campaigns: {
+                  include: {
+                    campaign: {
+                      include: {
+                        locationCampaign: true,
+                        wrap: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
 }
