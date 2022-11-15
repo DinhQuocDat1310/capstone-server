@@ -156,7 +156,7 @@ export class DriversService {
       });
       if (latestCampaign) {
         if (
-          ['OPEN', 'PAYMENT', 'WARPPING', 'RUNNING'].includes(
+          ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING'].includes(
             latestCampaign.campaign.statusCampaign,
           )
         ) {
@@ -214,7 +214,6 @@ export class DriversService {
             status: StatusDriverJoin.APPROVE,
           },
         });
-
         for (let i = 0; i < listDriver.length; i++) {
           await this.prisma.driverJoinCampaign.updateMany({
             where: {
