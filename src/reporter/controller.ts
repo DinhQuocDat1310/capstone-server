@@ -1,7 +1,16 @@
-import { Controller, UseGuards, Get, Param, Request } from '@nestjs/common';
+import { CreateReportDriverCampaignDTO } from './dto';
+import {
+  Controller,
+  UseGuards,
+  Get,
+  Param,
+  Request,
+  Body,
+} from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
+  ApiBody,
   ApiForbiddenResponse,
   ApiOperation,
   ApiTags,
@@ -59,6 +68,24 @@ export class ReporterController {
   ) {
     return await this.reporterService.getDriverDetailByCarId(
       carId,
+      req.user.id,
+    );
+  }
+
+  @ApiOperation({ summary: 'Submit result check Driver running' })
+  @ApiBody({ type: CreateReportDriverCampaignDTO })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Status(UserStatus.VERIFIED)
+  @Roles(Role.REPORTER)
+  @Get('/check/driver')
+  async submitCheckDriverRun(
+    @Body() dto: CreateReportDriverCampaignDTO,
+    @Request() req: RequestUser,
+  ) {
+    return await this.reporterService.createReporterDriverCampaign(
+      dto,
       req.user.id,
     );
   }

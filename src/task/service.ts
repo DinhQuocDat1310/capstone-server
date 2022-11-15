@@ -67,32 +67,6 @@ export class TasksService {
   @Cron(CronExpression.MONDAY_TO_FRIDAY_AT_11PM)
   async handleCompleteWrappingCampaignPhase() {
     const campaigns = await this.campaignsService.getAllCampaignWrapIsExpired();
-    const listDriversJoinCampaign =
-      await this.prisma.driverJoinCampaign.findMany({
-        where: {
-          status: 'APPROVE',
-        },
-        select: {
-          id: true,
-          driverId: true,
-          driver: {
-            select: {
-              imageCarRight: true,
-              imageCarBack: true,
-              imageCarLeft: true,
-            },
-          },
-          campaign: {
-            select: {
-              locationCampaign: {
-                select: {
-                  locationName: true,
-                },
-              },
-            },
-          },
-        },
-      });
     if (campaigns.length === 0) {
       this.logger.debug('No campaigns is end wrapping phase today');
       return;
@@ -102,28 +76,6 @@ export class TasksService {
         campaigns[i].id,
         CampaignStatus.RUNNING,
       );
-    }
-    for (let i = 0; i < listDriversJoinCampaign.length; i++) {
-      const reporterId = await this.prisma.reporter.findMany({
-        where: {
-          user: {
-            address:
-              listDriversJoinCampaign[i].campaign.locationCampaign.locationName,
-          },
-        },
-        select: {
-          id: true,
-        },
-      });
-      await this.prisma.reporterDriverCampaign.createMany({
-        data: {
-          driverJoinCampaignId: listDriversJoinCampaign[i].id,
-          imageCarBack: listDriversJoinCampaign[i].driver.imageCarBack,
-          imageCarLeft: listDriversJoinCampaign[i].driver.imageCarLeft,
-          imageCarRight: listDriversJoinCampaign[i].driver.imageCarRight,
-          reporterId: reporterId[i].id,
-        },
-      });
     }
   }
 
