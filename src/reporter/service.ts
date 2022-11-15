@@ -92,33 +92,22 @@ export class ReporterService {
     });
     if (checkCarIdExist.length === 0)
       throw new BadRequestException('Not found Car ID');
-    return await this.prisma.reporterDriverCampaign.findMany({
+    return await this.prisma.user.findMany({
       where: {
         reporter: {
           userId,
         },
-        driverJoinCampaign: {
-          driver: {
-            idCar: carId,
-          },
+        driver: {
+          idCar: carId,
         },
       },
-      select: {
-        driverJoinCampaign: {
+      include: {
+        driver: true,
+        reporter: {
           include: {
-            driver: {
+            reporterDriverCampaign: {
               include: {
-                user: true,
-                campaigns: {
-                  include: {
-                    campaign: {
-                      include: {
-                        locationCampaign: true,
-                        wrap: true,
-                      },
-                    },
-                  },
-                },
+                driverJoinCampaign: true,
               },
             },
           },
