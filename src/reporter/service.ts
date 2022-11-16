@@ -208,7 +208,7 @@ export class ReporterService {
         imageCarBack: dto.imageCarBack,
         imageCarLeft: dto.imageCarLeft,
         imageCarRight: dto.imageCarRight,
-        isChecked: dto.isChecked,
+        isChecked: true,
         driverJoinCampaignId: dto.driverJoinCampaignId,
         reporterId: reporter.id,
       },
