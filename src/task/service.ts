@@ -35,7 +35,7 @@ export class TasksService {
         await this.campaignsService.getAmountDriverJoinCampaignTask(
           campaigns[i].id,
         );
-      if (amountDriverJoin <= Number(campaigns[i].quantityDriver) * 0.8) {
+      if (amountDriverJoin >= Number(campaigns[i].quantityDriver) * 0.8) {
         await this.campaignsService.updateStatusCampaign(
           campaigns[i].id,
           CampaignStatus.PAYMENT,
