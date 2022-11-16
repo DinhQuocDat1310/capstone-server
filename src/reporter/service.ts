@@ -3,7 +3,7 @@ import { UsersService } from 'src/user/service';
 import { Injectable } from '@nestjs/common';
 import { BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/service';
-import moment from 'moment';
+import * as moment from 'moment';
 @Injectable()
 export class ReporterService {
   constructor(
@@ -139,8 +139,12 @@ export class ReporterService {
         },
       },
     });
-    const dateCreateCheck = dataDriver.reporterDriverCampaign[0].createDate;
-    if (moment().diff(dateCreateCheck, 'days') !== 0) {
+    const now = moment();
+    const dateCreateCheck = moment(
+      dataDriver.reporterDriverCampaign[0].createDate,
+    );
+    const differDateCheck = now.diff(dateCreateCheck, 'days');
+    if (Math.abs(differDateCheck) !== 0) {
       dataDriver.reporterDriverCampaign[0].isChecked === false;
     } else {
       dataDriver.reporterDriverCampaign[0].isChecked === true;
