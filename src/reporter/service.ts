@@ -3,6 +3,7 @@ import { UsersService } from 'src/user/service';
 import { Injectable } from '@nestjs/common';
 import { BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/service';
+import moment from 'moment';
 @Injectable()
 export class ReporterService {
   constructor(
@@ -104,7 +105,7 @@ export class ReporterService {
         },
       },
     });
-    return await this.prisma.driverJoinCampaign.findFirst({
+    const dataDriver = await this.prisma.driverJoinCampaign.findFirst({
       where: {
         driver: {
           idCar: carId,
@@ -130,10 +131,21 @@ export class ReporterService {
         reporterDriverCampaign: {
           select: {
             isChecked: true,
+            createDate: true,
+          },
+          orderBy: {
+            createDate: 'desc',
           },
         },
       },
     });
+    const dateCreateCheck = dataDriver.reporterDriverCampaign[0].createDate;
+    if (moment().diff(dateCreateCheck, 'days') !== 0) {
+      dataDriver.reporterDriverCampaign[0].isChecked === false;
+    } else {
+      dataDriver.reporterDriverCampaign[0].isChecked === true;
+    }
+    return dataDriver;
   }
 
   async createReporterDriverCampaign(
