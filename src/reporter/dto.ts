@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsString, IsUrl } from 'class-validator';
+import { IsString, IsUrl } from 'class-validator';
 
 export class CreateReportDriverCampaignDTO {
   @ApiProperty({
@@ -22,13 +22,6 @@ export class CreateReportDriverCampaignDTO {
   })
   @IsUrl(undefined)
   imageCarRight: string;
-
-  @ApiProperty({
-    description: 'Is check field',
-    default: true,
-  })
-  @IsBoolean()
-  isChecked: boolean;
 
   @ApiProperty({
     description: 'Driver join campaign id',
