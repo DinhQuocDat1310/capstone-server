@@ -158,8 +158,11 @@ export class ReporterService {
     Object.keys(dataDriver).forEach(() => {
       dataDriver['reporterDriverCampaign'][0].isChecked = resultCheck;
     });
+    const checkedResult = dataDriver.reporterDriverCampaign[0].isChecked;
+    delete dataDriver.reporterDriverCampaign;
     return {
       ...dataDriver,
+      checkedResult,
     };
   }
 
@@ -167,14 +170,37 @@ export class ReporterService {
     dto: CreateReportDriverCampaignDTO,
     userId: string,
   ) {
-    const reporterId = await this.prisma.reporter.findFirst({
+    const reporter = await this.prisma.reporter.findFirst({
       where: {
         userId,
       },
       select: {
         id: true,
+        reporterDriverCampaign: {
+          select: {
+            id: true,
+            createDate: true,
+            isChecked: true,
+          },
+          orderBy: {
+            createDate: 'desc',
+          },
+        },
       },
     });
+    const now = moment();
+    if (reporter.reporterDriverCampaign[0]) {
+      const dateCreateCheck = moment(
+        reporter.reporterDriverCampaign[0].createDate,
+      );
+      const differDateCheck = now.diff(dateCreateCheck, 'days');
+      if (
+        Math.abs(differDateCheck) === 0 &&
+        reporter.reporterDriverCampaign[0].isChecked !== null
+      ) {
+        throw new BadRequestException('Today is checked for this driver');
+      }
+    }
     await this.prisma.reporterDriverCampaign.create({
       data: {
         imageCarBack: dto.imageCarBack,
@@ -182,7 +208,7 @@ export class ReporterService {
         imageCarRight: dto.imageCarRight,
         isChecked: dto.isChecked,
         driverJoinCampaignId: dto.driverJoinCampaignId,
-        reporterId: reporterId.id,
+        reporterId: reporter.id,
       },
     });
     return 'Checked success';
