@@ -144,6 +144,7 @@ export class ReporterService {
     });
     const now = moment();
     let resultCheck = null;
+    let checkedResult = false;
     if (dataDriver.reporterDriverCampaign[0]) {
       const dateCreateCheck = moment(
         dataDriver.reporterDriverCampaign[0].createDate,
@@ -154,11 +155,12 @@ export class ReporterService {
       } else {
         resultCheck = dataDriver.reporterDriverCampaign[0].isChecked === true;
       }
+      Object.keys(dataDriver).forEach(() => {
+        dataDriver['reporterDriverCampaign'][0].isChecked = resultCheck;
+      });
+      checkedResult = dataDriver.reporterDriverCampaign[0].isChecked;
+      delete dataDriver.reporterDriverCampaign;
     }
-    Object.keys(dataDriver).forEach(() => {
-      dataDriver['reporterDriverCampaign'][0].isChecked = resultCheck;
-    });
-    const checkedResult = dataDriver.reporterDriverCampaign[0].isChecked;
     delete dataDriver.reporterDriverCampaign;
     return {
       ...dataDriver,
