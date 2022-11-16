@@ -116,7 +116,10 @@ export class ReporterService {
           },
         },
       },
-      include: {
+      select: {
+        id: true,
+        createDate: true,
+        status: true,
         driver: {
           include: {
             user: true,
@@ -140,16 +143,24 @@ export class ReporterService {
       },
     });
     const now = moment();
-    const dateCreateCheck = moment(
-      dataDriver.reporterDriverCampaign[0].createDate,
-    );
-    const differDateCheck = now.diff(dateCreateCheck, 'days');
-    if (Math.abs(differDateCheck) !== 0) {
-      dataDriver.reporterDriverCampaign[0].isChecked === false;
-    } else {
-      dataDriver.reporterDriverCampaign[0].isChecked === true;
+    let resultCheck = null;
+    if (dataDriver.reporterDriverCampaign[0]) {
+      const dateCreateCheck = moment(
+        dataDriver.reporterDriverCampaign[0].createDate,
+      );
+      const differDateCheck = now.diff(dateCreateCheck, 'days');
+      if (Math.abs(differDateCheck) !== 0) {
+        resultCheck = dataDriver.reporterDriverCampaign[0].isChecked === false;
+      } else {
+        resultCheck = dataDriver.reporterDriverCampaign[0].isChecked === true;
+      }
     }
-    return dataDriver;
+    Object.keys(dataDriver).forEach(() => {
+      dataDriver['reporterDriverCampaign'][0].isChecked = resultCheck;
+    });
+    return {
+      ...dataDriver,
+    };
   }
 
   async createReporterDriverCampaign(

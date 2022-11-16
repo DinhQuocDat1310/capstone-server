@@ -55,7 +55,7 @@ export class CloudinaryController {
     UserStatus.UPDATE,
     UserStatus.VERIFIED,
   )
-  @Roles(Role.BRAND, Role.DRIVER)
+  @Roles(Role.BRAND, Role.DRIVER, Role.REPORTER)
   @UseInterceptors(FileInterceptor('file'))
   @Post('upload')
   async updateBrandInformation(@UploadedFile() file: Express.Multer.File) {
