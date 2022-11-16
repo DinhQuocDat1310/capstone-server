@@ -104,7 +104,7 @@ export class ReporterService {
         },
       },
     });
-    return await this.prisma.driverJoinCampaign.findMany({
+    return await this.prisma.driverJoinCampaign.findFirst({
       where: {
         driver: {
           idCar: carId,
@@ -125,6 +125,11 @@ export class ReporterService {
           include: {
             locationCampaign: true,
             wrap: true,
+          },
+        },
+        reporterDriverCampaign: {
+          select: {
+            isChecked: true,
           },
         },
       },
