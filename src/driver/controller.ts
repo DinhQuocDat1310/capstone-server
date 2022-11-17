@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Request,
   UseGuards,
@@ -24,7 +25,11 @@ import { RolesGuard } from 'src/guard/roles.guard';
 import { StatusGuard } from 'src/guard/userStatus.guard';
 import { LocationService } from 'src/location/service';
 import { VerifyAccountsService } from 'src/verifyAccount/service';
-import { DriverJoinCampaign, DriverVerifyInformationDTO } from './dto';
+import {
+  DriverJoinCampaign,
+  DriverTrackingLocation,
+  DriverVerifyInformationDTO,
+} from './dto';
 import { DriversService } from './service';
 
 @Controller('driver')
@@ -110,10 +115,35 @@ export class DriverController {
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Roles(Role.DRIVER)
   @Status(UserStatus.VERIFIED)
   @Get('/joining-joined')
+  @Roles(Role.DRIVER)
   async getListJoiningJoinedCampaign(@Request() req: RequestUser) {
     return await this.driverService.getCampaignJoiningAndJoined(req.user.id);
+  }
+
+  @ApiOperation({ summary: 'Save current location by date' })
+  @ApiBody({ type: DriverTrackingLocation })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Status(UserStatus.VERIFIED)
+  @Post('/location/tracking')
+  @Roles(Role.DRIVER)
+  async saveCurrentLocationDriverByDate(@Body() dto: DriverTrackingLocation) {
+    return await this.driverService.saveCurrentLocationDriverByDate(dto);
+  }
+
+  @ApiOperation({ summary: 'Get total meter by date' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Status(UserStatus.VERIFIED)
+  @Get('/location/totalMeterByDate/:id')
+  @Roles(Role.DRIVER)
+  async getTotalKmByCurrentDate(@Param('id') driverJoinCampaignId: string) {
+    return await this.driverService.getTotalKmByCurrentDate(
+      driverJoinCampaignId,
+    );
   }
 }

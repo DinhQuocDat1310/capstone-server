@@ -99,6 +99,23 @@ model DriverJoinCampaign {
   campaignId             String
   campaign               Campaign                 @relation(fields: [campaignId], references: [id])
   reporterDriverCampaign ReporterDriverCampaign[]
+  driverTrackingLocation DriverTrackingLocation[]
+}
+
+model DriverTrackingLocation {
+  id                   String              @id @default(uuid())
+  createDate           DateTime            @default(now())
+  driverJoinCampaign   DriverJoinCampaign? @relation(fields: [driverJoinCampaignId], references: [id])
+  driverJoinCampaignId String?
+  tracking             Tracking[]
+}
+
+model Tracking {
+  id                       String                  @id @default(uuid())
+  totalMeterDriven         String
+  timeSubmit               DateTime                @default(now())
+  driverTrackingLocation   DriverTrackingLocation? @relation(fields: [driverTrackingLocationId], references: [id])
+  driverTrackingLocationId String?
 }
 
 enum StatusDriverJoin {

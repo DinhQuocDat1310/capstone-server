@@ -103,3 +103,18 @@ export class DriverJoinCampaign {
   })
   id: string;
 }
+
+export class DriverTrackingLocation {
+  @ApiProperty({
+    description: 'Id of the driver join campaign',
+    default: 'uuid',
+  })
+  idDriverJoinCampaign: string;
+
+  @ApiProperty({
+    description: 'number meter driver driven',
+    default: 'uuid',
+  })
+  @IsNumberString()
+  totalMeterDriver: string;
+}
