@@ -10,9 +10,9 @@ import { UsersService } from 'src/user/service';
 import { convertPhoneNumberFormat } from 'src/utilities';
 import { VerifyAccountsService } from 'src/verifyAccount/service';
 import { PrismaService } from './../prisma/service';
-import { DriverVerifyInformationDTO } from './dto';
+import { DriverTrackingLocation, DriverVerifyInformationDTO } from './dto';
 import * as moment from 'moment';
-import { StatusDriverJoin } from '@prisma/client';
+import { CampaignStatus, StatusDriverJoin } from '@prisma/client';
 
 @Injectable()
 export class DriversService {
@@ -408,5 +408,104 @@ export class DriversService {
       driverJoiningCampaign: filterFormatListJoining,
       driverJoinedCampaign: filterFormatJoinedCampaign,
     };
+  }
+
+  async saveCurrentLocationDriverByDate(dto: DriverTrackingLocation) {
+    const driverJoinCampaign = await this.prisma.driverJoinCampaign.findFirst({
+      where: {
+        id: dto.idDriverJoinCampaign,
+        campaign: {
+          statusCampaign: CampaignStatus.RUNNING,
+        },
+      },
+    });
+    if (!driverJoinCampaign)
+      throw new BadRequestException(
+        'This campaign id is already closed, please contact to admin to get more details.',
+      );
+
+    const listDriverTrackingLocation =
+      await this.prisma.driverTrackingLocation.findMany({
+        where: {
+          driverJoinCampaignId: driverJoinCampaign.id,
+        },
+      });
+
+    const toDay = moment();
+    let isDriverTrackingLocationExist = listDriverTrackingLocation.find(
+      (track) => {
+        return toDay.diff(track.createDate) === 0;
+      },
+    );
+
+    if (!isDriverTrackingLocationExist) {
+      isDriverTrackingLocationExist =
+        await this.prisma.driverTrackingLocation.create({
+          data: {
+            driverJoinCampaign: {
+              connect: {
+                id: driverJoinCampaign.id,
+              },
+            },
+          },
+        });
+    }
+
+    await this.prisma.tracking.create({
+      data: {
+        totalKmDriven: dto.idDriverJoinCampaign,
+        driverTrackingLocation: {
+          connect: {
+            id: isDriverTrackingLocationExist.id,
+          },
+        },
+      },
+    });
+  }
+  async getTotalKmByCurrentDate(driverJoinCampaignId: string) {
+    const driverJoinCampaign = await this.prisma.driverJoinCampaign.findFirst({
+      where: {
+        id: driverJoinCampaignId,
+        campaign: {
+          statusCampaign: CampaignStatus.RUNNING,
+        },
+      },
+    });
+    if (!driverJoinCampaign)
+      throw new BadRequestException(
+        'This campaign id is already closed, please contact to admin to get more details.',
+      );
+
+    const driverTrackingLocation =
+      await this.prisma.driverTrackingLocation.findFirst({
+        where: {
+          driverJoinCampaignId: driverJoinCampaign.id,
+        },
+      });
+
+    if (!driverJoinCampaign) return 0;
+
+    const listTracking = await this.prisma.tracking.findMany({
+      where: {
+        driverTrackingLocationId: driverTrackingLocation.id,
+        OR: [
+          {
+            timeSubmit: {
+              lte: new Date(),
+            },
+          },
+          {
+            timeSubmit: {
+              gte: new Date(),
+            },
+          },
+        ],
+      },
+    });
+    let total = 0;
+    listTracking.forEach((track) => {
+      total += Number(track.totalKmDriven);
+    });
+    return total;
   }
 }
