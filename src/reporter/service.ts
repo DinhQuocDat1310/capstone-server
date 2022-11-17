@@ -105,6 +105,7 @@ export class ReporterService {
         },
       },
     });
+
     const dataDriver = await this.prisma.driverJoinCampaign.findFirst({
       where: {
         driver: {
@@ -142,6 +143,9 @@ export class ReporterService {
         },
       },
     });
+    if (!dataDriver) {
+      throw new BadRequestException('CarId is not in reporter location');
+    }
     const now = moment();
     let resultCheck = null;
     let checkedResult = false;
@@ -177,28 +181,48 @@ export class ReporterService {
         userId,
       },
       select: {
-        id: true,
-        reporterDriverCampaign: {
+        user: {
           select: {
-            id: true,
-            createDate: true,
-            isChecked: true,
-          },
-          orderBy: {
-            createDate: 'desc',
+            address: true,
           },
         },
       },
     });
+    const dataDriverReport = await this.prisma.reporterDriverCampaign.findMany({
+      where: {
+        driverJoinCampaignId: dto.driverJoinCampaignId,
+        reporter: {
+          user: {
+            address: reporter.user.address,
+          },
+        },
+      },
+      select: {
+        reporterId: true,
+        createDate: true,
+        isChecked: true,
+        driverJoinCampaign: {
+          select: {
+            driver: {
+              select: {
+                idCar: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createDate: 'desc',
+      },
+    });
+
     const now = moment();
-    if (reporter.reporterDriverCampaign[0]) {
-      const dateCreateCheck = moment(
-        reporter.reporterDriverCampaign[0].createDate,
-      );
+    if (dataDriverReport[0]) {
+      const dateCreateCheck = moment(dataDriverReport[0].createDate);
       const differDateCheck = now.diff(dateCreateCheck, 'days');
       if (
         Math.abs(differDateCheck) === 0 &&
-        reporter.reporterDriverCampaign[0].isChecked !== null
+        dataDriverReport[0].isChecked !== null
       ) {
         throw new BadRequestException('Today is checked for this driver');
       }
@@ -210,7 +234,7 @@ export class ReporterService {
         imageCarRight: dto.imageCarRight,
         isChecked: true,
         driverJoinCampaignId: dto.driverJoinCampaignId,
-        reporterId: reporter.id,
+        reporterId: dataDriverReport[0].reporterId,
       },
     });
     return 'Checked success';
