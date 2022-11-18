@@ -714,6 +714,52 @@ export class CampaignService {
     });
   }
 
+  async getKilometerFinalReport(userId: string, campaignId: string) {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: {
+        id: campaignId,
+        statusCampaign: 'CLOSED',
+        brand: {
+          userId,
+        },
+      },
+      select: {
+        totalKm: true,
+        driverJoinCampaign: {
+          include: {
+            driverTrackingLocation: {
+              select: {
+                tracking: {
+                  select: {
+                    totalMeterDriven: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+    if (!campaign)
+      throw new BadRequestException('Campaign not found or not finished yet');
+    let totalKmFinalReport = 0;
+
+    const driverTracking = campaign.driverJoinCampaign;
+
+    driverTracking.forEach((driver) =>
+      driver.driverTrackingLocation.forEach((track) =>
+        track.tracking.forEach(
+          (total) => (totalKmFinalReport += Number(total.totalMeterDriven)),
+        ),
+      ),
+    );
+    const totalKm = campaign.totalKm;
+    return {
+      totalKm,
+      totalKmFinalReport,
+    };
+  }
+
   async getKilometerDailyReport(userId: string, campaignId: string) {
     const campaign = await this.prisma.campaign.findFirst({
       where: {
@@ -744,42 +790,53 @@ export class CampaignService {
     const drivers = await this.prisma.driver.findMany({
       include: { user: true },
     });
-    const listDriver = campaign.driverJoinCampaign.map((driverJoin) => {
-      const driver = drivers.find(
-        (driver) => driver.id === driverJoin.driverId,
-      );
-      let totalKm = 0;
-      const driverTracking = driverJoin.driverTrackingLocation.find(
-        (driverTrack) => driverTrack.driverJoinCampaignId === driverJoin.id,
-      );
-      driverTracking.tracking.forEach((track) => {
-        totalKm += Number(track.totalMeterDriven);
+
+    const listDriver = (date: moment.Moment) => {
+      return campaign.driverJoinCampaign.map((driverJoin) => {
+        const driver = drivers.find(
+          (driver) => driver.id === driverJoin.driverId,
+        );
+        let totalKm = 0;
+        const driverTracking = driverJoin.driverTrackingLocation.find(
+          (driverTrack) =>
+            driverTrack.driverJoinCampaignId === driverJoin.id ||
+            date.diff(driverTrack.createDate) === 0,
+        );
+        driverTracking.tracking.forEach((track) => {
+          totalKm += Number(track.totalMeterDriven);
+        });
+
+        const reporterImage = driverJoin.reporterDriverCampaign.find(
+          (report) =>
+            report.driverJoinCampaignId ===
+              driverTracking.driverJoinCampaignId ||
+            date.diff(report.createDate) === 0,
+        );
+
+        return {
+          carOwnerName: driver?.user?.fullname,
+          phoneNumber: driver?.user?.phoneNumber,
+          carId: driver?.idCar,
+          totalKm,
+          listImage: {
+            imageCarBack: reporterImage.imageCarBack,
+            imageCarLeft: reporterImage.imageCarLeft,
+            imageCarRight: reporterImage.imageCarRight,
+            imageCarOdo: reporterImage.imageCarOdo,
+          },
+        };
       });
-
-      const reporterImage = driverJoin.reporterDriverCampaign.find(
-        (report) =>
-          report.driverJoinCampaignId === driverTracking.driverJoinCampaignId,
-      );
-
-      return {
-        carOwnerName: driver?.user?.fullname,
-        phoneNumber: driver?.user?.phoneNumber,
-        carId: driver?.idCar,
-        totalKm,
-        listImage: {
-          imageCarBack: reporterImage.imageCarBack,
-          imageCarLeft: reporterImage.imageCarLeft,
-          imageCarRight: reporterImage.imageCarRight,
-          imageCarOdo: reporterImage.imageCarOdo,
-        },
-      };
-    });
+    };
+    const array = [];
     for (let i = 0; i < totalLength; i++) {
-      const t = {
+      array.push({
         date: moment(campaign.startRunningDate).add(i, 'days'),
         totalKm: totalKmPerDay,
-        listDriver,
-      };
+        listDriver: listDriver(
+          moment(campaign.startRunningDate).add(i, 'days'),
+        ),
+      });
     }
+    return array;
   }
 }
