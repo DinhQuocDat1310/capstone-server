@@ -1,4 +1,3 @@
-import { VerifyOdoService } from '../verifyOdo/service';
 import { WrapService } from 'src/wrap/service';
 import { LocationService } from './../location/service';
 import {
@@ -40,7 +39,6 @@ export class BrandController {
     private readonly verifyAccountService: VerifyAccountsService,
     private readonly locationService: LocationService,
     private readonly wrapService: WrapService,
-    private readonly verifyOdoService: VerifyOdoService,
   ) {}
 
   @ApiBody({ type: BrandVerifyInformationDTO })
@@ -108,33 +106,22 @@ export class BrandController {
     return await this.wrapService.getListWrap(userReq.user.role);
   }
 
-  @ApiOperation({ summary: 'Create odo request with driverId' })
+  @ApiOperation({
+    summary: 'Send request require capture ODO driver to reporter',
+  })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Status(UserStatus.VERIFIED)
   @Roles(Role.BRAND)
-  @Get('/checkOdo/:id')
-  async requestVerifyOdo(
+  @Get('/verify-odo/:id')
+  async createRequestVerifyOdo(
     @Request() userReq: RequestUser,
-    @Param('id') driverId: string,
+    @Param('id') driverJoinCampaignId: string,
   ) {
-    return await this.verifyOdoService.requestVerifyOdo(
+    return await this.brandService.createRequestVerifyOdo(
       userReq.user.id,
-      driverId,
-    );
-  }
-
-  @ApiOperation({ summary: 'View list request verify Odo' })
-  @ApiForbiddenResponse({ description: 'Forbidden' })
-  @ApiBadRequestResponse({ description: 'Bad Request' })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Status(UserStatus.VERIFIED)
-  @Roles(Role.BRAND)
-  @Get('/list/resultOdo')
-  async viewResultRequestOdo(@Request() userReq: RequestUser) {
-    return await this.verifyOdoService.viewListResultOdoFromDriver(
-      userReq.user.id,
+      driverJoinCampaignId,
     );
   }
 }

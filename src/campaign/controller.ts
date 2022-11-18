@@ -167,6 +167,24 @@ export class CampaignController {
     );
   }
 
+  @ApiOperation({ summary: 'Get total daily kilometer report' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiCreatedResponse({ description: 'Create' })
+  @Roles(Role.BRAND)
+  @Status(UserStatus.VERIFIED)
+  @Get('/km-daily-report/:id')
+  async getDailyReportKilometer(
+    @Request() req: RequestUser,
+    @Param('id') campaignId: string,
+  ) {
+    return await this.campaignService.getKilometerDailyReport(
+      req.user.id,
+      campaignId,
+    );
+  }
+
   @ApiOperation({ summary: 'Move to next step for campaigns' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })

@@ -655,8 +655,8 @@ export class CampaignService {
       },
     });
     return {
-      amountDriver: count,
-      totalDriver: isOwnCampaign.quantityDriver,
+      numberDriverRegistered: count,
+      numberTotalCampaignDriver: isOwnCampaign.quantityDriver,
     };
   }
 

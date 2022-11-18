@@ -7,7 +7,6 @@ import { AppConfigService } from 'src/config/appConfigService';
 import { ManagerService } from 'src/manager/service';
 import { VerifyAccountsService } from 'src/verifyAccount/service';
 import { LocationService } from 'src/location/service';
-import { VerifyOdoService } from 'src/verifyOdo/service';
 
 @Module({
   controllers: [DriverController],
@@ -19,7 +18,6 @@ import { VerifyOdoService } from 'src/verifyOdo/service';
     AppConfigService,
     ManagerService,
     LocationService,
-    VerifyOdoService,
   ],
 })
 export class DriverModule {}
