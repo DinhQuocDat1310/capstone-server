@@ -177,4 +177,21 @@ export class CampaignController {
   async moveToNextStepCampaign(@Body() dto: StepsCampaignDTO) {
     this.campaignService.moveToNextStepCampaign(dto);
   }
+
+  @ApiOperation({ summary: 'Get total final kilometer report' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Roles(Role.BRAND)
+  @Status(UserStatus.VERIFIED)
+  @Get('/total-km-final-report/:id')
+  async getFinalReportKilometer(
+    @Request() req: RequestUser,
+    @Param('id') campaignId: string,
+  ) {
+    return await this.campaignService.getKilometerFinalReport(
+      req.user.id,
+      campaignId,
+    );
+  }
 }

@@ -713,4 +713,50 @@ export class CampaignService {
       },
     });
   }
+
+  async getKilometerFinalReport(userId: string, campaignId: string) {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: {
+        id: campaignId,
+        statusCampaign: 'CLOSED',
+        brand: {
+          userId,
+        },
+      },
+      select: {
+        totalKm: true,
+        driverJoinCampaign: {
+          include: {
+            driverTrackingLocation: {
+              select: {
+                tracking: {
+                  select: {
+                    totalMeterDriven: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+    if (!campaign)
+      throw new BadRequestException('Campaign not found or not finished yet');
+    let totalKmFinalReport = 0;
+
+    const driverTracking = campaign.driverJoinCampaign;
+
+    driverTracking.forEach((driver) =>
+      driver.driverTrackingLocation.forEach((track) =>
+        track.tracking.forEach(
+          (total) => (totalKmFinalReport += Number(total.totalMeterDriven)),
+        ),
+      ),
+    );
+    const totalKm = campaign.totalKm;
+    return {
+      totalKm,
+      totalKmFinalReport,
+    };
+  }
 }
