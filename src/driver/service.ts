@@ -369,6 +369,15 @@ export class DriversService {
             },
           },
         },
+        reporterDriverCampaign: {
+          select: {
+            reporter: {
+              select: {
+                addressPoint: true,
+              },
+            },
+          },
+        },
       },
     });
     if (driverJoinedCampaign !== null) {
@@ -384,6 +393,29 @@ export class DriversService {
           Number(driverJoinedCampaign.campaign.duration) *
           Number(driverJoinedCampaign.campaign.locationPricePerKm);
 
+      const driverTrackingLocation =
+        await this.prisma.driverTrackingLocation.findFirst({
+          where: {
+            driverJoinCampaignId: driverJoinedCampaign.id,
+          },
+        });
+
+      if (!driverTrackingLocation) return 0;
+      const listTracking = await this.prisma.tracking.findMany({
+        where: {
+          driverTrackingLocation: {
+            driverJoinCampaignId: driverJoinedCampaign.id,
+          },
+        },
+        select: {
+          totalMeterDriven: true,
+        },
+      });
+      let totalKmTraveled = 0;
+      listTracking.forEach((track) => {
+        totalKmTraveled += Number(track.totalMeterDriven);
+      });
+
       const now = moment();
       let countDay = 0;
       if (now > moment(driverJoinedCampaign.campaign.startRunningDate)) {
@@ -398,10 +430,11 @@ export class DriversService {
         totalMoneyPerDriver;
       driverJoinedCampaign.campaign['quantityDriverJoinning'] = countDriver;
       driverJoinedCampaign.campaign['campaignDayCount'] = Math.abs(countDay);
-      driverJoinedCampaign.campaign['checkPointAddress'] = null;
-      driverJoinedCampaign.campaign['totalKmTraveled'] = null;
-      driverJoinedCampaign.campaign['totalDriverKm'] = null;
+      driverJoinedCampaign.campaign['checkPointAddress'] =
+        driverJoinedCampaign.reporterDriverCampaign[0]?.reporter?.addressPoint;
+      driverJoinedCampaign.campaign['totalKmTraveled'] = totalKmTraveled;
       filterFormatJoinedCampaign = driverJoinedCampaign;
+      delete driverJoinedCampaign.reporterDriverCampaign;
     }
 
     return {

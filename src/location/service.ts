@@ -63,6 +63,7 @@ export class LocationService {
             address: newLocation.locationName,
           },
         },
+        addressPoint: location.addressCheckPoint,
       },
     });
     return newLocation.status;
