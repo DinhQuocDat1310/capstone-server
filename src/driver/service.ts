@@ -453,7 +453,7 @@ export class DriversService {
 
     await this.prisma.tracking.create({
       data: {
-        totalKmDriven: dto.idDriverJoinCampaign,
+        totalMeterDriven: dto.totalMeterDriver,
         driverTrackingLocation: {
           connect: {
             id: isDriverTrackingLocationExist.id,
@@ -504,7 +504,7 @@ export class DriversService {
     });
     let total = 0;
     listTracking.forEach((track) => {
-      total += Number(track.totalKmDriven);
+      total += Number(track.totalMeterDriven);
     });
     return total;
   }
