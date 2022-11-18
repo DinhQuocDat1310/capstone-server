@@ -134,7 +134,9 @@ export class DriverController {
     return await this.driverService.saveCurrentLocationDriverByDate(dto);
   }
 
-  @ApiOperation({ summary: 'Get total meter by date' })
+  @ApiOperation({
+    summary: 'Get total meter by date with driverJoineCampaign ID',
+  })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
