@@ -1,8 +1,9 @@
+import { UpdateLocationDTO } from 'src/location/dto';
 import { hash } from 'bcrypt';
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { Role, Status, UserStatus } from '@prisma/client';
 import { PrismaService } from 'src/prisma/service';
-import { LocationDTO, LocationCoordinate } from './dto';
+import { LocationCoordinate, CreateLocationDTO } from './dto';
 import * as haversine from 'haversine-distance';
 
 @Injectable()
@@ -27,7 +28,7 @@ export class LocationService {
         });
   }
 
-  async createNewLocation(location: LocationDTO) {
+  async createNewLocation(location: CreateLocationDTO) {
     const campaign = await this.prisma.locationCampaignPerKm.findFirst({
       where: {
         locationName: location.locationName,
@@ -69,7 +70,7 @@ export class LocationService {
     return newLocation.status;
   }
 
-  async updateLocation(location: LocationDTO) {
+  async updateLocation(location: UpdateLocationDTO) {
     const campaign = await this.prisma.locationCampaignPerKm.findFirst({
       where: {
         id: location.id,
