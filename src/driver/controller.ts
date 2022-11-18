@@ -1,5 +1,4 @@
 import { CreateOdoRequestDTO } from './../brand/dto';
-import { VerifyOdoService } from './../verifyOdo/service';
 import {
   Body,
   Controller,
@@ -43,7 +42,6 @@ export class DriverController {
     private readonly driverService: DriversService,
     private readonly verifyAccountService: VerifyAccountsService,
     private readonly locationService: LocationService,
-    private readonly verifyOdoService: VerifyOdoService,
   ) {}
 
   @ApiBody({ type: DriverVerifyInformationDTO })
@@ -150,34 +148,5 @@ export class DriverController {
     return await this.driverService.getTotalKmByCurrentDate(
       driverJoinCampaignId,
     );
-  }
-
-  @ApiOperation({
-    summary: 'View list request take Odo',
-  })
-  @ApiForbiddenResponse({ description: 'Forbidden' })
-  @ApiBadRequestResponse({ description: 'Bad Request' })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Get('/list/checkOdo')
-  @Status(UserStatus.VERIFIED)
-  @Roles(Role.DRIVER)
-  async getListRequestOdoPending(@Request() req: RequestUser) {
-    return await this.verifyOdoService.getListRequestOdoPending(req.user.id);
-  }
-
-  @ApiOperation({
-    summary: 'Take photo Odo by verifyOdoID',
-  })
-  @ApiForbiddenResponse({ description: 'Forbidden' })
-  @ApiBadRequestResponse({ description: 'Bad Request' })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Post('/send/Odo')
-  @Status(UserStatus.VERIFIED)
-  @Roles(Role.DRIVER)
-  async driverTakePhotoOdo(
-    @Request() req: RequestUser,
-    @Body() dto: CreateOdoRequestDTO,
-  ) {
-    return await this.verifyOdoService.createPhotoOdo(req.user.id, dto);
   }
 }
