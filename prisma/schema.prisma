@@ -64,7 +64,8 @@ model Brand {
   user   User            @relation(fields: [userId], references: [id])
   userId String          @unique
 
-  campaign Campaign[]
+  campaign         Campaign[]
+  verifyOdoRequest VerifyOdo[]
 }
 
 model Driver {
@@ -100,6 +101,7 @@ model DriverJoinCampaign {
   campaign               Campaign                 @relation(fields: [campaignId], references: [id])
   reporterDriverCampaign ReporterDriverCampaign[]
   driverTrackingLocation DriverTrackingLocation[]
+  verifyOdoRequest       VerifyOdo[]
 }
 
 model DriverTrackingLocation {
@@ -321,4 +323,23 @@ model Policies {
   question String
   answer   String
   status   Status @default(ENABLE)
+}
+
+model VerifyOdo {
+  id                   String              @id @default(uuid())
+  status               VerifyStatusOdo     @default(PENDING)
+  createDate           DateTime            @default(now())
+  updateAt             DateTime            @updatedAt
+  imageCarOdoBefore    String?
+  imageCarOdoAfter     String?
+  driverJoinCampaign   DriverJoinCampaign? @relation(fields: [driverJoinCampaignId], references: [id])
+  driverJoinCampaignId String?
+  brand                Brand?              @relation(fields: [brandId], references: [id])
+  brandId              String?
+}
+
+enum VerifyStatusOdo {
+  PENDING
+  SUCCESS
+  CANCELED
 }

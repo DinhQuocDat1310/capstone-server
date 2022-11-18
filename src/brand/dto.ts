@@ -86,3 +86,23 @@ export class UpdateBrandLogoDto {
   @IsUrl(undefined)
   logo: string;
 }
+
+export class CreateOdoRequestDTO {
+  @IsString()
+  @ApiProperty({ type: String, description: 'Verify Odo ID' })
+  verifyOdoId: string;
+
+  @ApiProperty({
+    description: 'URL image of odo before',
+    default: 'image.com',
+  })
+  @IsUrl(undefined)
+  imageOdoBefore: string;
+
+  @ApiProperty({
+    description: 'URL image of odo after',
+    default: 'image.com',
+  })
+  @IsUrl(undefined)
+  imageOdoAfter: string;
+}
