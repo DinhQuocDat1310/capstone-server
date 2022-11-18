@@ -14,6 +14,9 @@ export class LocationDTO {
 
   @ApiProperty({ type: String, description: 'Status of wrap' })
   status: Status;
+
+  @ApiProperty({ type: String, description: 'Address check point' })
+  addressCheckPoint: string;
 }
 
 export class LocationCoordinate {
