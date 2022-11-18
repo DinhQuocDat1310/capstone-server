@@ -81,4 +81,30 @@ export class BrandsService {
       throw new InternalServerErrorException(e.message);
     }
   }
+
+  async createRequestVerifyOdo(userId: string, driverJoinCampaignId: string) {
+    const driverJoinCampaign = await this.prisma.driverJoinCampaign.findFirst({
+      where: {
+        id: driverJoinCampaignId,
+      },
+    });
+    if (!driverJoinCampaign)
+      throw new BadRequestException(
+        'Please try again, this driver is not join your campaign',
+      );
+
+    if (driverJoinCampaign.isRequiredOdo)
+      throw new BadRequestException(
+        'You are request capture odo driver already',
+      );
+
+    await this.prisma.driverJoinCampaign.update({
+      where: {
+        id: driverJoinCampaignId,
+      },
+      data: {
+        isRequiredOdo: true,
+      },
+    });
+  }
 }

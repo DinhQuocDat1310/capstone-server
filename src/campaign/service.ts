@@ -655,8 +655,8 @@ export class CampaignService {
       },
     });
     return {
-      amountDriver: count,
-      totalDriver: isOwnCampaign.quantityDriver,
+      numberDriverRegistered: count,
+      numberTotalCampaignDriver: isOwnCampaign.quantityDriver,
     };
   }
 
@@ -712,5 +712,74 @@ export class CampaignService {
         description,
       },
     });
+  }
+
+  async getKilometerDailyReport(userId: string, campaignId: string) {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: {
+        id: campaignId,
+        brand: {
+          userId,
+        },
+      },
+      include: {
+        driverJoinCampaign: {
+          include: {
+            reporterDriverCampaign: true,
+            driverTrackingLocation: {
+              include: {
+                tracking: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    if (!campaign)
+      throw new BadRequestException('You are not the owner this campaign!');
+
+    const totalKmPerDay = Number(campaign.totalKm) / Number(campaign.duration);
+    const now = moment();
+    const totalLength = now.diff(campaign.startRunningDate);
+    const drivers = await this.prisma.driver.findMany({
+      include: { user: true },
+    });
+    const listDriver = campaign.driverJoinCampaign.map((driverJoin) => {
+      const driver = drivers.find(
+        (driver) => driver.id === driverJoin.driverId,
+      );
+      let totalKm = 0;
+      const driverTracking = driverJoin.driverTrackingLocation.find(
+        (driverTrack) => driverTrack.driverJoinCampaignId === driverJoin.id,
+      );
+      driverTracking.tracking.forEach((track) => {
+        totalKm += Number(track.totalMeterDriven);
+      });
+
+      const reporterImage = driverJoin.reporterDriverCampaign.find(
+        (report) =>
+          report.driverJoinCampaignId === driverTracking.driverJoinCampaignId,
+      );
+
+      return {
+        carOwnerName: driver?.user?.fullname,
+        phoneNumber: driver?.user?.phoneNumber,
+        carId: driver?.idCar,
+        totalKm,
+        listImage: {
+          imageCarBack: reporterImage.imageCarBack,
+          imageCarLeft: reporterImage.imageCarLeft,
+          imageCarRight: reporterImage.imageCarRight,
+          imageCarOdo: reporterImage.imageCarOdo,
+        },
+      };
+    });
+    for (let i = 0; i < totalLength; i++) {
+      const t = {
+        date: moment(campaign.startRunningDate).add(i, 'days'),
+        totalKm: totalKmPerDay,
+        listDriver,
+      };
+    }
   }
 }
