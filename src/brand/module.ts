@@ -1,3 +1,4 @@
+import { VerifyOdoService } from '../verifyOdo/service';
 import { WrapService } from './../wrap/service';
 import { LocationService } from './../location/service';
 import { UsersService } from 'src/user/service';
@@ -20,6 +21,7 @@ import { VerifyAccountsService } from 'src/verifyAccount/service';
     ManagerService,
     LocationService,
     WrapService,
+    VerifyOdoService,
   ],
 })
 export class BrandModule {}
