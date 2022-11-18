@@ -297,14 +297,19 @@ export class DriversService {
   }
 
   async getCampaignJoiningAndJoined(userId: string) {
-    let driverJoinedCampaign = null;
-    let filterFormatJoinedCampaign = {};
-    const listCampaignJoining = await this.prisma.driverJoinCampaign.findMany({
+    const campaigns = await this.prisma.driverJoinCampaign.findMany({
       where: {
         driver: {
           userId,
         },
-        status: 'JOIN',
+        status: {
+          in: ['APPROVE', 'JOIN'],
+        },
+        campaign: {
+          statusCampaign: {
+            in: ['OPEN', 'PAYMENT', 'RUNNING', 'WRAPPING'],
+          },
+        },
       },
       include: {
         campaign: {
@@ -326,114 +331,40 @@ export class DriversService {
         },
       },
     });
-    for (let i = 0; i < listCampaignJoining.length; i++) {
-      const countDriver = await this.prisma.driverJoinCampaign.count({
-        where: {
-          campaignId: listCampaignJoining[i].campaign.id,
-        },
-      });
+
+    const campaignApprove = campaigns.find((cam) => cam.status === 'APPROVE');
+    if (campaignApprove) {
+      const now = moment();
+      const campaignDayCount =
+        now > moment(campaignApprove.createDate)
+          ? now.diff(moment(campaignApprove.createDate), 'days')
+          : 0;
+      campaignApprove['campaignDayCount'] = campaignDayCount;
       const totalMoneyPerDriver =
-        Number(listCampaignJoining[i].campaign.wrapPrice) +
-        Number(listCampaignJoining[i].campaign.minimumKmDrive) *
-          Number(listCampaignJoining[i].campaign.duration) *
-          Number(listCampaignJoining[i].campaign.locationPricePerKm);
+        Number(campaignApprove.campaign.wrapPrice) +
+        Number(campaignApprove.campaign.minimumKmDrive) *
+          Number(campaignApprove.campaign.duration) *
+          Number(campaignApprove.campaign.locationPricePerKm);
 
-      listCampaignJoining[i].campaign['totalMoneyPerDriver'] =
-        totalMoneyPerDriver;
-      listCampaignJoining[i].campaign['quantityDriverJoinning'] = countDriver;
-    }
-    const filterFormatListJoining = listCampaignJoining.map(
-      (campaign) => campaign,
-    );
-
-    driverJoinedCampaign = await this.prisma.driverJoinCampaign.findFirst({
-      where: {
-        driver: {
-          userId,
-        },
-        status: 'APPROVE',
-      },
-      include: {
-        campaign: {
-          include: {
-            locationCampaign: {
-              select: {
-                id: true,
-                locationName: true,
-                addressPoint: true,
-              },
-            },
-            wrap: {
-              select: {
-                id: true,
-                positionWrap: true,
-              },
-            },
-          },
-        },
-      },
-    });
-    if (driverJoinedCampaign !== null) {
-      const countDriver = await this.prisma.driverJoinCampaign.count({
-        where: {
-          campaignId: driverJoinedCampaign.campaign.id,
-        },
-      });
-
-      const totalMoneyPerDriver =
-        Number(driverJoinedCampaign.campaign.wrapPrice) +
-        Number(driverJoinedCampaign.campaign.minimumKmDrive) *
-          Number(driverJoinedCampaign.campaign.duration) *
-          Number(driverJoinedCampaign.campaign.locationPricePerKm);
-
-      const driverTrackingLocation =
-        await this.prisma.driverTrackingLocation.findFirst({
-          where: {
-            driverJoinCampaignId: driverJoinedCampaign.id,
-          },
-        });
-
-      if (!driverTrackingLocation) return 0;
+      campaignApprove.campaign['totalMoneyPerDriver'] = totalMoneyPerDriver;
       const listTracking = await this.prisma.tracking.findMany({
         where: {
           driverTrackingLocation: {
-            driverJoinCampaignId: driverJoinedCampaign.id,
+            driverJoinCampaignId: campaignApprove.id,
           },
         },
         select: {
           totalMeterDriven: true,
         },
       });
+
       let totalKmTraveled = 0;
       listTracking.forEach((track) => {
         totalKmTraveled += Number(track.totalMeterDriven);
       });
-
-      const now = moment();
-      let countDay = 0;
-      if (now > moment(driverJoinedCampaign.campaign.startRunningDate)) {
-        countDay =
-          now.diff(
-            moment(driverJoinedCampaign.campaign.startRunningDate),
-            'days',
-          ) + 2;
-      }
-
-      driverJoinedCampaign.campaign['totalMoneyPerDriver'] =
-        totalMoneyPerDriver;
-      driverJoinedCampaign.campaign['quantityDriverJoinning'] = countDriver;
-      driverJoinedCampaign.campaign['campaignDayCount'] = Math.abs(countDay);
-      driverJoinedCampaign.campaign['checkPointAddress'] =
-        driverJoinedCampaign.campaign?.locationCampaign?.addressPoint;
-      driverJoinedCampaign.campaign['totalKmTraveled'] = totalKmTraveled;
-      filterFormatJoinedCampaign = driverJoinedCampaign;
-      delete driverJoinedCampaign.reporterDriverCampaign;
+      campaignApprove.campaign['totalKmTraveled'] = totalKmTraveled;
     }
-
-    return {
-      driverJoiningCampaign: filterFormatListJoining,
-      driverJoinedCampaign: filterFormatJoinedCampaign,
-    };
+    return campaigns;
   }
 
   async saveCurrentLocationDriverByDate(dto: DriverTrackingLocation) {
