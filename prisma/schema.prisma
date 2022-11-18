@@ -129,7 +129,6 @@ model Reporter {
 
   user                   User                     @relation(fields: [userId], references: [id])
   userId                 String                   @unique
-  addressPoint           String?
   reporterDriverCampaign ReporterDriverCampaign[]
 }
 
@@ -235,6 +234,7 @@ model LocationCampaignPerKm {
   createDate   DateTime   @default(now())
   updateAt     DateTime   @default(now()) @updatedAt
   locationName String
+  addressPoint String
   price        String
   status       Status
   campaign     Campaign[]

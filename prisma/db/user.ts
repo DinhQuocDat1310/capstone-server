@@ -1,7 +1,4 @@
-import {
-  FAKE_ADDRESS,
-  FAKE_ADDRESS_POINT,
-} from './../../src/constants/fake-data';
+import { FAKE_ADDRESS } from './../../src/constants/fake-data';
 import { Role, UserStatus } from '@prisma/client';
 import { hash } from 'bcrypt';
 export const users = async (): Promise<any[]> => {
@@ -68,7 +65,6 @@ export const users = async (): Promise<any[]> => {
       fullname: `Reporter ${i + 1}`,
       status: UserStatus.VERIFIED,
       address: FAKE_ADDRESS[i],
-      addressPoint: FAKE_ADDRESS_POINT[i],
       reporter: {
         create: {},
       },

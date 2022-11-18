@@ -313,6 +313,7 @@ export class DriversService {
               select: {
                 id: true,
                 locationName: true,
+                addressPoint: true,
               },
             },
             wrap: {
@@ -359,21 +360,13 @@ export class DriversService {
               select: {
                 id: true,
                 locationName: true,
+                addressPoint: true,
               },
             },
             wrap: {
               select: {
                 id: true,
                 positionWrap: true,
-              },
-            },
-          },
-        },
-        reporterDriverCampaign: {
-          select: {
-            reporter: {
-              select: {
-                addressPoint: true,
               },
             },
           },
@@ -431,7 +424,7 @@ export class DriversService {
       driverJoinedCampaign.campaign['quantityDriverJoinning'] = countDriver;
       driverJoinedCampaign.campaign['campaignDayCount'] = Math.abs(countDay);
       driverJoinedCampaign.campaign['checkPointAddress'] =
-        driverJoinedCampaign.reporterDriverCampaign[0]?.reporter?.addressPoint;
+        driverJoinedCampaign.campaign?.locationCampaign?.addressPoint;
       driverJoinedCampaign.campaign['totalKmTraveled'] = totalKmTraveled;
       filterFormatJoinedCampaign = driverJoinedCampaign;
       delete driverJoinedCampaign.reporterDriverCampaign;

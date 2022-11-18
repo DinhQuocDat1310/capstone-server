@@ -39,6 +39,7 @@ export class LocationService {
         locationName: location.locationName,
         price: location.price,
         status: Status.ENABLE,
+        addressPoint: location.addressCheckPoint,
       },
       select: {
         id: true,
@@ -63,7 +64,6 @@ export class LocationService {
             address: newLocation.locationName,
           },
         },
-        addressPoint: location.addressCheckPoint,
       },
     });
     return newLocation.status;
@@ -83,6 +83,7 @@ export class LocationService {
       data: {
         price: location.price,
         status: location.status,
+        addressPoint: location.addressCheckPoint,
       },
     });
   }
