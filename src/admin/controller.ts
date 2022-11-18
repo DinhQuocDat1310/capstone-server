@@ -27,7 +27,7 @@ import { StatusGuard } from 'src/guard/userStatus.guard';
 import { AdminService } from './service';
 import { AssignDto, ManagerDTO } from 'src/manager/dto';
 import { LocationService } from 'src/location/service';
-import { LocationDTO } from 'src/location/dto';
+import { CreateLocationDTO, UpdateLocationDTO } from 'src/location/dto';
 import { WrapDTO } from 'src/wrap/dto';
 import { WrapService } from 'src/wrap/service';
 
@@ -143,7 +143,7 @@ export class AdminController {
     return await this.locationService.getListLocation(userReq.user.role);
   }
 
-  @ApiBody({ type: LocationDTO })
+  @ApiBody({ type: CreateLocationDTO })
   @ApiOperation({ summary: 'Create location' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
@@ -151,11 +151,11 @@ export class AdminController {
   @Status(UserStatus.VERIFIED)
   @Roles(Role.ADMIN)
   @Post('/location')
-  async createLocation(@Body() dto: LocationDTO) {
+  async createLocation(@Body() dto: CreateLocationDTO) {
     return await this.locationService.createNewLocation(dto);
   }
 
-  @ApiBody({ type: LocationDTO })
+  @ApiBody({ type: UpdateLocationDTO })
   @ApiOperation({ summary: 'Update location' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
@@ -163,7 +163,7 @@ export class AdminController {
   @Status(UserStatus.VERIFIED)
   @Roles(Role.ADMIN)
   @Put('/location')
-  async updateLocation(@Body() dto: LocationDTO) {
+  async updateLocation(@Body() dto: UpdateLocationDTO) {
     return await this.locationService.updateLocation(dto);
   }
 

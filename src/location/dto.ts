@@ -2,7 +2,18 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Status } from '@prisma/client';
 import { IsLatitude, IsLongitude } from 'class-validator';
 
-export class LocationDTO {
+export class CreateLocationDTO {
+  @ApiProperty({ type: String, description: 'name location' })
+  locationName: string;
+
+  @ApiProperty({ type: String, description: 'price on 1 km' })
+  price: string;
+
+  @ApiProperty({ type: String, description: 'Address check point' })
+  addressCheckPoint: string;
+}
+
+export class UpdateLocationDTO {
   @ApiProperty({ type: String, description: 'id location' })
   id: string;
 
@@ -12,7 +23,7 @@ export class LocationDTO {
   @ApiProperty({ type: String, description: 'price on 1 km' })
   price: string;
 
-  @ApiProperty({ type: String, description: 'Status of wrap' })
+  @ApiProperty({ type: String, description: 'Status of location' })
   status: Status;
 
   @ApiProperty({ type: String, description: 'Address check point' })
