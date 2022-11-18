@@ -18,7 +18,7 @@ export class PaymentService {
       },
     });
     if (!contract)
-      throw new BadRequestException('Please input correct contract ID');
+      throw new BadRequestException('Please input correct campaign ID');
 
     const accessToken = await this.generateAccessToken();
     const url = `${process.env.BASE}/v2/checkout/orders`;

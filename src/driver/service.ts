@@ -483,11 +483,12 @@ export class DriversService {
         },
       });
 
-    if (!driverJoinCampaign) return 0;
-
+    if (!driverTrackingLocation) return 0;
     const listTracking = await this.prisma.tracking.findMany({
       where: {
-        driverTrackingLocationId: driverTrackingLocation.id,
+        driverTrackingLocation: {
+          driverJoinCampaignId: driverJoinCampaign.id,
+        },
         OR: [
           {
             timeSubmit: {
