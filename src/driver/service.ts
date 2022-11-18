@@ -306,7 +306,7 @@ export class DriversService {
         },
         status: 'JOIN',
       },
-      select: {
+      include: {
         campaign: {
           include: {
             locationCampaign: {
@@ -342,7 +342,7 @@ export class DriversService {
       listCampaignJoining[i].campaign['quantityDriverJoinning'] = countDriver;
     }
     const filterFormatListJoining = listCampaignJoining.map(
-      (campaign) => campaign.campaign,
+      (campaign) => campaign,
     );
 
     driverJoinedCampaign = await this.prisma.driverJoinCampaign.findFirst({
@@ -352,7 +352,7 @@ export class DriversService {
         },
         status: 'APPROVE',
       },
-      select: {
+      include: {
         campaign: {
           include: {
             locationCampaign: {
@@ -401,7 +401,7 @@ export class DriversService {
       driverJoinedCampaign.campaign['checkPointAddress'] = null;
       driverJoinedCampaign.campaign['totalKmTraveled'] = null;
       driverJoinedCampaign.campaign['totalDriverKm'] = null;
-      filterFormatJoinedCampaign = driverJoinedCampaign.campaign;
+      filterFormatJoinedCampaign = driverJoinedCampaign;
     }
 
     return {
