@@ -1,6 +1,7 @@
 import { Status } from '@prisma/client';
 import {
   FAKE_ADDRESS,
+  FAKE_ADDRESS_POINT,
   FAKE_PRICE_PER_KM,
 } from './../../src/constants/fake-data';
 export const location = async (): Promise<any[]> => {
@@ -10,6 +11,7 @@ export const location = async (): Promise<any[]> => {
       locationName: `${FAKE_ADDRESS[i]}`,
       price: `${FAKE_PRICE_PER_KM[i]}`,
       status: Status.ENABLE,
+      addressPoint: FAKE_ADDRESS_POINT[i],
     });
   }
   return [...locations];
