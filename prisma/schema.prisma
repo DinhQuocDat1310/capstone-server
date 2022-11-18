@@ -64,8 +64,7 @@ model Brand {
   user   User            @relation(fields: [userId], references: [id])
   userId String          @unique
 
-  campaign         Campaign[]
-  verifyOdoRequest VerifyOdo[]
+  campaign Campaign[]
 }
 
 model Driver {
@@ -95,13 +94,14 @@ model DriverJoinCampaign {
   updateDate  DateTime         @updatedAt
   description String?
 
-  driverId               String
-  driver                 Driver                   @relation(fields: [driverId], references: [id])
-  campaignId             String
-  campaign               Campaign                 @relation(fields: [campaignId], references: [id])
+  driverId      String
+  driver        Driver   @relation(fields: [driverId], references: [id])
+  campaignId    String
+  campaign      Campaign @relation(fields: [campaignId], references: [id])
+  isRequiredOdo Boolean  @default(true)
+
   reporterDriverCampaign ReporterDriverCampaign[]
   driverTrackingLocation DriverTrackingLocation[]
-  verifyOdoRequest       VerifyOdo[]
 }
 
 model DriverTrackingLocation {
@@ -137,10 +137,9 @@ model Reporter {
 model ReporterDriverCampaign {
   id                   String             @id @default(uuid())
   imageCarBack         String
-  imageCarLeft         String
-  imageCarRight        String
-  imageCarOdoBefore    String?
-  imageCarOdoAfter     String?
+  imageCarLeft         String?
+  imageCarRight        String?
+  imageCarOdo          String?
   createDate           DateTime           @default(now())
   isChecked            Boolean            @default(false)
   reporter             Reporter           @relation(fields: [reporterId], references: [id])
@@ -323,23 +322,4 @@ model Policies {
   question String
   answer   String
   status   Status @default(ENABLE)
-}
-
-model VerifyOdo {
-  id                   String              @id @default(uuid())
-  status               VerifyStatusOdo     @default(PENDING)
-  createDate           DateTime            @default(now())
-  updateAt             DateTime            @updatedAt
-  imageCarOdoBefore    String?
-  imageCarOdoAfter     String?
-  driverJoinCampaign   DriverJoinCampaign? @relation(fields: [driverJoinCampaignId], references: [id])
-  driverJoinCampaignId String?
-  brand                Brand?              @relation(fields: [brandId], references: [id])
-  brandId              String?
-}
-
-enum VerifyStatusOdo {
-  PENDING
-  SUCCESS
-  CANCELED
 }
