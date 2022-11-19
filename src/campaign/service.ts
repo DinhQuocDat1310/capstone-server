@@ -814,6 +814,7 @@ export class CampaignService {
         );
 
         return {
+          driverJoinCampaignId: driverJoin.id,
           carOwnerName: driver?.user?.fullname,
           phoneNumber: driver?.user?.phoneNumber,
           carId: driver?.idCar,

@@ -185,17 +185,6 @@ export class CampaignController {
     );
   }
 
-  @ApiOperation({ summary: 'Move to next step for campaigns' })
-  @ApiForbiddenResponse({ description: 'Forbidden' })
-  @ApiBadRequestResponse({ description: 'Bad Request' })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @ApiCreatedResponse({ description: 'Create' })
-  @Roles(Role.ADMIN)
-  @Post('/steps')
-  async moveToNextStepCampaign(@Body() dto: StepsCampaignDTO) {
-    this.campaignService.moveToNextStepCampaign(dto);
-  }
-
   @ApiOperation({ summary: 'Get total final kilometer report' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
