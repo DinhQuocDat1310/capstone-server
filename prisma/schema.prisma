@@ -19,7 +19,6 @@ model User {
   fullname    String?
   address     String?
   isActive    Boolean    @default(true)
-  isAdmin     Boolean    @default(false)
   role        Role
   status      UserStatus @default(INIT)
 

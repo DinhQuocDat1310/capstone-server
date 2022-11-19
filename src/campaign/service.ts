@@ -742,21 +742,21 @@ export class CampaignService {
     });
     if (!campaign)
       throw new BadRequestException('Campaign not found or not finished yet');
-    let totalKmFinalReport = 0;
+    let totalMeterFinalReport = 0;
 
     const driverTracking = campaign.driverJoinCampaign;
 
     driverTracking.forEach((driver) =>
       driver.driverTrackingLocation.forEach((track) =>
         track.tracking.forEach(
-          (total) => (totalKmFinalReport += Number(total.totalMeterDriven)),
+          (total) => (totalMeterFinalReport += Number(total.totalMeterDriven)),
         ),
       ),
     );
     const totalKm = campaign.totalKm;
     return {
       totalKm,
-      totalKmFinalReport,
+      totalKmFinalReport: totalMeterFinalReport / 1000,
     };
   }
 
@@ -786,7 +786,7 @@ export class CampaignService {
 
     const totalKmPerDay = Number(campaign.totalKm) / Number(campaign.duration);
     const now = moment();
-    const totalLength = now.diff(campaign.startRunningDate);
+    const totalLength = now.diff(campaign.startRunningDate, 'days');
     const drivers = await this.prisma.driver.findMany({
       include: { user: true },
     });
