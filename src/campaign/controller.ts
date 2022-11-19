@@ -172,7 +172,7 @@ export class CampaignController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiCreatedResponse({ description: 'Create' })
-  @Roles(Role.BRAND)
+  @Roles(Role.BRAND, Role.MANAGER)
   @Status(UserStatus.VERIFIED)
   @Get('/km-daily-report/:id')
   async getDailyReportKilometer(

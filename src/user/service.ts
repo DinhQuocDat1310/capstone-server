@@ -107,7 +107,6 @@ export class UsersService {
           email: true,
           fullname: true,
           role: true,
-          isAdmin: true,
           isActive: true,
           status: true,
         },
