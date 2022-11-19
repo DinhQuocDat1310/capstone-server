@@ -13,14 +13,14 @@ export const campaignRunning = async () => {
   });
   const wrap = await prisma.wrap.findFirst({});
   const location = await prisma.locationCampaignPerKm.findFirst({});
-  const now = moment();
+
   const dtoCampaign: CampaignVerifyInformationDTO = {
     idLocation: location.id,
     idWrap: wrap.id,
     priceLocation: location.price,
     priceWrap: wrap.price,
     campaignName: 'Campaign Running Prisma',
-    startRunningDate: now.add(-5, 'days').toISOString(),
+    startRunningDate: moment(new Date()).subtract(4, 'days').toISOString(),
     duration: '30',
     totalKm: '15000',
     quantityDriver: `50`,
@@ -28,12 +28,11 @@ export const campaignRunning = async () => {
     minimumKmDrive: '10',
     poster: FAKE_LOGO[5],
   };
-  const currentDate = new Date(dtoCampaign.startRunningDate);
   const campaign = await prisma.campaign.create({
     data: {
       statusCampaign: 'RUNNING',
       campaignName: dtoCampaign.campaignName,
-      startRunningDate: currentDate.toISOString(),
+      startRunningDate: dtoCampaign.startRunningDate,
       quantityDriver: dtoCampaign.quantityDriver,
       totalKm: dtoCampaign.totalKm,
       description: dtoCampaign.description,
@@ -42,10 +41,10 @@ export const campaignRunning = async () => {
       locationPricePerKm: dtoCampaign.priceLocation,
       wrapPrice: dtoCampaign.priceWrap,
       duration: dtoCampaign.duration,
-      startRegisterDate: now.add(-18, 'days').toISOString(),
-      endRegisterDate: now.add(-13, 'days').toISOString(),
-      startWrapDate: now.add(-6, 'days').toISOString(),
-      endWrapDate: now.add(-1, 'days').toISOString(),
+      startRegisterDate: moment(new Date()).subtract(22, 'days').toISOString(),
+      endRegisterDate: moment(new Date()).subtract(17, 'days').toISOString(),
+      startWrapDate: moment(new Date()).subtract(10, 'days').toISOString(),
+      endWrapDate: moment(new Date()).subtract(5, 'days').toISOString(),
       brand: {
         connect: {
           userId: brand.userId,
@@ -140,10 +139,10 @@ export const campaignRunning = async () => {
         },
       },
       type: 'PREPAY',
-      createDate: now.add(-7, 'days').toISOString(),
-      expiredDate: now.add(-12, 'days').toISOString(),
+      createDate: moment(new Date()).subtract(11, 'days').toISOString(),
+      expiredDate: moment(new Date()).subtract(16, 'days').toISOString(),
       price: totalDeposit.toString(),
-      paidDate: now.add(-10, 'days').toISOString(),
+      paidDate: moment(new Date()).subtract(14, 'days').toISOString(),
     },
   });
   const reporter = await prisma.reporter.findFirst({
