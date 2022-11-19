@@ -671,7 +671,7 @@ export class CampaignService {
   }
 
   async getAllCampaignRegisterIsExpired() {
-    const now = moment();
+    const now = moment(new Date());
     const campaigns = await this.prisma.campaign.findMany({
       where: {
         statusCampaign: 'OPEN',
@@ -681,7 +681,7 @@ export class CampaignService {
   }
 
   async getAllCampaignWrapIsExpired() {
-    const now = moment();
+    const now = moment(new Date());
     const campaigns = await this.prisma.campaign.findMany({
       where: {
         statusCampaign: 'WRAPPING',
@@ -785,7 +785,7 @@ export class CampaignService {
       throw new BadRequestException('You are not the owner this campaign!');
 
     const totalKmPerDay = Number(campaign.totalKm) / Number(campaign.duration);
-    const now = moment();
+    const now = moment(new Date());
     const totalLength = now.diff(campaign.startRunningDate, 'days');
     const drivers = await this.prisma.driver.findMany({
       include: { user: true },

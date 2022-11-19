@@ -146,7 +146,7 @@ export class ReporterService {
     if (!dataDriver) {
       throw new BadRequestException('CarId is not in reporter location');
     }
-    const now = moment();
+    const now = moment(new Date());
     let resultCheck = null;
     let checkedResult = false;
     if (dataDriver.reporterDriverCampaign[0]) {
@@ -219,7 +219,7 @@ export class ReporterService {
       },
     );
 
-    const now = moment();
+    const now = moment(new Date());
     if (dataDriverReport) {
       const dateCreateCheck = moment(dataDriverReport.createDate);
       const differDateCheck = now.diff(dateCreateCheck, 'days');

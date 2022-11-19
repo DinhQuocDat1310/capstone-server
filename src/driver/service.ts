@@ -119,7 +119,7 @@ export class DriversService {
         throw new Error('This campaign is not host in your location!!!');
       }
 
-      const now = moment();
+      const now = moment(new Date());
       if (
         now < moment(campaign.startRegisterDate) ||
         now > moment(campaign.endRegisterDate)
@@ -334,11 +334,12 @@ export class DriversService {
 
     const campaignApprove = campaigns.find((cam) => cam.status === 'APPROVE');
     if (campaignApprove) {
-      const now = moment();
-      const campaignDayCount =
-        now > moment(campaignApprove.createDate)
-          ? now.diff(moment(campaignApprove.createDate), 'days')
-          : 0;
+      const now = moment(new Date());
+      const campaignDayCount = now.diff(
+        moment(campaignApprove.campaign.startRunningDate),
+        'days',
+      );
+
       campaignApprove['campaignDayCount'] = campaignDayCount;
       const totalMoneyPerDriver =
         Number(campaignApprove.campaign.wrapPrice) +
@@ -388,7 +389,7 @@ export class DriversService {
         },
       });
 
-    const toDay = moment();
+    const toDay = moment(new Date());
     let isDriverTrackingLocationExist = listDriverTrackingLocation.find(
       (track) => {
         return toDay.diff(track.createDate) === 0;
@@ -433,19 +434,21 @@ export class DriversService {
         'This campaign id is already closed, please contact to admin to get more details.',
       );
 
-    const driverTrackingLocation =
-      await this.prisma.driverTrackingLocation.findFirst({
+    const listDriverTrackingLocation =
+      await this.prisma.driverTrackingLocation.findMany({
         where: {
           driverJoinCampaignId: driverJoinCampaign.id,
         },
       });
 
+    const driverTrackingLocation = listDriverTrackingLocation.find(
+      (driverTracking) =>
+        moment(new Date()).diff(driverTracking.createDate, 'days') === 0,
+    );
     if (!driverTrackingLocation) return 0;
     const listTracking = await this.prisma.tracking.findMany({
       where: {
-        driverTrackingLocation: {
-          driverJoinCampaignId: driverJoinCampaign.id,
-        },
+        driverTrackingLocationId: driverTrackingLocation.id,
         OR: [
           {
             timeSubmit: {

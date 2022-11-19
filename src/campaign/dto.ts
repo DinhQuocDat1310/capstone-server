@@ -44,7 +44,7 @@ export class CampaignVerifyInformationDTO {
   @Matches(/([1-9]|1[012])[/]([1-9]|[12][0-9]|3[01])[/](19|20)[0-9]{2}/, {
     message: 'Start running date must be format MM/DD/YYYY',
   })
-  startRunningDate: string;
+  startRunningDate: string | Date;
 
   @ApiProperty({
     description: 'Duration running Campaign',

@@ -131,7 +131,7 @@ export class PaymentService {
         price: `${Number(contract.totalDriverMoney) * 0.2}`,
         expiredDate: moment(new Date(), 'MM-DD-YYYY')
           .add(gapDatePayment, 'days')
-          .toDate(),
+          .toISOString(),
         campaign: {
           connect: {
             id: campaignId,
@@ -164,7 +164,7 @@ export class PaymentService {
         price: `${totalMoney * 0.2}`,
         expiredDate: moment(new Date(), 'MM-DD-YYYY')
           .add(gapDatePayment, 'days')
-          .toDate(),
+          .toISOString(),
         campaign: {
           connect: {
             id: campaignId,
