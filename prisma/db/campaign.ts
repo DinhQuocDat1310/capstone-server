@@ -161,9 +161,16 @@ export const campaignRunning = async () => {
     for (let j = 0; j < driverJoinCampaign.length; j++) {
       await prisma.reporterDriverCampaign.create({
         data: {
+          createDate: moment(campaign.startRunningDate)
+            .add(i, 'days')
+            .toISOString(),
           imageCarBack: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
           imageCarLeft: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
           imageCarRight: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
+          imageCarOdo:
+            i === 0
+              ? FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)]
+              : undefined,
           isChecked: true,
           driverJoinCampaignId: driverJoinCampaign[j].id,
           reporterId: reporter.id,
@@ -171,6 +178,9 @@ export const campaignRunning = async () => {
       });
       const driverTracking = await prisma.driverTrackingLocation.create({
         data: {
+          createDate: moment(campaign.startRunningDate)
+            .add(i, 'days')
+            .toISOString(),
           driverJoinCampaign: {
             connect: {
               id: driverJoinCampaign[j].id,
