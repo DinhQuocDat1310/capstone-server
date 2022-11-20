@@ -14,7 +14,7 @@ export class AuthService {
   async signInUser(user: UserSignIn) {
     const payload = {
       sub: user.id,
-      username: user.role === 'DRIVER' ? user.phoneNumber : user.email,
+      username: user.email,
     };
     return { accessToken: this.jwtService.sign(payload) };
   }

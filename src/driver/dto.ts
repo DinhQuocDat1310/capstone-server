@@ -1,20 +1,28 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNumberString, IsString, IsUrl } from 'class-validator';
+import {
+  IsEmail,
+  IsNumberString,
+  IsString,
+  IsUrl,
+  Matches,
+} from 'class-validator';
 
 export class DriverVerifyInformationDTO {
-  @ApiProperty({
-    description: 'Name of Driver',
-    default: 'Nguyen Van A',
-  })
-  @IsString()
-  fullname: string;
-
   @ApiProperty({
     description: `driver's address`,
     default: 'Ho Chi Minh',
   })
   @IsString()
   address: string;
+
+  @ApiProperty({
+    description: 'phone number',
+    default: '0123456789',
+  })
+  @Matches(/^0\d{9}$|\+84\d{9}$/, {
+    message: 'Incorrect phone number format. Please input 10 digits',
+  })
+  phoneNumber: string;
 
   @ApiProperty({
     description: 'email',

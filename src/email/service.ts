@@ -23,7 +23,7 @@ export class EmailsService {
     private readonly configService: AppConfigService,
   ) {}
 
-  async sendOTP(userReq: UserSignIn) {
+  async sendBrandOTP(userReq: UserSignIn) {
     const code = Math.floor(100000 + Math.random() * 900000);
     const user = await this.userService.getUserBrandInfo(
       userReq.email,
@@ -51,6 +51,45 @@ export class EmailsService {
       subject: 'Your verify code for Brandvertise',
       html: `
       <h1 style="color: green">Hello ${user.brand.brandName},</h1></br>
+      <p>Thanks for becoming Brandvertise's partner!</p>
+      <p>Enter Code: <b>${code}</b> in the app to verify your Email. Your code <b>expired in 5 minutes</b> later.</p></br>
+      <p>Regards,</p>
+      <p style="color: green">Brandvertise</p>
+      `,
+    });
+    return {
+      timeExpiredInSecond: EXPIRED_CODE_FIVE_MINUTES,
+    };
+  }
+
+  async sendDriverOTP(userReq: UserSignIn) {
+    const code = Math.floor(100000 + Math.random() * 900000);
+    const user = await this.userService.getUserDriverInfo(
+      userReq.email,
+      userReq.role,
+    );
+    const codeCached: { code: string; remainingInput: number } =
+      await this.cacheManager.get(user.email);
+    if (codeCached) {
+      throw new BadRequestException(
+        'We have sent the code to your email. Please try again in a few minutes.',
+      );
+    }
+
+    await this.cacheManager.set(
+      user.email,
+      {
+        code: code.toString(),
+        remainingInput: 5,
+      },
+      { ttl: EXPIRED_CODE_FIVE_MINUTES },
+    );
+    await this.mailerService.sendMail({
+      to: user.email,
+      from: this.configService.getConfig('MAILER'),
+      subject: 'Your verify code for Brandvertise',
+      html: `
+      <h1 style="color: green">Hello ${user.fullname},</h1></br>
       <p>Thanks for becoming Brandvertise's partner!</p>
       <p>Enter Code: <b>${code}</b> in the app to verify your Email. Your code <b>expired in 5 minutes</b> later.</p></br>
       <p>Regards,</p>

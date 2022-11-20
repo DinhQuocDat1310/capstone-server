@@ -31,10 +31,22 @@ export class EmailsController {
   @ApiOkResponse({ description: 'ok' })
   @Roles(Role.BRAND)
   @Status(UserStatus.INIT)
-  @Post('/otp/generate')
+  @Post('/brand/otp/generate')
   @ApiOperation({ summary: 'Send code to email' })
-  async sendOtpToEmail(@Request() req: RequestUser) {
-    return await this.emailService.sendOTP(req.user);
+  async sendOtpToBrandEmail(@Request() req: RequestUser) {
+    return await this.emailService.sendBrandOTP(req.user);
+  }
+
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiOkResponse({ description: 'ok' })
+  @Roles(Role.DRIVER)
+  @Status(UserStatus.INIT)
+  @Post('/driver/otp/generate')
+  @ApiOperation({ summary: 'Send code to email' })
+  async sendOtpToDriverEmail(@Request() req: RequestUser) {
+    return await this.emailService.sendDriverOTP(req.user);
   }
 
   @ApiBody({ type: VerifyDto })
@@ -42,7 +54,7 @@ export class EmailsController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiOperation({ summary: 'Verify email' })
-  @Roles(Role.BRAND)
+  @Roles(Role.BRAND, Role.DRIVER)
   @Status(UserStatus.INIT)
   @Post('/otp/verify')
   async inputCodeVerifyEmail(
