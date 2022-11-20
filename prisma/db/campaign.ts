@@ -63,7 +63,14 @@ export const campaignRunning = async () => {
     },
   });
 
-  const drivers = await prisma.driver.findMany({ take: 50 });
+  const drivers = await prisma.driver.findMany({
+    where: {
+      user: {
+        address: 'TP Hồ Chí Minh',
+      },
+    },
+    take: 50,
+  });
 
   for (let i = 0; i < drivers.length; i++) {
     await prisma.driverJoinCampaign.create({
@@ -154,6 +161,7 @@ export const campaignRunning = async () => {
   });
 
   const driverJoinCampaign = await prisma.driverJoinCampaign.findMany({
+    where: { campaignId: campaign.id, status: 'APPROVE' },
     take: 50,
   });
   for (let i = 0; i < 5; i++) {
