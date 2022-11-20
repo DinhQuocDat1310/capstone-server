@@ -61,7 +61,6 @@ export class TasksService {
         );
       }
     }
-    this.logger.debug(campaigns);
   }
 
   @Cron(CronExpression.MONDAY_TO_FRIDAY_AT_11PM)
@@ -78,6 +77,33 @@ export class TasksService {
       );
     }
   }
+
+  // TODO: handle finish finish
+  // @Cron(CronExpression.MONDAY_TO_FRIDAY_AT_11PM)
+  // async handleCompleteRunningCampaignPhase() {
+  //   const campaigns =
+  //     await this.campaignsService.getAllCampaignRunningIsExpired();
+  //   if (campaigns.length === 0) {
+  //     this.logger.debug('No campaigns is end running phase today');
+  //     return;
+  //   }
+
+  //   for (let i = 0; i < campaigns.length; i++) {
+  //     const amountDriverJoin =
+  //       await this.campaignsService.getAmountDriverJoinCampaignTask(
+  //         campaigns[i].id,
+  //       );
+  //     await this.campaignsService.updateStatusCampaign(
+  //       campaigns[i].id,
+  //       CampaignStatus.PAYMENT,
+  //     );
+  //     await this.driverService.updateAllStatusDriverJoinCampaign(
+  //       campaigns[i].id,
+  //       StatusDriverJoin.APPROVE,
+  //     );
+  //     await this.paymentService.createPaymentPrePayForCampaign(campaigns[i].id);
+  //   }
+  // }
 
   @Cron(CronExpression.MONDAY_TO_FRIDAY_AT_11PM)
   async handleAddManagerVerifyAccountData() {

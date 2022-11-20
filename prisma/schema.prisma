@@ -225,6 +225,7 @@ enum CampaignStatus {
   PAYMENT
   WRAPPING
   RUNNING
+  FINISH
   CLOSED
   CANCELED
 }
