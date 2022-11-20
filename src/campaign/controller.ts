@@ -22,7 +22,7 @@ import {
 import { Role, UserStatus } from '@prisma/client';
 import { RequestUser } from 'src/auth/dto';
 import { Roles, Status } from 'src/guard/decorators';
-import { CampaignVerifyInformationDTO, StepsCampaignDTO } from './dto';
+import { CampaignVerifyInformationDTO } from './dto';
 import { CampaignService } from './service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/guard/roles.guard';

@@ -121,6 +121,7 @@ export class ReporterService {
         id: true,
         createDate: true,
         status: true,
+        isRequiredOdo: true,
         driver: {
           include: {
             user: true,
@@ -190,7 +191,6 @@ export class ReporterService {
       },
     });
 
-    // TODO: bug
     const dataDriverReport = await this.prisma.reporterDriverCampaign.findFirst(
       {
         where: {
@@ -200,6 +200,11 @@ export class ReporterService {
               address: reporter.user.address,
             },
           },
+          driverJoinCampaign: {
+            campaign: {
+              statusCampaign: 'RUNNING',
+            },
+          },
         },
         select: {
           reporterId: true,
@@ -207,6 +212,7 @@ export class ReporterService {
           isChecked: true,
           driverJoinCampaign: {
             select: {
+              isRequiredOdo: true,
               driver: {
                 select: {
                   idCar: true,
@@ -232,17 +238,49 @@ export class ReporterService {
         throw new BadRequestException('Today is checked for this driver');
       }
     }
-    await this.prisma.reporterDriverCampaign.create({
-      data: {
-        imageCarBack: dto.imageCarBack,
-        imageCarLeft: dto.imageCarLeft,
-        imageCarRight: dto.imageCarRight,
-        imageCarOdo: dto.imageCarOdo,
-        isChecked: true,
-        driverJoinCampaignId: dto.driverJoinCampaignId,
-        reporterId: reporter.id,
-      },
-    });
+    if (dataDriverReport.driverJoinCampaign.isRequiredOdo && !dto.imageCarOdo) {
+      throw new BadRequestException(
+        'Odo image is required. Please take photo Odo',
+      );
+    }
+    if (!dataDriverReport.driverJoinCampaign.isRequiredOdo && dto.imageCarOdo) {
+      throw new BadRequestException(
+        'Odo image is not required. Please remove field Odo',
+      );
+    }
+    if (!dataDriverReport.driverJoinCampaign.isRequiredOdo) {
+      await this.prisma.reporterDriverCampaign.create({
+        data: {
+          imageCarBack: dto.imageCarBack,
+          imageCarLeft: dto.imageCarLeft,
+          imageCarRight: dto.imageCarRight,
+          isChecked: true,
+          driverJoinCampaignId: dto.driverJoinCampaignId,
+          reporterId: reporter.id,
+        },
+      });
+    } else {
+      await this.prisma.reporterDriverCampaign.create({
+        data: {
+          imageCarBack: dto.imageCarBack,
+          imageCarLeft: dto.imageCarLeft,
+          imageCarRight: dto.imageCarRight,
+          imageCarOdo: dto.imageCarOdo,
+          isChecked: true,
+          driverJoinCampaignId: dto.driverJoinCampaignId,
+          reporterId: reporter.id,
+        },
+      });
+      await this.prisma.driverJoinCampaign.update({
+        where: {
+          id: dto.driverJoinCampaignId,
+        },
+        data: {
+          isRequiredOdo: false,
+        },
+      });
+    }
+
     return 'Checked success';
   }
 }
