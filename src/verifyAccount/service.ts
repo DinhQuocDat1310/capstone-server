@@ -825,7 +825,7 @@ export class VerifyAccountsService {
           select: {
             user: {
               select: {
-                phoneNumber: true,
+                fullname: true,
               },
             },
           },
@@ -854,7 +854,7 @@ export class VerifyAccountsService {
     const mapDriver = taskAccount
       .map((task) => task)
       .map((task) => {
-        const name = task?.driver?.user?.phoneNumber;
+        const name = task?.driver?.user?.fullname;
         if (task?.driver) {
           delete task?.driver;
           delete task?.brand;

@@ -804,10 +804,7 @@ export class CampaignService {
         );
 
         const reporterImage = driverJoin.reporterDriverCampaign.find(
-          (report) =>
-            report.driverJoinCampaignId ===
-              driverTracking.driverJoinCampaignId ||
-            date.diff(report.createDate) === 0,
+          (report) => date.diff(report.createDate) === 0,
         );
 
         return {
@@ -844,5 +841,45 @@ export class CampaignService {
       });
     }
     return array;
+  }
+
+  async getListDriverRunning(userId: string, campaignId: string) {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: {
+        id: campaignId,
+        brand: {
+          userId,
+        },
+      },
+      include: {
+        driverJoinCampaign: {
+          include: {
+            reporterDriverCampaign: true,
+            driverTrackingLocation: {
+              include: {
+                tracking: true,
+              },
+            },
+            driver: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    if (!campaign)
+      throw new BadRequestException('You are not the owner this campaign!');
+
+    return await this.prisma.driverJoinCampaign.findMany({
+      where: {
+        status: 'APPROVE',
+        campaign: {
+          id: campaignId,
+          statusCampaign: 'RUNNING',
+        },
+      },
+    });
   }
 }

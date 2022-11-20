@@ -171,7 +171,6 @@ export class CampaignController {
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @ApiCreatedResponse({ description: 'Create' })
   @Roles(Role.BRAND, Role.MANAGER)
   @Status(UserStatus.VERIFIED)
   @Get('/km-daily-report/:id')
@@ -180,6 +179,23 @@ export class CampaignController {
     @Param('id') campaignId: string,
   ) {
     return await this.campaignService.getKilometerDailyReport(
+      req.user.id,
+      campaignId,
+    );
+  }
+
+  @ApiOperation({ summary: 'Get list driver running of campaign' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Roles(Role.BRAND, Role.MANAGER)
+  @Status(UserStatus.VERIFIED)
+  @Get('/list-driver-running/:id')
+  async getListDriverRunning(
+    @Request() req: RequestUser,
+    @Param('id') campaignId: string,
+  ) {
+    return await this.campaignService.getListDriverRunning(
       req.user.id,
       campaignId,
     );

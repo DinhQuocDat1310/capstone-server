@@ -314,6 +314,12 @@ export class DriversService {
       include: {
         campaign: {
           include: {
+            brand: {
+              select: {
+                brandName: true,
+                logo: true,
+              },
+            },
             locationCampaign: {
               select: {
                 id: true,
@@ -364,8 +370,19 @@ export class DriversService {
         totalKmTraveled += Number(track.totalMeterDriven);
       });
       campaignApprove.campaign['totalKmTraveled'] = totalKmTraveled;
+      return campaigns;
     }
-    return campaigns;
+    return campaigns.map((c) => {
+      const totalMoneyPerDriver =
+        Number(c.campaign.wrapPrice) +
+        Number(c.campaign.minimumKmDrive) *
+          Number(c.campaign.duration) *
+          Number(c.campaign.locationPricePerKm);
+      return {
+        ...c,
+        totalMoneyPerDriver,
+      };
+    });
   }
 
   async saveCurrentLocationDriverByDate(dto: DriverTrackingLocation) {

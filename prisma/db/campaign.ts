@@ -183,6 +183,7 @@ export const campaignRunning = async () => {
   });
   for (let i = 0; i < 5; i++) {
     for (let j = 0; j < driverJoinCampaign.length; j++) {
+      console.log('i', i);
       await prisma.reporterDriverCampaign.create({
         data: {
           createDate: moment(campaign.startRunningDate)
@@ -228,3 +229,11 @@ export const campaignRunning = async () => {
     }
   }
 };
+
+// export const campaignOpen = async () => {};
+
+// export const campaignPayment = async () => {};
+
+// export const campaignWrapping = async () => {};
+
+// export const campaignFinish = async () => {};
