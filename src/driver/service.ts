@@ -7,7 +7,6 @@ import {
 import { UserSignIn } from 'src/auth/dto';
 import { AppConfigService } from 'src/config/appConfigService';
 import { UsersService } from 'src/user/service';
-import { convertPhoneNumberFormat } from 'src/utilities';
 import { VerifyAccountsService } from 'src/verifyAccount/service';
 import { PrismaService } from './../prisma/service';
 import { DriverTrackingLocation, DriverVerifyInformationDTO } from './dto';

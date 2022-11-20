@@ -8,6 +8,7 @@ import { PrismaService } from 'src/prisma/service';
 import { CampaignVerifyInformationDTO, StepsCampaignDTO } from './dto';
 import { CampaignStatus, Role } from '@prisma/client';
 import * as moment from 'moment';
+import * as fs from 'fs';
 
 @Injectable()
 export class CampaignService {
@@ -467,8 +468,15 @@ export class CampaignService {
     });
     if (isCampaignNameExist)
       throw new BadRequestException('Campaign name already used!');
+    const objDataConfig = JSON.parse(
+      fs.readFileSync('./dataConfig.json', 'utf-8'),
+    );
     const currentDate = new Date(dto.startRunningDate);
     currentDate.setDate(currentDate.getDate() + 1);
+    if (objDataConfig.minimumKmDrive !== dto.minimumKmDrive)
+      throw new BadRequestException(
+        `Minimum Km must drive/day is ${objDataConfig.minimumKmDrive}`,
+      );
     const campaign = await this.prisma.campaign.create({
       data: {
         campaignName: dto.campaignName,

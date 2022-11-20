@@ -27,8 +27,8 @@ export class CreateReportDriverCampaignDTO {
     description: 'URL image of image car odometer',
     default: 'image.com',
   })
-  @IsOptional()
   @IsUrl(undefined)
+  @IsOptional()
   imageCarOdo?: string;
 
   @ApiProperty({
