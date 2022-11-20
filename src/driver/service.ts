@@ -393,17 +393,20 @@ export class DriversService {
         totalKmTraveled += Number(track.totalMeterDriven);
       });
       campaignApprove.campaign['totalKmTraveled'] = totalKmTraveled;
+      delete campaignApprove.campaign.driverJoinCampaign;
       return campaigns;
     }
     return campaigns.map((c) => {
+      const quantityDriverJoining = c.campaign.driverJoinCampaign.length;
       const totalMoneyPerDriver =
         Number(c.campaign.wrapPrice) +
         Number(c.campaign.minimumKmDrive) *
           Number(c.campaign.duration) *
           Number(c.campaign.locationPricePerKm);
+      delete c.campaign.driverJoinCampaign;
       return {
         ...c,
-        quantityDriverJoining: c.campaign.driverJoinCampaign.length,
+        quantityDriverJoining,
         totalMoneyPerDriver,
       };
     });
