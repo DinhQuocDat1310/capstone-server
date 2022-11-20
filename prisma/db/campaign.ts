@@ -12,7 +12,11 @@ export const campaignRunning = async () => {
     },
   });
   const wrap = await prisma.wrap.findFirst({});
-  const location = await prisma.locationCampaignPerKm.findFirst({});
+  const location = await prisma.locationCampaignPerKm.findFirst({
+    where: {
+      locationName: 'TP Hồ Chí Minh',
+    },
+  });
 
   const dtoCampaign: CampaignVerifyInformationDTO = {
     idLocation: location.id,
@@ -61,12 +65,14 @@ export const campaignRunning = async () => {
         },
       },
     },
+    include: {
+      locationCampaign: true,
+    },
   });
-
   const drivers = await prisma.driver.findMany({
     where: {
       user: {
-        address: 'TP Hồ Chí Minh',
+        address: campaign.locationCampaign.locationName,
       },
     },
     take: 50,
@@ -90,13 +96,31 @@ export const campaignRunning = async () => {
       },
     });
   }
-
+  const manager = await prisma.manager.findFirst({
+    where: {
+      user: {
+        fullname: 'Manager 1',
+      },
+    },
+  });
+  const reporter = await prisma.reporter.findFirst({
+    where: {
+      user: {
+        address: campaign.locationCampaign.locationName,
+      },
+    },
+  });
   const verifyCampaign = await prisma.verifyCampaign.create({
     data: {
       status: VerifyCampaignStatus.ACCEPT,
       campaign: {
         connect: {
           id: campaign.id,
+        },
+      },
+      manager: {
+        connect: {
+          id: manager.id,
         },
       },
     },
@@ -153,14 +177,6 @@ export const campaignRunning = async () => {
       paidDate: moment(new Date()).subtract(14, 'days').toISOString(),
     },
   });
-  const reporter = await prisma.reporter.findFirst({
-    where: {
-      user: {
-        address: 'TP Hồ Chí Minh',
-      },
-    },
-  });
-
   const driverJoinCampaign = await prisma.driverJoinCampaign.findMany({
     where: { campaignId: campaign.id, status: 'APPROVE' },
     take: 50,
@@ -198,6 +214,7 @@ export const campaignRunning = async () => {
       });
       await prisma.tracking.create({
         data: {
+          timeSubmit: driverTracking.createDate,
           totalMeterDriven: `${
             Math.floor(Math.random() * (15000 - 10000 + 1)) + 10000
           }`,

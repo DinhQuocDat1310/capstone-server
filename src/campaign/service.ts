@@ -777,6 +777,11 @@ export class CampaignService {
                 tracking: true,
               },
             },
+            driver: {
+              include: {
+                user: true,
+              },
+            },
           },
         },
       },
@@ -787,24 +792,16 @@ export class CampaignService {
     const totalKmPerDay = Number(campaign.totalKm) / Number(campaign.duration);
     const now = moment(new Date());
     const totalLength = now.diff(campaign.startRunningDate, 'days');
-    const drivers = await this.prisma.driver.findMany({
-      include: { user: true },
-    });
 
     const listDriver = (date: moment.Moment) => {
       return campaign.driverJoinCampaign.map((driverJoin) => {
-        const driver = drivers.find(
-          (driver) => driver.id === driverJoin.driverId,
-        );
-        let totalKm = 0;
         const driverTracking = driverJoin.driverTrackingLocation.find(
-          (driverTrack) =>
-            driverTrack.driverJoinCampaignId === driverJoin.id ||
-            date.diff(driverTrack.createDate) === 0,
+          (driverTrack) => date.diff(driverTrack.createDate) === 0,
         );
-        driverTracking.tracking.forEach((track) => {
-          totalKm += Number(track.totalMeterDriven);
-        });
+        const totalKm = driverTracking.tracking.reduce(
+          (acc, driver) => acc + Number(driver.totalMeterDriven),
+          0,
+        );
 
         const reporterImage = driverJoin.reporterDriverCampaign.find(
           (report) =>
@@ -815,9 +812,9 @@ export class CampaignService {
 
         return {
           driverJoinCampaignId: driverJoin.id,
-          carOwnerName: driver?.user?.fullname,
-          phoneNumber: driver?.user?.phoneNumber,
-          carId: driver?.idCar,
+          carOwnerName: driverJoin?.driver?.user?.fullname,
+          phoneNumber: driverJoin?.driver?.user?.phoneNumber,
+          carId: driverJoin?.driver?.idCar,
           totalKm,
           listImage: {
             imageCarBack: reporterImage.imageCarBack,
@@ -828,14 +825,22 @@ export class CampaignService {
         };
       });
     };
+
     const array = [];
-    for (let i = 0; i < totalLength; i++) {
+    for (let i = 0; i <= totalLength; i++) {
+      const listDriverFormat = listDriver(
+        moment(campaign.startRunningDate).add(i, 'days'),
+      );
+      const totalKmDriven = listDriverFormat.reduce(
+        (acc, driver) => acc + Number(driver.totalKm),
+        0,
+      );
+
       array.push({
         date: moment(campaign.startRunningDate).add(i, 'days'),
         totalKm: totalKmPerDay,
-        listDriver: listDriver(
-          moment(campaign.startRunningDate).add(i, 'days'),
-        ),
+        totalKmDriven: totalKmDriven / 1000,
+        listDriver: listDriverFormat,
       });
     }
     return array;
