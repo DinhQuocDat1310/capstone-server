@@ -189,6 +189,8 @@ export class ReporterService {
         },
       },
     });
+
+    // TODO: bug
     const dataDriverReport = await this.prisma.reporterDriverCampaign.findFirst(
       {
         where: {
@@ -235,6 +237,7 @@ export class ReporterService {
         imageCarBack: dto.imageCarBack,
         imageCarLeft: dto.imageCarLeft,
         imageCarRight: dto.imageCarRight,
+        imageCarOdo: dto.imageCarOdo,
         isChecked: true,
         driverJoinCampaignId: dto.driverJoinCampaignId,
         reporterId: reporter.id,

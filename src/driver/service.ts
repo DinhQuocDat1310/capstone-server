@@ -235,7 +235,13 @@ export class DriversService {
     }
   }
 
-  async getListCampaigns(address: string) {
+  async getListCampaigns(userId: string, address: string) {
+    const driver = await this.prisma.driver.findFirst({
+      where: {
+        userId,
+      },
+    });
+
     const campaigns = await this.prisma.campaign.findMany({
       where: {
         statusCampaign: {
@@ -246,6 +252,12 @@ export class DriversService {
         },
       },
       include: {
+        brand: {
+          select: {
+            brandName: true,
+            logo: true,
+          },
+        },
         locationCampaign: {
           select: {
             id: true,
@@ -262,6 +274,13 @@ export class DriversService {
     });
 
     for (let i = 0; i < campaigns.length; i++) {
+      const isJoined = await this.prisma.driverJoinCampaign.findFirst({
+        where: {
+          driverId: driver.id,
+          campaignId: campaigns[i].id,
+          status: 'JOIN',
+        },
+      });
       const countDriver = await this.prisma.driverJoinCampaign.count({
         where: {
           campaignId: campaigns[i].id,
@@ -275,6 +294,7 @@ export class DriversService {
 
       campaigns[i]['totalMoneyPerDriver'] = totalMoneyPerDriver;
       campaigns[i]['quantityDriverJoinning'] = countDriver;
+      campaigns[i]['isJoined'] = isJoined ? true : false;
     }
 
     return campaigns;
@@ -314,6 +334,7 @@ export class DriversService {
       include: {
         campaign: {
           include: {
+            driverJoinCampaign: true,
             brand: {
               select: {
                 brandName: true,
@@ -354,6 +375,8 @@ export class DriversService {
           Number(campaignApprove.campaign.locationPricePerKm);
 
       campaignApprove.campaign['totalMoneyPerDriver'] = totalMoneyPerDriver;
+      campaignApprove.campaign['quantityDriverJoining'] =
+        campaignApprove.campaign.driverJoinCampaign.length;
       const listTracking = await this.prisma.tracking.findMany({
         where: {
           driverTrackingLocation: {
@@ -380,6 +403,7 @@ export class DriversService {
           Number(c.campaign.locationPricePerKm);
       return {
         ...c,
+        quantityDriverJoining: c.campaign.driverJoinCampaign.length,
         totalMoneyPerDriver,
       };
     });

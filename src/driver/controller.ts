@@ -97,7 +97,10 @@ export class DriverController {
   @Status(UserStatus.VERIFIED)
   @Get('/list-campaigns')
   async getListCampaignForDriver(@Request() req: RequestUser) {
-    return await this.driverService.getListCampaigns(req.user.address);
+    return await this.driverService.getListCampaigns(
+      req.user.id,
+      req.user.address,
+    );
   }
 
   @ApiOperation({ summary: 'get location' })

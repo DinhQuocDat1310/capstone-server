@@ -880,6 +880,17 @@ export class CampaignService {
           statusCampaign: 'RUNNING',
         },
       },
+      include: {
+        driver: {
+          include: {
+            user: {
+              select: {
+                fullname: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
 }

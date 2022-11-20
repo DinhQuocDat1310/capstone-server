@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsUrl } from 'class-validator';
+import { IsOptional, IsString, IsUrl } from 'class-validator';
 
 export class CreateReportDriverCampaignDTO {
   @ApiProperty({
@@ -22,6 +22,14 @@ export class CreateReportDriverCampaignDTO {
   })
   @IsUrl(undefined)
   imageCarRight: string;
+
+  @ApiProperty({
+    description: 'URL image of image car odometer',
+    default: 'image.com',
+  })
+  @IsOptional()
+  @IsUrl(undefined)
+  imageCarOdo?: string;
 
   @ApiProperty({
     description: 'Driver join campaign id',
