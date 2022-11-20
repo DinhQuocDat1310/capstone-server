@@ -137,7 +137,7 @@ export class AdminController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Status(UserStatus.VERIFIED)
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.MANAGER)
   @Get('/locations')
   async getListLocation(@Request() userReq: RequestUser) {
     return await this.locationService.getListLocation(userReq.user.role);
@@ -172,7 +172,7 @@ export class AdminController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Status(UserStatus.VERIFIED)
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.MANAGER)
   @Get('/wraps')
   async getListWrap(@Request() userReq: RequestUser) {
     return await this.wrapService.getListWrap(userReq.user.role);
