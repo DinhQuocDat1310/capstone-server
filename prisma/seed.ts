@@ -1,5 +1,7 @@
 import { wrap } from './db/wrap';
 import { users } from './db/user';
+import { policies } from './db/policy';
+
 import { campaignRunning } from './db/campaign';
 
 import { PrismaService } from '../src/prisma/service';
@@ -26,6 +28,15 @@ async function main() {
     for (const dto of wraps) {
       await prisma.wrap.create({
         data: dto,
+      });
+    }
+
+    for (let i = 0; i < policies.length; i++) {
+      await prisma.policies.create({
+        data: {
+          answer: policies[i].answer,
+          question: policies[i].question,
+        },
       });
     }
 

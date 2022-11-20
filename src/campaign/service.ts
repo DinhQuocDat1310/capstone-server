@@ -698,9 +698,22 @@ export class CampaignService {
     return campaigns.filter((c) => now >= moment(c.endWrapDate));
   }
 
+  async getAllCampaignRunningIsExpired() {
+    const now = moment(new Date());
+    const campaigns = await this.prisma.campaign.findMany({
+      where: {
+        statusCampaign: 'RUNNING',
+      },
+    });
+    return campaigns.filter(
+      (c) => now >= moment(c.startRunningDate).add(Number(c.duration), 'days'),
+    );
+  }
+
   async getAmountDriverJoinCampaignTask(campaignId: string) {
     return await this.prisma.driverJoinCampaign.count({
       where: {
+        status: 'APPROVE',
         campaignId,
       },
     });
@@ -836,10 +849,9 @@ export class CampaignService {
       const listDriverFormat = listDriver(
         moment(campaign.startRunningDate).add(i, 'days'),
       );
-      const totalKmDriven = listDriverFormat.reduce(
-        (acc, driver) => acc + Number(driver.totalKm),
-        0,
-      );
+      const totalKmDriven = listDriverFormat.reduce((acc, driver) => {
+        return acc + Number(driver.totalKm);
+      }, 0);
 
       array.push({
         date: moment(campaign.startRunningDate).add(i, 'days'),
