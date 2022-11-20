@@ -14,8 +14,12 @@ export class CreateUserDTO {
   @ApiProperty({ type: String, description: 'brandName' })
   brandName?: string;
 
+  @IsString()
+  @ValidateIf((user) => user.role === 'DRIVER')
+  @ApiProperty({ type: String, description: 'fullname' })
+  fullname?: string;
+
   @IsEmail()
-  @ValidateIf((user) => user.email !== undefined || user.role === 'BRAND')
   @ApiProperty({ type: String, description: 'email' })
   email?: string;
 
@@ -24,16 +28,6 @@ export class CreateUserDTO {
   })
   @ApiProperty({ enum: [Role.BRAND, Role.DRIVER], description: 'role' })
   role: Role;
-
-  @ValidateIf(
-    (user) => user.phoneNumber !== undefined || user.role === 'DRIVER',
-  )
-  @IsString()
-  @Matches(/^0\d{9}$|\+84\d{9}$/, {
-    message: 'Incorrect phone number format. Please input 10 digits',
-  })
-  @ApiProperty({ type: String, description: 'phoneNumber' })
-  phoneNumber?: string;
 
   @IsString()
   @Matches(

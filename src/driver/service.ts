@@ -29,7 +29,7 @@ export class DriversService {
     userReq: UserSignIn,
   ) {
     const user = await this.usersService.getUserDriverInfo(
-      convertPhoneNumberFormat(userReq.phoneNumber),
+      dto.email,
       userReq.role,
     );
     const latestVerifyStatus = user.driver.verify[0]?.status;
@@ -45,11 +45,11 @@ export class DriversService {
         )} for more information`,
       );
     }
-    if (user.email !== dto.email) {
+    if (user.phoneNumber !== dto.phoneNumber) {
       await this.usersService.checkEmailOrPhoneNumberIsExist(
-        dto.email,
         '',
-        'This email is already used',
+        dto.phoneNumber,
+        'This phone number is already used',
       );
     }
     if (user.idCitizen !== dto.idCitizen) {

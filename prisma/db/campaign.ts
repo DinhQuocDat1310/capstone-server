@@ -75,6 +75,7 @@ export const campaignRunning = async () => {
   for (let i = 0; i < drivers.length; i++) {
     await prisma.driverJoinCampaign.create({
       data: {
+        isRequiredOdo: false,
         campaign: {
           connect: {
             id: campaign.id,

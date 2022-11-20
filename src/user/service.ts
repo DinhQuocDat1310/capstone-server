@@ -17,7 +17,7 @@ import { BrandVerifyInformationDTO, UpdateBrandLogoDto } from 'src/brand/dto';
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
   async create(@Body() dto: CreateUserDTO) {
-    const { brandName, phoneNumber, role, email, password } = dto;
+    const { brandName, fullname, role, email, password } = dto;
     const hashPassword = await hash(password, 10);
     const data = {
       role,
@@ -34,16 +34,15 @@ export class UsersService {
     try {
       await this.checkEmailOrPhoneNumberIsExist(
         email ?? '',
-        phoneNumber ?? '',
+        '',
         'Your account is already exist',
       );
       if (role === 'BRAND') {
-        data['email'] = email;
         await this.checkBrandNameIsExist(brandName);
+      } else {
+        data['fullname'] = fullname;
       }
-      if (role === 'DRIVER') {
-        data['phoneNumber'] = convertPhoneNumberFormat(phoneNumber);
-      }
+      data['email'] = email;
       await this.prisma.user.create({
         data,
       });
@@ -181,7 +180,6 @@ export class UsersService {
         id,
       },
       data: {
-        fullname: dto.fullname,
         idCitizen: dto.idCitizen,
         status: UserStatus.PENDING,
         imageCitizenBack: dto.imageCitizenBack,
@@ -263,10 +261,10 @@ export class UsersService {
     });
   }
 
-  async getUserDriverInfo(phoneNumber: string, role: Role) {
+  async getUserDriverInfo(email: string, role: Role) {
     return await this.prisma.user.findFirst({
       where: {
-        phoneNumber,
+        email,
         role,
       },
       include: {
