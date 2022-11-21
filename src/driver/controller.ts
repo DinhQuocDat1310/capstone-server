@@ -87,7 +87,7 @@ export class DriverController {
     return await this.driverService.driverJoinCampaigin(campaign.id, req.user);
   }
 
-  @ApiOperation({ summary: 'Get the current driver join campaign' })
+  @ApiOperation({ summary: 'Get the list campaign in location driver' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })

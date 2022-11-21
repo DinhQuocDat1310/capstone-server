@@ -270,6 +270,9 @@ export class DriversService {
           },
         },
       },
+      orderBy: {
+        startRegisterDate: 'desc',
+      },
     });
 
     for (let i = 0; i < campaigns.length; i++) {

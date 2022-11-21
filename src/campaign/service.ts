@@ -661,6 +661,9 @@ export class CampaignService {
             },
           },
         ],
+        statusCampaign: {
+          in: ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING', 'CLOSED'],
+        },
       },
     });
     if (!isOwnCampaign)
@@ -748,9 +751,12 @@ export class CampaignService {
     const campaign = await this.prisma.campaign.findFirst({
       where: {
         id: campaignId,
-        statusCampaign: 'CLOSED',
-        brand: {
-          userId,
+        OR: [
+          { brand: { userId } },
+          { verifyCampaign: { every: { manager: { userId } } } },
+        ],
+        statusCampaign: {
+          in: ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING', 'CLOSED'],
         },
       },
       select: {
@@ -794,8 +800,12 @@ export class CampaignService {
     const campaign = await this.prisma.campaign.findFirst({
       where: {
         id: campaignId,
-        brand: {
-          userId,
+        OR: [
+          { brand: { userId } },
+          { verifyCampaign: { every: { manager: { userId } } } },
+        ],
+        statusCampaign: {
+          in: ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING', 'CLOSED'],
         },
       },
       include: {
@@ -844,10 +854,10 @@ export class CampaignService {
           carId: driverJoin?.driver?.idCar,
           totalKm,
           listImage: {
-            imageCarBack: reporterImage.imageCarBack,
-            imageCarLeft: reporterImage.imageCarLeft,
-            imageCarRight: reporterImage.imageCarRight,
-            imageCarOdo: reporterImage.imageCarOdo,
+            imageCarBack: reporterImage?.imageCarBack,
+            imageCarLeft: reporterImage?.imageCarLeft,
+            imageCarRight: reporterImage?.imageCarRight,
+            imageCarOdo: reporterImage?.imageCarOdo,
           },
         };
       });
@@ -876,8 +886,12 @@ export class CampaignService {
     const campaign = await this.prisma.campaign.findFirst({
       where: {
         id: campaignId,
-        brand: {
-          userId,
+        OR: [
+          { brand: { userId } },
+          { verifyCampaign: { every: { manager: { userId } } } },
+        ],
+        statusCampaign: {
+          in: ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING', 'CLOSED'],
         },
       },
       include: {
