@@ -716,6 +716,18 @@ export class CampaignService {
       where: {
         statusCampaign: 'RUNNING',
       },
+      include: {
+        driverJoinCampaign: {
+          include: {
+            driverTrackingLocation: {
+              include: {
+                tracking: true,
+              },
+            },
+          },
+        },
+        paymentDebit: true,
+      },
     });
     return campaigns.filter(
       (c) => now >= moment(c.startRunningDate).add(Number(c.duration), 'days'),
@@ -838,12 +850,13 @@ export class CampaignService {
         const driverTracking = driverJoin.driverTrackingLocation.find(
           (driverTrack) => date.diff(driverTrack.createDate) === 0,
         );
-        const totalKm = driverTracking.tracking.reduce(
-          (acc, driver) => acc + Number(driver.totalMeterDriven),
-          0,
-        );
+        const totalKm =
+          driverTracking?.tracking?.reduce(
+            (acc, driver) => acc + Number(driver.totalMeterDriven),
+            0,
+          ) ?? 0;
 
-        const reporterImage = driverJoin.reporterDriverCampaign.find(
+        const reporterImage = driverJoin?.reporterDriverCampaign?.find(
           (report) => date.diff(report.createDate) === 0,
         );
 
@@ -864,7 +877,7 @@ export class CampaignService {
     };
 
     const array = [];
-    for (let i = 0; i <= totalLength; i++) {
+    for (let i = 0; i <= totalLength + 1; i++) {
       const listDriverFormat = listDriver(
         moment(campaign.startRunningDate).add(i, 'days'),
       );

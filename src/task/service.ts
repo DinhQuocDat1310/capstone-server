@@ -8,6 +8,7 @@ import { CampaignService } from 'src/campaign/service';
 import { CampaignStatus, StatusDriverJoin } from '@prisma/client';
 import { PaymentService } from 'src/payment/service';
 import { DriversService } from 'src/driver/service';
+import * as moment from 'moment';
 
 @Injectable()
 export class TasksService {
@@ -78,32 +79,67 @@ export class TasksService {
     }
   }
 
-  // TODO: handle finish finish
-  // @Cron(CronExpression.MONDAY_TO_FRIDAY_AT_11PM)
-  // async handleCompleteRunningCampaignPhase() {
-  //   const campaigns =
-  //     await this.campaignsService.getAllCampaignRunningIsExpired();
-  //   if (campaigns.length === 0) {
-  //     this.logger.debug('No campaigns is end running phase today');
-  //     return;
-  //   }
+  @Cron(CronExpression.MONDAY_TO_FRIDAY_AT_11PM)
+  async handleCompleteRunningCampaignPhase() {
+    const campaigns =
+      await this.campaignsService.getAllCampaignRunningIsExpired();
+    if (campaigns.length === 0) {
+      this.logger.debug('No campaigns is end running phase today');
+      return;
+    }
 
-  //   for (let i = 0; i < campaigns.length; i++) {
-  //     const amountDriverJoin =
-  //       await this.campaignsService.getAmountDriverJoinCampaignTask(
-  //         campaigns[i].id,
-  //       );
-  //     await this.campaignsService.updateStatusCampaign(
-  //       campaigns[i].id,
-  //       CampaignStatus.PAYMENT,
-  //     );
-  //     await this.driverService.updateAllStatusDriverJoinCampaign(
-  //       campaigns[i].id,
-  //       StatusDriverJoin.APPROVE,
-  //     );
-  //     await this.paymentService.createPaymentPrePayForCampaign(campaigns[i].id);
-  //   }
-  // }
+    for (let i = 0; i < campaigns.length; i++) {
+      const listDriverJoinCampaign = campaigns[i].driverJoinCampaign;
+      let totalMeterFinalReport = 0;
+
+      listDriverJoinCampaign.forEach((driver) =>
+        driver.driverTrackingLocation.forEach((track) =>
+          track.tracking.forEach(
+            (total) =>
+              (totalMeterFinalReport += Number(total.totalMeterDriven)),
+          ),
+        ),
+      );
+
+      if (totalMeterFinalReport / 1000 < Number(campaigns[i].totalKm) * 0.8) {
+        await this.campaignsService.updateStatusCampaign(
+          campaigns[i].id,
+          CampaignStatus.CANCELED,
+          'Your campaign will be completely free as we do not meet the minimum kilometers for the entire campaign, you will get your refund ASAP. We sincerely apologize, thank you for using the service.',
+        );
+        return;
+      }
+
+      if (totalMeterFinalReport / 1000 >= Number(campaigns[i].totalKm)) {
+        const prePay = campaigns[i].paymentDebit.find(
+          (pay) => pay.type === 'PREPAY',
+        );
+        const postPaid = Number(prePay.price) * 4;
+        await this.prisma.paymentDebit.create({
+          data: {
+            price: `${postPaid}`,
+            type: 'POSTPAID',
+            expiredDate: moment().add(5, 'days').toISOString(),
+          },
+        });
+        await this.campaignsService.updateStatusCampaign(
+          campaigns[i].id,
+          CampaignStatus.CANCELED,
+          'Your campaign will be completely free as we do not meet the minimum kilometers for the entire campaign, you will get your refund ASAP. We sincerely apologize, thank you for using the service.',
+        );
+      }
+
+      await this.campaignsService.updateStatusCampaign(
+        campaigns[i].id,
+        CampaignStatus.PAYMENT,
+      );
+      await this.driverService.updateAllStatusDriverJoinCampaign(
+        campaigns[i].id,
+        StatusDriverJoin.APPROVE,
+      );
+      await this.paymentService.createPaymentPrePayForCampaign(campaigns[i].id);
+    }
+  }
 
   @Cron(CronExpression.MONDAY_TO_FRIDAY_AT_11PM)
   async handleAddManagerVerifyAccountData() {
