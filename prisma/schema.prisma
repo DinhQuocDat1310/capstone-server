@@ -122,6 +122,7 @@ model Tracking {
 enum StatusDriverJoin {
   JOIN
   APPROVE
+  FINISH
   CANCEL
 }
 

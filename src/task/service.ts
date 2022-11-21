@@ -109,25 +109,38 @@ export class TasksService {
         );
         return;
       }
-
+      const prePay = campaigns[i].paymentDebit.find(
+        (pay) => pay.type === 'PREPAY',
+      );
       if (totalMeterFinalReport / 1000 >= Number(campaigns[i].totalKm)) {
-        const prePay = campaigns[i].paymentDebit.find(
-          (pay) => pay.type === 'PREPAY',
-        );
         const postPaid = Number(prePay.price) * 4;
         await this.prisma.paymentDebit.create({
           data: {
             price: `${postPaid}`,
             type: 'POSTPAID',
             expiredDate: moment().add(5, 'days').toISOString(),
+            campaign: {
+              connect: {
+                id: campaigns[i].id,
+              },
+            },
           },
         });
+
         await this.campaignsService.updateStatusCampaign(
           campaigns[i].id,
-          CampaignStatus.CANCELED,
-          'Your campaign will be completely free as we do not meet the minimum kilometers for the entire campaign, you will get your refund ASAP. We sincerely apologize, thank you for using the service.',
+          CampaignStatus.FINISH,
+          'Your campaign was finished. please check out 80%',
+        );
+
+        await this.driverService.updateAllStatusDriverJoinCampaign(
+          campaigns[i].id,
+          StatusDriverJoin.FINISH,
         );
       }
+      const ratio = totalMeterFinalReport / 1000 / Number(campaigns[i].totalKm);
+      const percent = Number(ratio.toFixed(2)) * 100;
+      const postPaid = Number(prePay.price) * ((percent - 20) / 20);
 
       await this.campaignsService.updateStatusCampaign(
         campaigns[i].id,

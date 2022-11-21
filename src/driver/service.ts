@@ -435,10 +435,10 @@ export class DriversService {
         },
       });
 
-    const toDay = moment(new Date());
+    const toDay = moment();
     let isDriverTrackingLocationExist = listDriverTrackingLocation.find(
       (track) => {
-        return toDay.diff(track.createDate) === 0;
+        return toDay.diff(moment(track.createDate), 'days') === 0;
       },
     );
 
