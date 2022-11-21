@@ -848,7 +848,7 @@ export class CampaignService {
     const listDriver = (date: moment.Moment) => {
       return campaign.driverJoinCampaign.map((driverJoin) => {
         const driverTracking = driverJoin.driverTrackingLocation.find(
-          (driverTrack) => date.diff(driverTrack.createDate) === 0,
+          (driverTrack) => date.diff(driverTrack.createDate, 'days') === 0,
         );
         const totalKm =
           driverTracking?.tracking?.reduce(
@@ -857,7 +857,7 @@ export class CampaignService {
           ) ?? 0;
 
         const reporterImage = driverJoin?.reporterDriverCampaign?.find(
-          (report) => date.diff(report.createDate) === 0,
+          (report) => date.diff(report.createDate, 'days') === 0,
         );
 
         return {
