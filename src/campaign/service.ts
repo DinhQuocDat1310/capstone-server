@@ -649,9 +649,18 @@ export class CampaignService {
     const isOwnCampaign = await this.prisma.campaign.findFirst({
       where: {
         id: campaignId,
-        brand: {
-          userId,
-        },
+        OR: [
+          { brand: { userId } },
+          {
+            verifyCampaign: {
+              every: {
+                manager: {
+                  userId,
+                },
+              },
+            },
+          },
+        ],
       },
     });
     if (!isOwnCampaign)
