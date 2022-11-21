@@ -109,6 +109,7 @@ export class TasksService {
           CampaignStatus.CANCELED,
           'Your campaign will be completely free as we do not meet the minimum kilometers for the entire campaign, you will get your refund ASAP. We sincerely apologize, thank you for using the service.',
         );
+        // 50 thang -> 20 thang chay du -> 30 thang con lai phai phat
         //TODO: tuy vao tung driver se co status khac nhau!!
         await this.driverService.updateAllStatusDriverJoinCampaign(
           campaigns[i].id,

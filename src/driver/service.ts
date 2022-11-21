@@ -401,8 +401,8 @@ export class DriversService {
     return campaigns.map((c) => {
       c.campaign['quantityDriverJoining'] =
         c.campaign.driverJoinCampaign.length;
-      c.campaign['totalMoneyPerDriver'];
-      Number(c.campaign.wrapPrice) +
+      c.campaign['totalMoneyPerDriver'] =
+        Number(c.campaign.wrapPrice) +
         Number(c.campaign.minimumKmDrive) *
           Number(c.campaign.duration) *
           Number(c.campaign.locationPricePerKm);
