@@ -717,6 +717,7 @@ export class CampaignService {
         statusCampaign: 'RUNNING',
       },
       include: {
+        wrap: true,
         driverJoinCampaign: {
           include: {
             driverTrackingLocation: {
@@ -808,18 +809,37 @@ export class CampaignService {
     };
   }
 
-  async getKilometerDailyReport(userId: string, campaignId: string) {
-    const campaign = await this.prisma.campaign.findFirst({
-      where: {
-        id: campaignId,
-        OR: [
-          { brand: { userId } },
-          { verifyCampaign: { every: { manager: { userId } } } },
+  async getKilometerDailyReport(
+    userId: string,
+    role: Role,
+    campaignId: string,
+  ) {
+    const where = {
+      id: campaignId,
+      statusCampaign: {
+        in: [
+          CampaignStatus.OPEN,
+          CampaignStatus.PAYMENT,
+          CampaignStatus.WRAPPING,
+          CampaignStatus.RUNNING,
+          CampaignStatus.CLOSED,
         ],
-        statusCampaign: {
-          in: ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING', 'CLOSED'],
-        },
       },
+    };
+    if (role === 'MANAGER') {
+      where['verifyCampaign'] = {
+        every: {
+          manager: { userId },
+        },
+      };
+    }
+    if (role === 'BRAND') {
+      where['brand'] = {
+        userId,
+      };
+    }
+    const campaign = await this.prisma.campaign.findFirst({
+      where,
       include: {
         driverJoinCampaign: {
           include: {

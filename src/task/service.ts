@@ -89,7 +89,9 @@ export class TasksService {
     }
 
     for (let i = 0; i < campaigns.length; i++) {
-      const listDriverJoinCampaign = campaigns[i].driverJoinCampaign;
+      const listDriverJoinCampaign = campaigns[i].driverJoinCampaign.filter(
+        (driver) => driver.status === 'APPROVE',
+      );
       let totalMeterFinalReport = 0;
 
       listDriverJoinCampaign.forEach((driver) =>
@@ -107,13 +109,27 @@ export class TasksService {
           CampaignStatus.CANCELED,
           'Your campaign will be completely free as we do not meet the minimum kilometers for the entire campaign, you will get your refund ASAP. We sincerely apologize, thank you for using the service.',
         );
+        //TODO: tuy vao tung driver se co status khac nhau!!
+        await this.driverService.updateAllStatusDriverJoinCampaign(
+          campaigns[i].id,
+          StatusDriverJoin.APPROVE,
+        );
         return;
       }
       const prePay = campaigns[i].paymentDebit.find(
         (pay) => pay.type === 'PREPAY',
       );
+      const isBothSide = campaigns[i].wrap.positionWrap === 'BOTH_SIDE';
+      const extraWrapMoney = isBothSide ? 400000 : 200000;
+      const priceWrap = parseFloat(campaigns[i].wrapPrice);
+      const amountDriverCancel =
+        Number(campaigns[i].quantityDriver) - listDriverJoinCampaign.length;
+      const time = parseInt(campaigns[i].duration) / 30 - 1;
+      const totalWrapMoney =
+        (priceWrap + time * extraWrapMoney) * amountDriverCancel;
+
       if (totalMeterFinalReport / 1000 >= Number(campaigns[i].totalKm)) {
-        const postPaid = Number(prePay.price) * 4;
+        const postPaid = Number(prePay.price) * 4 - totalWrapMoney;
         await this.prisma.paymentDebit.create({
           data: {
             price: `${postPaid}`,
@@ -137,20 +153,35 @@ export class TasksService {
           campaigns[i].id,
           StatusDriverJoin.FINISH,
         );
+
+        return;
       }
-      const ratio = totalMeterFinalReport / 1000 / Number(campaigns[i].totalKm);
-      const percent = Number(ratio.toFixed(2)) * 100;
-      const postPaid = Number(prePay.price) * ((percent - 20) / 20);
+
+      const postPaid = totalMeterFinalReport - Number(prePay) - totalWrapMoney;
+
+      await this.prisma.paymentDebit.create({
+        data: {
+          price: `${postPaid}`,
+          type: 'POSTPAID',
+          expiredDate: moment().add(5, 'days').toISOString(),
+          campaign: {
+            connect: {
+              id: campaigns[i].id,
+            },
+          },
+        },
+      });
 
       await this.campaignsService.updateStatusCampaign(
         campaigns[i].id,
-        CampaignStatus.PAYMENT,
+        CampaignStatus.FINISH,
+        'Your campaign was finished. please check out 80%',
       );
+
       await this.driverService.updateAllStatusDriverJoinCampaign(
         campaigns[i].id,
-        StatusDriverJoin.APPROVE,
+        StatusDriverJoin.FINISH,
       );
-      await this.paymentService.createPaymentPrePayForCampaign(campaigns[i].id);
     }
   }
 

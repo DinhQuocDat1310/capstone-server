@@ -399,17 +399,16 @@ export class DriversService {
       return campaigns;
     }
     return campaigns.map((c) => {
-      const quantityDriverJoining = c.campaign.driverJoinCampaign.length;
-      const totalMoneyPerDriver =
-        Number(c.campaign.wrapPrice) +
+      c.campaign['quantityDriverJoining'] =
+        c.campaign.driverJoinCampaign.length;
+      c.campaign['totalMoneyPerDriver'];
+      Number(c.campaign.wrapPrice) +
         Number(c.campaign.minimumKmDrive) *
           Number(c.campaign.duration) *
           Number(c.campaign.locationPricePerKm);
       delete c.campaign.driverJoinCampaign;
       return {
         ...c,
-        quantityDriverJoining,
-        totalMoneyPerDriver,
       };
     });
   }

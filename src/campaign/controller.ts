@@ -171,7 +171,7 @@ export class CampaignController {
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Roles(Role.BRAND, Role.MANAGER)
+  @Roles(Role.BRAND, Role.MANAGER, Role.ADMIN)
   @Status(UserStatus.VERIFIED)
   @Get('/km-daily-report/:id')
   async getDailyReportKilometer(
@@ -180,6 +180,7 @@ export class CampaignController {
   ) {
     return await this.campaignService.getKilometerDailyReport(
       req.user.id,
+      req.user.role,
       campaignId,
     );
   }

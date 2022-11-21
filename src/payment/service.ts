@@ -12,44 +12,106 @@ export class PaymentService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createOrder(campaignId: string) {
-    const contract = await this.prisma.contractCampaign.findFirst({
+    const campaign = await this.prisma.campaign.findFirst({
       where: {
-        campaignId,
+        id: campaignId,
+        statusCampaign: 'PAYMENT',
+      },
+      include: {
+        contractCampaign: true,
+        paymentDebit: true,
       },
     });
-    if (!contract)
+    if (!campaign)
       throw new BadRequestException('Please input correct campaign ID');
 
+    if (!campaign.contractCampaign)
+      throw new BadRequestException('Your campaign is not create contract yet');
+
+    try {
+      const totalMoney =
+        campaign.statusCampaign === 'PAYMENT'
+          ? Number(
+              campaign.paymentDebit.find((pay) => pay.type === 'PREPAY')?.price,
+            )
+          : Number(
+              campaign.paymentDebit.find((pay) => pay.type === 'POSTPAID')
+                ?.price,
+            );
+
+      const accessToken = await this.generateAccessToken();
+      const url = `${process.env.BASE}/v2/checkout/orders`;
+      const response = await fetch(url, {
+        method: 'post',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          intent: 'CAPTURE',
+          purchase_units: [
+            {
+              amount: {
+                currency_code: 'USD',
+                value: (totalMoney / 24500).toFixed(0),
+              },
+            },
+          ],
+        }),
+      });
+
+      return await this.handleResponse(response);
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
+  async capturePostpaidTransaction(orderId: string, campaignId: string) {
     const accessToken = await this.generateAccessToken();
-    const url = `${process.env.BASE}/v2/checkout/orders`;
+    const url = `${process.env.BASE}/v2/checkout/orders/${orderId}/capture/${campaignId}`;
     const response = await fetch(url, {
       method: 'post',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${accessToken}`,
       },
-      body: JSON.stringify({
-        intent: 'CAPTURE',
-        purchase_units: [
-          {
-            amount: {
-              currency_code: 'USD',
-              value: (
-                (Number(contract.totalDriverMoney) / 24500) *
-                0.2
-              ).toFixed(0),
-            },
-          },
-        ],
-      }),
     });
 
-    return await this.handleResponse(response);
+    if (response.status === 200 || response.status === 201) {
+      try {
+        const postPaid = await this.prisma.paymentDebit.findFirst({
+          where: {
+            campaignId,
+            type: 'POSTPAID',
+          },
+        });
+        await this.prisma.paymentDebit.update({
+          where: {
+            id: postPaid.id,
+          },
+          data: {
+            paidDate: new Date(),
+          },
+        });
+        await this.prisma.campaign.update({
+          where: {
+            id: campaignId,
+          },
+          data: {
+            statusCampaign: 'CLOSED',
+          },
+        });
+        return response.json();
+      } catch (error) {}
+    }
+
+    const errorMessage = await response.text();
+    throw new BadRequestException(errorMessage);
   }
 
   async capturePrepayTransaction(orderId: string, campaignId: string) {
     const accessToken = await this.generateAccessToken();
-    const url = `${process.env.BASE}/v2/checkout/orders/${orderId}/capture/${campaignId}`;
+    const url = `${process.env.BASE}/v2/checkout/orders/${orderId}/capture`;
     const response = await fetch(url, {
       method: 'post',
       headers: {
@@ -125,43 +187,15 @@ export class PaymentService {
     );
 
     const gapDatePayment = Number(objDataConfig.gapDatePayment);
-    await this.prisma.paymentDebit.create({
-      data: {
-        type: TypePayment.PREPAY,
-        price: `${Number(contract.totalDriverMoney) * 0.2}`,
-        expiredDate: moment(new Date(), 'MM-DD-YYYY')
-          .add(gapDatePayment, 'days')
-          .toISOString(),
-        campaign: {
-          connect: {
-            id: campaignId,
-          },
-        },
-      },
-    });
-  }
-
-  async createPaymentPostPaidForCampaign(campaignId: string) {
-    // not handle yet
-    const contract = await this.prisma.contractCampaign.findFirst({
-      where: {
-        campaignId,
-      },
-    });
-    const objDataConfig = JSON.parse(
-      fs.readFileSync('./dataConfig.json', 'utf-8'),
-    );
-
-    const totalMoney =
-      Number(contract.totalWrapMoney) +
+    const total =
       Number(contract.totalDriverMoney) +
-      Number(contract.totalSystemMoney);
+      Number(contract.totalSystemMoney) +
+      Number(contract.totalWrapMoney);
 
-    const gapDatePayment = Number(objDataConfig.gapDatePayment);
     await this.prisma.paymentDebit.create({
       data: {
         type: TypePayment.PREPAY,
-        price: `${totalMoney * 0.2}`,
+        price: `${Number(total) * 0.2}`,
         expiredDate: moment(new Date(), 'MM-DD-YYYY')
           .add(gapDatePayment, 'days')
           .toISOString(),
@@ -173,6 +207,30 @@ export class PaymentService {
       },
     });
   }
+
+  // async createPaymentPostPaidForCampaign(campaignId: string) {
+
+  //   const totalMoney =
+  //     Number(contract.totalWrapMoney) +
+  //     Number(contract.totalDriverMoney) +
+  //     Number(contract.totalSystemMoney);
+
+  //   const gapDatePayment = Number(objDataConfig.gapDatePayment);
+  //   await this.prisma.paymentDebit.create({
+  //     data: {
+  //       type: TypePayment.PREPAY,
+  //       price: `${totalMoney * 0.2}`,
+  //       expiredDate: moment(new Date(), 'MM-DD-YYYY')
+  //         .add(gapDatePayment, 'days')
+  //         .toISOString(),
+  //       campaign: {
+  //         connect: {
+  //           id: campaignId,
+  //         },
+  //       },
+  //     },
+  //   });
+  // }
 
   async handleAllWebhook(dto: any) {
     this.logger.debug('Test Something webhook', dto);
