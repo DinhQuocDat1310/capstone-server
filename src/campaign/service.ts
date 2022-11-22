@@ -663,7 +663,7 @@ export class CampaignService {
           },
         ],
         statusCampaign: {
-          in: ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING', 'CLOSED'],
+          in: ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING', 'FINISH', 'CLOSED'],
         },
       },
     });
@@ -770,7 +770,7 @@ export class CampaignService {
           { verifyCampaign: { every: { manager: { userId } } } },
         ],
         statusCampaign: {
-          in: ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING', 'CLOSED'],
+          in: ['OPEN', 'PAYMENT', 'WRAPPING', 'FINISH', 'RUNNING', 'CLOSED'],
         },
       },
       select: {
@@ -824,6 +824,7 @@ export class CampaignService {
           CampaignStatus.WRAPPING,
           CampaignStatus.RUNNING,
           CampaignStatus.CLOSED,
+          CampaignStatus.FINISH,
         ],
       },
     };
@@ -925,7 +926,7 @@ export class CampaignService {
           { verifyCampaign: { every: { manager: { userId } } } },
         ],
         statusCampaign: {
-          in: ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING', 'CLOSED'],
+          in: ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING', 'FINISH', 'CLOSED'],
         },
       },
       include: {
