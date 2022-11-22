@@ -4,6 +4,7 @@ import { PrismaService } from 'src/prisma/service';
 import * as fs from 'fs';
 import * as moment from 'moment';
 import { TypePayment } from '@prisma/client';
+import { TransactionCampaignDTO } from './dto';
 
 @Injectable()
 export class PaymentService {
@@ -11,10 +12,10 @@ export class PaymentService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async createOrder(campaignId: string) {
+  async createOrder(dto: TransactionCampaignDTO) {
     const campaign = await this.prisma.campaign.findFirst({
       where: {
-        id: campaignId,
+        id: dto.campaignId,
         statusCampaign: 'PAYMENT',
       },
       include: {
@@ -29,15 +30,10 @@ export class PaymentService {
       throw new BadRequestException('Your campaign is not create contract yet');
 
     try {
-      const totalMoney =
-        campaign.statusCampaign === 'PAYMENT'
-          ? Number(
-              campaign.paymentDebit.find((pay) => pay.type === 'PREPAY')?.price,
-            )
-          : Number(
-              campaign.paymentDebit.find((pay) => pay.type === 'POSTPAID')
-                ?.price,
-            );
+      const totalMoney = Number(
+        campaign.paymentDebit.find((pay) => pay.type === dto.typePayment)
+          ?.price,
+      );
 
       const accessToken = await this.generateAccessToken();
       const url = `${process.env.BASE}/v2/checkout/orders`;

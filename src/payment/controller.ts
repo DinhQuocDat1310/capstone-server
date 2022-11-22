@@ -18,9 +18,9 @@ export class PaymentController {
   @ApiBody({ type: TransactionCampaignDTO })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiCreatedResponse({ description: 'Created' })
-  @Post('/orders/prepay')
+  @Post('/orders')
   async createTransaction(@Body() dto: TransactionCampaignDTO) {
-    return await this.paymentService.createOrder(dto.campaignId);
+    return await this.paymentService.createOrder(dto);
   }
 
   @ApiOperation({ summary: 'Checkout transaction[prepay]' })
@@ -41,7 +41,7 @@ export class PaymentController {
     @Param('orderId') orderId: string,
     @Param('campaignId') campaignId: string,
   ) {
-    return await this.paymentService.capturePrepayTransaction(
+    return await this.paymentService.capturePostpaidTransaction(
       orderId,
       campaignId,
     );
