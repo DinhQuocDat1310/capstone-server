@@ -16,7 +16,9 @@ export class PaymentService {
     const campaign = await this.prisma.campaign.findFirst({
       where: {
         id: dto.campaignId,
-        statusCampaign: 'PAYMENT',
+        statusCampaign: {
+          in: ['PAYMENT', 'FINISH'],
+        },
       },
       include: {
         contractCampaign: true,
@@ -30,10 +32,15 @@ export class PaymentService {
       throw new BadRequestException('Your campaign is not create contract yet');
 
     try {
-      const totalMoney = Number(
-        campaign.paymentDebit.find((pay) => pay.type === dto.typePayment)
-          ?.price,
-      );
+      const totalMoney =
+        campaign.statusCampaign === 'PAYMENT'
+          ? Number(
+              campaign.paymentDebit.find((pay) => pay.type === 'PREPAY')?.price,
+            )
+          : Number(
+              campaign.paymentDebit.find((pay) => pay.type === 'POSTPAID')
+                ?.price,
+            );
 
       const accessToken = await this.generateAccessToken();
       const url = `${process.env.BASE}/v2/checkout/orders`;
