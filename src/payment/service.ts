@@ -94,7 +94,7 @@ export class PaymentService {
       throw new BadRequestException('You cannot checkout this campaign');
     }
 
-    const url = `${process.env.BASE}/v2/checkout/orders/${orderId}/capture/${campaignId}`;
+    const url = `${process.env.BASE}/v2/checkout/orders/${orderId}/capture`;
     const response = await fetch(url, {
       method: 'post',
       headers: {
