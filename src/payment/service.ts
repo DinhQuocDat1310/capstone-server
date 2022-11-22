@@ -16,9 +16,7 @@ export class PaymentService {
     const campaign = await this.prisma.campaign.findFirst({
       where: {
         id: dto.campaignId,
-        statusCampaign: {
-          in: ['PAYMENT', 'FINISH'],
-        },
+        statusCampaign: dto.statusCampaign,
       },
       include: {
         contractCampaign: true,
