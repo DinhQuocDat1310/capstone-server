@@ -1,4 +1,4 @@
-import { TypePayment } from '@prisma/client';
+import { CampaignStatus } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum } from 'class-validator';
 
@@ -9,12 +9,12 @@ export class TransactionCampaignDTO {
   })
   campaignId: string;
 
-  @IsEnum([TypePayment.PREPAY, TypePayment.POSTPAID], {
-    message: 'Type payment must be: [PREPAY, POSTPAID]',
+  @IsEnum([CampaignStatus.PAYMENT, CampaignStatus.FINISH], {
+    message: 'Status campaign must be: [PAYMENT, FINISH]',
   })
   @ApiProperty({
-    enum: [TypePayment.PREPAY, TypePayment.POSTPAID],
-    description: 'Type payment',
+    enum: [CampaignStatus.PAYMENT, CampaignStatus.FINISH],
+    description: 'Status campaign',
   })
-  typePayment: TypePayment;
+  statusCampaign: CampaignStatus;
 }
