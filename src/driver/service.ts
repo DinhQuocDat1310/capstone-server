@@ -514,4 +514,54 @@ export class DriversService {
     });
     return total;
   }
+
+  async getTotalKmTraveled(userId: string) {
+    const campaigns = await this.prisma.driverJoinCampaign.findMany({
+      where: {
+        driver: {
+          userId,
+        },
+        status: {
+          in: ['APPROVE'],
+        },
+        campaign: {
+          statusCampaign: {
+            in: ['OPEN', 'PAYMENT', 'RUNNING', 'WRAPPING'],
+          },
+        },
+      },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+
+    const campaignApprove = campaigns.find((cam) => cam.status === 'APPROVE');
+
+    if (campaignApprove) {
+      const listTracking = await this.prisma.tracking.findMany({
+        where: {
+          driverTrackingLocation: {
+            driverJoinCampaignId: campaignApprove.id,
+          },
+        },
+        select: {
+          totalMeterDriven: true,
+        },
+      });
+
+      let totalKmTraveled = 0;
+      listTracking.forEach((track) => {
+        totalKmTraveled += Number(track.totalMeterDriven);
+      });
+      const kmTraveled = (campaignApprove['totalKmTraveled'] = totalKmTraveled);
+      return campaigns.filter((total) => {
+        delete total.id;
+        delete total.status;
+        return {
+          kmTraveled,
+        };
+      });
+    }
+  }
 }

@@ -151,4 +151,15 @@ export class DriverController {
       driverJoinCampaignId,
     );
   }
+
+  @ApiOperation({ summary: 'Get list total km traveled' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Status(UserStatus.VERIFIED)
+  @Get('location/totalKmTraveled')
+  @Roles(Role.DRIVER)
+  async getTotalKmTraveled(@Request() req: RequestUser) {
+    return await this.driverService.getTotalKmTraveled(req.user.id);
+  }
 }
