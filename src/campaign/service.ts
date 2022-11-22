@@ -719,6 +719,7 @@ export class CampaignService {
       },
       include: {
         wrap: true,
+        contractCampaign: true,
         driverJoinCampaign: {
           include: {
             driverTrackingLocation: {

@@ -16,7 +16,6 @@ export class PaymentService {
     const campaign = await this.prisma.campaign.findFirst({
       where: {
         id: dto.campaignId,
-        statusCampaign: dto.statusCampaign,
       },
       include: {
         contractCampaign: true,
@@ -28,6 +27,13 @@ export class PaymentService {
 
     if (!campaign.contractCampaign)
       throw new BadRequestException('Your campaign is not create contract yet');
+
+    if (
+      campaign.statusCampaign !== 'PAYMENT' &&
+      campaign.statusCampaign !== 'FINISH'
+    ) {
+      throw new BadRequestException('You cannot create payment this campaign');
+    }
 
     try {
       const totalMoney =
@@ -67,8 +73,27 @@ export class PaymentService {
     }
   }
 
-  async capturePostpaidTransaction(orderId: string, campaignId: string) {
+  async captureTransaction(orderId: string, campaignId: string) {
     const accessToken = await this.generateAccessToken();
+    const campaign = await this.prisma.campaign.findFirst({
+      where: {
+        id: campaignId,
+      },
+      include: {
+        contractCampaign: true,
+        paymentDebit: true,
+      },
+    });
+    if (!campaign)
+      throw new BadRequestException('Please input correct campaign ID');
+
+    if (
+      campaign.statusCampaign !== 'PAYMENT' &&
+      campaign.statusCampaign !== 'FINISH'
+    ) {
+      throw new BadRequestException('You cannot checkout this campaign');
+    }
+
     const url = `${process.env.BASE}/v2/checkout/orders/${orderId}/capture/${campaignId}`;
     const response = await fetch(url, {
       method: 'post',
@@ -80,26 +105,27 @@ export class PaymentService {
 
     if (response.status === 200 || response.status === 201) {
       try {
-        const postPaid = await this.prisma.paymentDebit.findFirst({
-          where: {
-            campaignId,
-            type: 'POSTPAID',
-          },
-        });
+        const isPaymentCampaignStatus = campaign.statusCampaign === 'PAYMENT';
+        const typePayment = campaign.paymentDebit.find(
+          (payment) =>
+            payment.type === (isPaymentCampaignStatus ? 'PREPAY' : 'POSTPAID'),
+        );
+
         await this.prisma.paymentDebit.update({
           where: {
-            id: postPaid.id,
+            id: typePayment.id,
           },
           data: {
             paidDate: new Date(),
           },
         });
+
         await this.prisma.campaign.update({
           where: {
             id: campaignId,
           },
           data: {
-            statusCampaign: 'CLOSED',
+            statusCampaign: isPaymentCampaignStatus ? 'WRAPPING' : 'CLOSED',
           },
         });
         return response.json();

@@ -77,6 +77,17 @@ export class TaskController {
     return await this.taskService.handleCompleteWrappingCampaignPhase();
   }
 
+  @ApiOperation({ summary: 'Complete Running campaign phase manually' })
+  @ApiForbiddenResponse({
+    description: "Account don't have permission to use this feature",
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Roles(Role.ADMIN)
+  @Get('/complete/run-phase')
+  async CompleteRunningCampaignPhase() {
+    return await this.taskService.handleCompleteRunningCampaignPhase();
+  }
+
   @ApiBody({ type: LocationCoordinateDTO })
   @ApiOperation({ summary: 'Haversine distance formular' })
   @ApiForbiddenResponse({

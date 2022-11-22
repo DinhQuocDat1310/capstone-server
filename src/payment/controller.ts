@@ -23,28 +23,13 @@ export class PaymentController {
     return await this.paymentService.createOrder(dto);
   }
 
-  @ApiOperation({ summary: 'Checkout transaction[prepay]' })
-  @Post('/orders/:orderId/capture-prepay/:campaignId')
-  async capturePrepayTransaction(
+  @ApiOperation({ summary: 'Checkout transaction' })
+  @Post('/orders/:orderId/capture/:campaignId')
+  async captureTransaction(
     @Param('orderId') orderId: string,
     @Param('campaignId') campaignId: string,
   ) {
-    return await this.paymentService.capturePrepayTransaction(
-      orderId,
-      campaignId,
-    );
-  }
-
-  @ApiOperation({ summary: 'Checkout transaction[postpaid]' })
-  @Post('/orders/:orderId/capture-postpaid/:campaignId')
-  async capturePostpaidTransaction(
-    @Param('orderId') orderId: string,
-    @Param('campaignId') campaignId: string,
-  ) {
-    return await this.paymentService.capturePostpaidTransaction(
-      orderId,
-      campaignId,
-    );
+    return await this.paymentService.captureTransaction(orderId, campaignId);
   }
 
   @All('/webhook')
