@@ -516,52 +516,33 @@ export class DriversService {
   }
 
   async getTotalKmTraveled(userId: string) {
-    const campaigns = await this.prisma.driverJoinCampaign.findMany({
+    const tracking = await this.prisma.tracking.findMany({
       where: {
-        driver: {
-          userId,
-        },
-        status: {
-          in: ['APPROVE'],
-        },
-        campaign: {
-          statusCampaign: {
-            in: ['OPEN', 'PAYMENT', 'RUNNING', 'WRAPPING'],
+        driverTrackingLocation: {
+          driverJoinCampaign: {
+            driver: {
+              userId,
+            },
+            status: {
+              in: ['APPROVE'],
+            },
+            campaign: {
+              statusCampaign: {
+                in: ['OPEN', 'PAYMENT', 'RUNNING', 'WRAPPING'],
+              },
+            },
           },
         },
       },
       select: {
-        id: true,
-        status: true,
+        totalMeterDriven: true,
       },
     });
 
-    const campaignApprove = campaigns.find((cam) => cam.status === 'APPROVE');
-
-    if (campaignApprove) {
-      const listTracking = await this.prisma.tracking.findMany({
-        where: {
-          driverTrackingLocation: {
-            driverJoinCampaignId: campaignApprove.id,
-          },
-        },
-        select: {
-          totalMeterDriven: true,
-        },
-      });
-
-      let totalKmTraveled = 0;
-      listTracking.forEach((track) => {
-        totalKmTraveled += Number(track.totalMeterDriven);
-      });
-      const kmTraveled = (campaignApprove['totalKmTraveled'] = totalKmTraveled);
-      return campaigns.filter((total) => {
-        delete total.id;
-        delete total.status;
-        return {
-          kmTraveled,
-        };
-      });
-    }
+    let totalKmTraveled = 0;
+    tracking.forEach((track) => {
+      totalKmTraveled += Number(track.totalMeterDriven);
+    });
+    return totalKmTraveled;
   }
 }
