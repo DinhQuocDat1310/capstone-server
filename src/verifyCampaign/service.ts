@@ -89,7 +89,7 @@ export class VerifyCampaignService {
           AND: [
             {
               statusCampaign: {
-                in: ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING'],
+                in: ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING', 'FINISH'],
               },
             },
             {

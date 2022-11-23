@@ -8,8 +8,6 @@ import { CampaignService } from 'src/campaign/service';
 import { CampaignStatus, StatusDriverJoin } from '@prisma/client';
 import { PaymentService } from 'src/payment/service';
 import { DriversService } from 'src/driver/service';
-import * as moment from 'moment';
-
 @Injectable()
 export class TasksService {
   private readonly logger = new Logger(TasksService.name);
@@ -45,7 +43,7 @@ export class TasksService {
           campaigns[i].id,
           StatusDriverJoin.APPROVE,
         );
-        await this.paymentService.createPaymentPrePayForCampaign(
+        await this.paymentService.updatePaymentPrePayForCampaign(
           campaigns[i].id,
         );
       } else {
@@ -119,33 +117,23 @@ export class TasksService {
         const prePay = campaigns[i].paymentDebit.find(
           (pay) => pay.type === 'PREPAY',
         );
-
+        const postPaid = campaigns[i].paymentDebit.find(
+          (pay) => pay.type === 'POSTPAID',
+        );
         const totalMoney =
           Number(campaigns[i].contractCampaign.totalDriverMoney) +
           Number(campaigns[i].contractCampaign.totalSystemMoney) +
           Number(campaigns[i].contractCampaign.totalWrapMoney);
 
-        const isBothSide = campaigns[i].wrap.positionWrap === 'BOTH_SIDE';
-        const extraWrapMoney = isBothSide ? 400000 : 200000;
-        const priceWrap = parseFloat(campaigns[i].wrapPrice);
-        const amountDriverCancel =
-          Number(campaigns[i].quantityDriver) - listDriverJoinCampaign.length;
-        const time = parseInt(campaigns[i].duration) / 30 - 1;
-        const totalWrapMoney =
-          (priceWrap + time * extraWrapMoney) * amountDriverCancel;
-
         if (totalMeterFinalReport / 1000 >= Number(campaigns[i].totalKm)) {
-          const postPaid = totalMoney - Number(prePay.price) - totalWrapMoney;
-          await this.prisma.paymentDebit.create({
+          const totalMoneyPostPaid = totalMoney - Number(prePay.price);
+
+          await this.prisma.paymentDebit.update({
             data: {
-              price: `${postPaid}`,
-              type: 'POSTPAID',
-              expiredDate: moment().add(5, 'days').toISOString(),
-              campaign: {
-                connect: {
-                  id: campaigns[i].id,
-                },
-              },
+              price: totalMoneyPostPaid.toString(),
+            },
+            where: {
+              id: postPaid.id,
             },
           });
 
@@ -163,18 +151,24 @@ export class TasksService {
           return;
         }
 
-        const postPaid = totalMoney - Number(prePay.price) - totalWrapMoney;
+        const isBothSide = campaigns[i].wrap.positionWrap === 'BOTH_SIDE';
+        const extraWrapMoney = isBothSide ? 400000 : 200000;
+        const priceWrap = parseFloat(campaigns[i].wrapPrice);
+        const amountDriverCancel =
+          Number(campaigns[i].quantityDriver) - listDriverJoinCampaign.length;
+        const time = parseInt(campaigns[i].duration) / 30 - 1;
+        const totalWrapMoney =
+          (priceWrap + time * extraWrapMoney) * amountDriverCancel;
 
-        await this.prisma.paymentDebit.create({
+        const totalMoneyPostPaid =
+          totalMoney - Number(prePay.price) - totalWrapMoney;
+
+        await this.prisma.paymentDebit.update({
           data: {
-            price: `${postPaid}`,
-            type: 'POSTPAID',
-            expiredDate: moment().add(5, 'days').toISOString(),
-            campaign: {
-              connect: {
-                id: campaigns[i].id,
-              },
-            },
+            price: totalMoneyPostPaid.toString(),
+          },
+          where: {
+            id: postPaid.id,
           },
         });
 

@@ -68,6 +68,7 @@ export class ContractService {
     const inputDatePayment = moment(dto.datePaymentDeposit, 'MM-DD-YYYY');
     const validDatePayment = new Date(dateEndRegis);
     const diffDateOpenRegis = inputDateOpenRegis.diff(inputDatePayment, 'days');
+
     if (
       Math.abs(diffDateOpenRegis) !==
       parseInt(objDataConfig.gapOpenRegisterForm) + 1
@@ -125,6 +126,7 @@ export class ContractService {
           campaignId: true,
           campaign: {
             select: {
+              startRunningDate: true,
               campaignName: true,
               duration: true,
               minimumKmDrive: true,
@@ -174,9 +176,6 @@ export class ContractService {
         parseFloat(verifyCampaign.campaign.locationPricePerKm) *
         parseFloat(verifyCampaign.campaign.quantityDriver) *
         parseFloat(verifyCampaign.campaign.duration);
-
-      const totalMoney = totalDriverMoney + totalWrapMoney;
-      const totalDeposit = totalMoney * 0.2;
       const totalSystemMoney = totalDriverMoney * 0.1;
 
       await this.prisma.contractCampaign.create({
@@ -193,19 +192,25 @@ export class ContractService {
           isAccept: false,
         },
       });
-      await this.prisma.paymentDebit.create({
-        data: {
-          campaign: {
-            connect: {
-              id: verifyCampaign.campaignId,
-            },
+      await this.prisma.paymentDebit.createMany({
+        data: [
+          {
+            campaignId: verifyCampaign.campaignId,
+            type: 'PREPAY',
+            createDate: datePaymentDepose,
+            expiredDate: dateEndPaymentDepose,
           },
-          type: 'PREPAY',
-          createDate: datePaymentDepose,
-          expiredDate: dateEndPaymentDepose,
-          price: totalDeposit.toString(),
-          paidDate: null,
-        },
+          {
+            campaignId: verifyCampaign.campaignId,
+            type: 'POSTPAID',
+            createDate: moment(verifyCampaign.campaign.startRunningDate)
+              .add(Number(verifyCampaign.campaign.duration) + 1, 'days')
+              .toISOString(),
+            expiredDate: moment(verifyCampaign.campaign.startRunningDate)
+              .add(Number(verifyCampaign.campaign.duration) + 6, 'days')
+              .toISOString(),
+          },
+        ],
       });
       const message = `<p>Congratulations!. Your campaign information has been accepted</p>
            <p>Please login at the website for more details</p>`;
@@ -279,6 +284,16 @@ export class ContractService {
             wrapPrice: true,
             detailMessage: true,
             paymentDebit: {
+              where: {
+                campaign: {
+                  contractCampaign: {
+                    id: contractId,
+                  },
+                },
+                type: {
+                  in: ['PREPAY', 'POSTPAID'],
+                },
+              },
               select: {
                 id: true,
                 paidDate: true,
@@ -286,6 +301,7 @@ export class ContractService {
                 createDate: true,
                 price: true,
                 type: true,
+                isValid: true,
               },
             },
             brand: {
@@ -365,7 +381,7 @@ export class ContractService {
       throw new BadRequestException('This contract was Accepted');
     }
     try {
-      await this.prisma.contractCampaign.update({
+      const contract = await this.prisma.contractCampaign.update({
         where: {
           id: contractId,
         },
@@ -376,6 +392,28 @@ export class ContractService {
               statusCampaign: 'OPEN',
             },
           },
+        },
+        select: {
+          campaign: {
+            select: {
+              paymentDebit: {
+                where: {
+                  type: 'PREPAY',
+                },
+                select: {
+                  id: true,
+                },
+              },
+            },
+          },
+        },
+      });
+      await this.prisma.paymentDebit.update({
+        where: {
+          id: contract.campaign.paymentDebit[0].id,
+        },
+        data: {
+          isValid: true,
         },
       });
       return `Accepted contract`;
