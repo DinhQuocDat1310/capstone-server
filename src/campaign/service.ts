@@ -278,6 +278,14 @@ export class CampaignService {
           },
         },
         paymentDebit: {
+          where: {
+            campaign: {
+              id: campaignId,
+            },
+            type: {
+              in: ['PREPAY', 'POSTPAID'],
+            },
+          },
           select: {
             id: true,
             createDate: true,
@@ -285,6 +293,7 @@ export class CampaignService {
             paidDate: true,
             type: true,
             price: true,
+            isValid: true,
           },
         },
       },

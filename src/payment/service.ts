@@ -1,9 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import fetch, { Response } from 'node-fetch';
 import { PrismaService } from 'src/prisma/service';
-import * as fs from 'fs';
-import * as moment from 'moment';
-import { TypePayment } from '@prisma/client';
 import { TransactionCampaignDTO } from './dto';
 
 @Injectable()
@@ -136,49 +133,6 @@ export class PaymentService {
     throw new BadRequestException(errorMessage);
   }
 
-  async capturePrepayTransaction(orderId: string, campaignId: string) {
-    const accessToken = await this.generateAccessToken();
-    const url = `${process.env.BASE}/v2/checkout/orders/${orderId}/capture`;
-    const response = await fetch(url, {
-      method: 'post',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    if (response.status === 200 || response.status === 201) {
-      try {
-        const prePay = await this.prisma.paymentDebit.findFirst({
-          where: {
-            campaignId,
-            type: 'PREPAY',
-          },
-        });
-        await this.prisma.paymentDebit.update({
-          where: {
-            id: prePay.id,
-          },
-          data: {
-            paidDate: new Date(),
-          },
-        });
-        await this.prisma.campaign.update({
-          where: {
-            id: campaignId,
-          },
-          data: {
-            statusCampaign: 'WRAPPING',
-          },
-        });
-        return response.json();
-      } catch (error) {}
-    }
-
-    const errorMessage = await response.text();
-    throw new BadRequestException(errorMessage);
-  }
-
   private async generateAccessToken() {
     const auth = Buffer.from(
       process.env.CLIENT_ID + ':' + process.env.APP_SECRET,
@@ -203,61 +157,61 @@ export class PaymentService {
     throw new Error(errorMessage);
   }
 
-  async createPaymentPrePayForCampaign(campaignId: string) {
+  async updatePaymentPrePayForCampaign(campaignId: string) {
     const contract = await this.prisma.contractCampaign.findFirst({
       where: {
         campaignId,
       },
-    });
-    const objDataConfig = JSON.parse(
-      fs.readFileSync('./dataConfig.json', 'utf-8'),
-    );
-
-    const gapDatePayment = Number(objDataConfig.gapDatePayment);
-    const total =
-      Number(contract.totalDriverMoney) +
-      Number(contract.totalSystemMoney) +
-      Number(contract.totalWrapMoney);
-
-    await this.prisma.paymentDebit.create({
-      data: {
-        type: TypePayment.PREPAY,
-        price: `${Number(total) * 0.2}`,
-        expiredDate: moment(new Date(), 'MM-DD-YYYY')
-          .add(gapDatePayment, 'days')
-          .toISOString(),
+      select: {
         campaign: {
-          connect: {
-            id: campaignId,
+          include: {
+            paymentDebit: {
+              where: {
+                type: 'PREPAY',
+              },
+              select: {
+                id: true,
+              },
+            },
+            wrap: true,
+            locationCampaign: true,
           },
         },
       },
     });
+
+    const numberJoinCampaign = await this.prisma.driverJoinCampaign.count({
+      where: {
+        campaignId,
+      },
+    });
+
+    const isBothSide = contract.campaign.wrap.positionWrap === 'BOTH_SIDE';
+    const extraWrapMoney = isBothSide ? 400000 : 200000;
+    const priceWrap = parseFloat(contract.campaign.wrapPrice);
+    const time = parseInt(contract.campaign.duration) / 30 - 1;
+    const totalWrapMoney =
+      (priceWrap + time * extraWrapMoney) * numberJoinCampaign;
+
+    const totalDriverMoney =
+      parseFloat(contract.campaign.minimumKmDrive) *
+      parseFloat(contract.campaign.locationPricePerKm) *
+      numberJoinCampaign *
+      parseFloat(contract.campaign.duration);
+
+    const totalMoney =
+      totalDriverMoney + totalWrapMoney + totalDriverMoney * 0.1;
+    const totalDeposit = totalMoney * 0.2;
+
+    await this.prisma.paymentDebit.update({
+      where: {
+        id: contract.campaign.paymentDebit[0].id,
+      },
+      data: {
+        price: totalDeposit.toString(),
+      },
+    });
   }
-
-  // async createPaymentPostPaidForCampaign(campaignId: string) {
-
-  //   const totalMoney =
-  //     Number(contract.totalWrapMoney) +
-  //     Number(contract.totalDriverMoney) +
-  //     Number(contract.totalSystemMoney);
-
-  //   const gapDatePayment = Number(objDataConfig.gapDatePayment);
-  //   await this.prisma.paymentDebit.create({
-  //     data: {
-  //       type: TypePayment.PREPAY,
-  //       price: `${totalMoney * 0.2}`,
-  //       expiredDate: moment(new Date(), 'MM-DD-YYYY')
-  //         .add(gapDatePayment, 'days')
-  //         .toISOString(),
-  //       campaign: {
-  //         connect: {
-  //           id: campaignId,
-  //         },
-  //       },
-  //     },
-  //   });
-  // }
 
   async handleAllWebhook(dto: any) {
     this.logger.debug('Test Something webhook', dto);

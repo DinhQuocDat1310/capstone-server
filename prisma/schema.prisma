@@ -285,13 +285,14 @@ enum VerifyCampaignStatus {
 
 model PaymentDebit {
   id          String      @id @default(uuid())
-  price       String
+  price       String?
   type        TypePayment
   createDate  DateTime    @default(now())
   paidDate    DateTime?
   expiredDate DateTime
   campaign    Campaign?   @relation(fields: [campaignId], references: [id])
   campaignId  String
+  isValid     Boolean     @default(false)
 }
 
 enum TypePayment {

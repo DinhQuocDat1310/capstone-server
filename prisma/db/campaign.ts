@@ -163,19 +163,29 @@ export const campaignRunning = async () => {
       isAccept: true,
     },
   });
-  await prisma.paymentDebit.create({
-    data: {
-      campaign: {
-        connect: {
-          id: verifyCampaign.campaignId,
-        },
+  await prisma.paymentDebit.createMany({
+    data: [
+      {
+        campaignId: verifyCampaign.campaignId,
+        type: 'PREPAY',
+        createDate: moment(new Date()).subtract(11, 'days').toISOString(),
+        expiredDate: moment(new Date()).subtract(16, 'days').toISOString(),
+        price: totalDeposit.toString(),
+        paidDate: moment(new Date()).subtract(14, 'days').toISOString(),
+        isValid: true,
       },
-      type: 'PREPAY',
-      createDate: moment(new Date()).subtract(11, 'days').toISOString(),
-      expiredDate: moment(new Date()).subtract(16, 'days').toISOString(),
-      price: totalDeposit.toString(),
-      paidDate: moment(new Date()).subtract(14, 'days').toISOString(),
-    },
+      {
+        campaignId: verifyCampaign.campaignId,
+        type: 'POSTPAID',
+        createDate: moment(verifyCampaign.campaign.startRunningDate)
+          .add(Number(verifyCampaign.campaign.duration) + 1, 'days')
+          .toISOString(),
+        expiredDate: moment(verifyCampaign.campaign.startRunningDate)
+          .add(Number(verifyCampaign.campaign.duration) + 6, 'days')
+          .toISOString(),
+        isValid: true,
+      },
+    ],
   });
   const driverJoinCampaign = await prisma.driverJoinCampaign.findMany({
     where: { campaignId: campaign.id, status: 'APPROVE' },
