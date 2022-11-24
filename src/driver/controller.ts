@@ -162,4 +162,15 @@ export class DriverController {
   async getTotalKmTraveled(@Request() req: RequestUser) {
     return await this.driverService.getTotalKmTraveled(req.user.id);
   }
+
+  @ApiOperation({ summary: 'Get history campaign driver joined and finished' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Status(UserStatus.VERIFIED)
+  @Get('history/campaign')
+  @Roles(Role.DRIVER)
+  async historyDriverFinished(@Request() req: RequestUser) {
+    return await this.driverService.getHistoryCampaignFinished(req.user.id);
+  }
 }

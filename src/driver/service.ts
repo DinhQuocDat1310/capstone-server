@@ -545,4 +545,103 @@ export class DriversService {
     });
     return totalKmTraveled;
   }
+
+  async getHistoryCampaignFinished(userId: string) {
+    const driverJoinCampaign = await this.prisma.driverJoinCampaign.findMany({
+      where: {
+        driver: {
+          userId,
+        },
+        status: 'FINISH',
+        campaign: {
+          statusCampaign: 'CLOSED',
+        },
+      },
+      select: {
+        id: true,
+        driverTrackingLocation: {
+          select: {
+            id: true,
+          },
+        },
+        campaign: {
+          select: {
+            id: true,
+            campaignName: true,
+            startRunningDate: true,
+            duration: true,
+            poster: true,
+            statusCampaign: true,
+            minimumKmDrive: true,
+            locationPricePerKm: true,
+            locationCampaign: {
+              select: {
+                locationName: true,
+              },
+            },
+            wrapPrice: true,
+            wrap: {
+              select: {
+                positionWrap: true,
+              },
+            },
+            totalKm: true,
+          },
+        },
+      },
+    });
+    const array = [];
+    for (let index = 0; index < driverJoinCampaign.length; index++) {
+      let totalKmTraveled = 0;
+      const getTotalKmEachCampaign =
+        await this.prisma.driverTrackingLocation.findMany({
+          where: {
+            driverJoinCampaignId: driverJoinCampaign[index].id,
+          },
+          select: {
+            driverJoinCampaignId: true,
+            tracking: {
+              select: {
+                totalMeterDriven: true,
+              },
+            },
+          },
+        });
+      getTotalKmEachCampaign.forEach((driver) =>
+        driver.tracking.forEach(
+          (track) => (totalKmTraveled += Number(track.totalMeterDriven)),
+        ),
+      );
+      array.push(totalKmTraveled);
+    }
+
+    const dataRes = driverJoinCampaign.map((driver) => {
+      const endDateCampaign = moment(driver.campaign.startRunningDate)
+        .add(Number(driver.campaign.duration) + 1, 'days')
+        .toISOString();
+      const totalMoneyEarned =
+        Number(driver.campaign.wrapPrice) +
+        Number(driver.campaign.minimumKmDrive) *
+          Number(driver.campaign.duration) *
+          Number(driver.campaign.locationPricePerKm);
+      const campaign = driver.campaign;
+      const locationName = driver.campaign.locationCampaign.locationName;
+      const positionWrap = driver.campaign.wrap.positionWrap;
+      delete driver.campaign.locationCampaign;
+      delete driver.campaign.wrap;
+      delete driver.driverTrackingLocation;
+      delete driver.campaign;
+      return {
+        ...campaign,
+        locationName,
+        positionWrap,
+        endDateCampaign,
+        totalMoneyEarned,
+      };
+    });
+    for (let index = 0; index < array.length; index++) {
+      dataRes[index]['totalKmRun'] = array[index];
+    }
+    return dataRes;
+  }
 }
