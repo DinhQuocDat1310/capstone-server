@@ -296,6 +296,9 @@ export class CampaignService {
             price: true,
             isValid: true,
           },
+          orderBy: {
+            createDate: 'asc',
+          },
         },
       },
     });
