@@ -13,6 +13,7 @@ import { convertPhoneNumberFormat } from 'src/utilities';
 import { UserSignIn } from 'src/auth/dto';
 import { DriverVerifyInformationDTO } from 'src/driver/dto';
 import { BrandVerifyInformationDTO, UpdateBrandLogoDto } from 'src/brand/dto';
+import * as moment from 'moment';
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
@@ -186,6 +187,7 @@ export class UsersService {
         imageCitizenFront: dto.imageCitizenFront,
         email: dto.email,
         address: dto.address,
+        phoneNumber: dto.phoneNumber,
         driver: {
           update: {
             idCar: dto.idCar,
@@ -423,5 +425,9 @@ export class UsersService {
         id: true,
       },
     });
+  }
+
+  async test() {
+    return moment().toDate().toLocaleDateString('vn-VN');
   }
 }

@@ -492,7 +492,6 @@ export class CampaignService {
       data: {
         campaignName: dto.campaignName,
         startRunningDate: moment(dto.startRunningDate, 'MM-DD-YYYY')
-          .add(1, 'days')
           .toDate()
           .toLocaleDateString('vn-VN'),
         quantityDriver: dto.quantityDriver,

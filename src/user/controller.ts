@@ -83,4 +83,9 @@ export class UserController {
   ) {
     await this.userService.updatePasswordUser(req.user.id, dto);
   }
+
+  @Get('test')
+  async testDateTime() {
+    return await this.userService.test();
+  }
 }

@@ -30,3 +30,30 @@ export const policies: { question: string; answer: string }[] = [
       'These rules ensure that employees are treated fairly at work. Most businesses have equal opportunity policies, including discrimination and affirmative action rules, that encourage fair treatment for all employees.       Every organization should offer equal opportunity employment to keep employees from facing inappropriate behavior from other workers, management, and contractors regarding the following: Race, Sexual orientation, Creed, Gender, Cultural beliefs, Religious beliefs, Every company should have guidelines in place concerning disabled or pregnant applicants or employees. Diversity guidelines should be in place. All organizations need a "no retaliation" policy to protect workers that report instances of harassment or discrimination',
   },
 ];
+
+export const faq: { question: string; answer: string }[] = [
+  {
+    question: 'Who are your drivers? Are they only rideshare?',
+    answer:
+      'Our 420,000+ contracted drivers consist of rideshare drivers on platforms like Uber and Lyft, app-enabled deliver drivers for platforms like Doordash, Grubhub, Uber Eats and Instacart, as well as everyday commuters who want to earn money for the miles they drive.',
+  },
+  {
+    question: 'What markets can we launch a campaign?',
+    answer: 'Brandvertise is live nationwide!',
+  },
+  {
+    question: 'How much does it cost to run a campaign',
+    answer: 'Each Brandvertise campaign varies in size, scale and scope.',
+  },
+  {
+    question:
+      'How do we ensure design consistency on all the various makes and models?',
+    answer:
+      'The Brandvertise creative team works as an extension of your brand or agency team to ensure consistency across all makes and models of vehicles. We work with certified installers to ensure your brand creative looks flawless.',
+  },
+  {
+    question: 'Is production media and installation all included?',
+    answer:
+      'Yes, production media and installation are included with every Brandvertise campaign.',
+  },
+];

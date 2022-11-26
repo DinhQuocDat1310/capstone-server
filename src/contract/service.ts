@@ -37,7 +37,7 @@ export class ContractService {
       .toLocaleDateString('vn-VN');
 
     const dateEndRegister = moment(dto.dateOpenRegister, 'MM-DD-YYYY')
-      .add(parseInt(objDataConfig.gapOpenRegisterForm), 'days')
+      .add(parseInt(objDataConfig.gapOpenRegisterForm) - 1, 'days')
       .toDate()
       .toLocaleDateString('vn-VN');
 
@@ -46,7 +46,7 @@ export class ContractService {
       .toLocaleDateString('vn-VN');
 
     const dateEndPaymentDeposit = moment(dto.datePaymentDeposit, 'MM-DD-YYYY')
-      .add(parseInt(objDataConfig.gapPaymentDeposit), 'days')
+      .add(parseInt(objDataConfig.gapPaymentDeposit) - 1, 'days')
       .toDate()
       .toLocaleDateString('vn-VN');
 
@@ -55,7 +55,7 @@ export class ContractService {
       .toLocaleDateString('vn-VN');
 
     const dateEndWarpSticket = moment(dto.dateWarpSticket, 'MM-DD-YYYY')
-      .add(parseInt(objDataConfig.gapWrapping), 'days')
+      .add(parseInt(objDataConfig.gapWrapping) - 1, 'days')
       .toDate()
       .toLocaleDateString('vn-VN');
 
@@ -64,13 +64,13 @@ export class ContractService {
 
     if (
       Math.abs(inputDateOpenRegis.diff(inputDatePayment, 'days')) !==
-      parseInt(objDataConfig.gapOpenRegisterForm)
+      parseInt(objDataConfig.gapOpenRegisterForm) - 1
     )
       throw new BadRequestException(
         `Gap Date Open Register must be in ${
           objDataConfig.gapOpenRegisterForm
         } day(s). Date Payment must be: ${inputDateOpenRegis
-          .add(parseInt(objDataConfig.gapOpenRegisterForm), 'days')
+          .add(parseInt(objDataConfig.gapOpenRegisterForm) - 1, 'days')
           .toDate()
           .toLocaleDateString('vn-VN')}`,
       );
@@ -79,13 +79,13 @@ export class ContractService {
 
     if (
       Math.abs(inputDatePayment.diff(inputDateWrap, 'days')) !==
-      parseInt(objDataConfig.gapPaymentDeposit)
+      parseInt(objDataConfig.gapPaymentDeposit) - 1
     )
       throw new BadRequestException(
         `Gap Date Payment Deposit must be in ${
           objDataConfig.gapPaymentDeposit
         } day(s). Date Wrapping must be: ${inputDateWrap
-          .add(parseInt(objDataConfig.gapPaymentDeposit), 'days')
+          .add(parseInt(objDataConfig.gapPaymentDeposit) - 1, 'days')
           .toDate()
           .toLocaleDateString('vn-VN')}`,
       );
