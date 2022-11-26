@@ -70,7 +70,7 @@ export const users = async (): Promise<any[]> => {
     });
   }
 
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 1000; i++) {
     const random = Math.floor(Math.random() * 20);
 
     const randomIdCitizen = Math.floor(
@@ -92,7 +92,7 @@ export const users = async (): Promise<any[]> => {
       imageCitizenFront: FAKE_FRONT_CARDLICENSE[random],
       imageCitizenBack: FAKE_BACK_CARDLICENSE[random],
       idCitizen: randomIdCitizen.toString(),
-      address: i < 60 ? 'TP Hồ Chí Minh' : 'Hà Nội',
+      address: i < 800 ? 'TP Hồ Chí Minh' : 'Hà Nội',
       email: `driver${i + 1}@gmail.com`,
       fullname: `Driver ${i + 1}`,
       role: Role.DRIVER,

@@ -19,6 +19,7 @@ import { ManagerVerifyDTO } from 'src/manager/dto';
 import { UserStatus, VerifyAccountStatus } from '@prisma/client';
 import { MailerService } from '@nestjs-modules/mailer';
 import { AppConfigService } from 'src/config/appConfigService';
+import * as moment from 'moment';
 
 @Injectable()
 export class VerifyAccountsService {
@@ -32,6 +33,7 @@ export class VerifyAccountsService {
     try {
       return await this.prisma.verifyAccount.create({
         data: {
+          createDate: moment().toDate().toLocaleDateString('vn-VN'),
           brand: {
             connect: {
               id,
@@ -116,6 +118,7 @@ export class VerifyAccountsService {
     try {
       return await this.prisma.verifyAccount.create({
         data: {
+          createDate: moment().toDate().toLocaleDateString('vn-VN'),
           driver: {
             connect: {
               id,
@@ -414,6 +417,7 @@ export class VerifyAccountsService {
       });
       await this.prisma.verifyAccount.create({
         data: {
+          createDate: moment().toDate().toLocaleDateString('vn-VN'),
           brand: {
             connect: {
               id: brandsFilter[i].brand.id,
@@ -466,6 +470,7 @@ export class VerifyAccountsService {
       });
       await this.prisma.verifyAccount.create({
         data: {
+          createDate: moment().toDate().toLocaleDateString('vn-VN'),
           driver: {
             connect: {
               id: driversFilter[i].driver.id,
@@ -757,7 +762,6 @@ export class VerifyAccountsService {
         status: true,
         detail: true,
         createDate: true,
-        updateAt: true,
       },
       orderBy: {
         createDate: 'asc',
@@ -766,16 +770,12 @@ export class VerifyAccountsService {
     const mapBrand = taskAccount
       .map((task) => task)
       .map((task) => {
-        let time = null;
+        const time = task?.createDate;
         const name = task?.brand?.brandName;
-        task?.status === 'PENDING'
-          ? (time = task?.createDate)
-          : (time = task?.updateAt);
         if (task?.brand) {
           delete task?.brand;
           delete task?.driver;
           delete task?.createDate;
-          delete task?.updateAt;
           return {
             action: 'Verify Brand',
             name,
@@ -789,16 +789,12 @@ export class VerifyAccountsService {
     const mapDriver = taskAccount
       .map((task) => task)
       .map((task) => {
-        let time = null;
+        const time = task?.createDate;
         const name = task?.driver?.user?.fullname;
-        task?.status === 'PENDING'
-          ? (time = task?.createDate)
-          : (time = task?.updateAt);
         if (task?.driver) {
           delete task?.driver;
           delete task?.brand;
           delete task?.createDate;
-          delete task?.updateAt;
           return {
             action: 'Verify Driver',
             name,

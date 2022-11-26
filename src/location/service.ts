@@ -5,6 +5,7 @@ import { Role, Status, UserStatus } from '@prisma/client';
 import { PrismaService } from 'src/prisma/service';
 import { LocationCoordinate, CreateLocationDTO } from './dto';
 import * as haversine from 'haversine-distance';
+import moment from 'moment';
 
 @Injectable()
 export class LocationService {
@@ -41,6 +42,7 @@ export class LocationService {
         price: location.price,
         status: Status.ENABLE,
         addressPoint: location.addressCheckPoint,
+        createDate: moment().toDate().toLocaleDateString('vn-VN'),
       },
       select: {
         id: true,
