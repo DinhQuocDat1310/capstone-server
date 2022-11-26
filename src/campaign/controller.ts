@@ -225,7 +225,7 @@ export class CampaignController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.ADMIN)
   @Status(UserStatus.VERIFIED)
-  @Get('/total-km-final-report/:id')
+  @Get('/trigger-driver-join/:id')
   async triggerDriversJoinCampaign(
     @Request() req: RequestUser,
     @Param('id') campaignId: string,
