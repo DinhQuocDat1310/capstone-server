@@ -77,14 +77,8 @@ export const users = async (): Promise<any[]> => {
       Math.random() * (Math.pow(10, 10) * 9.9 - Math.pow(10, 10) + 1) +
         Math.pow(10, 10),
     );
-    const randomIdCar = Math.floor(
-      Math.random() * (Math.pow(10, 5) * 9.9 - Math.pow(10, 5) + 1) +
-        Math.pow(10, 5),
-    );
-    const randomAccountNumber = Math.floor(
-      Math.random() * (Math.pow(10, 5) * 9.9 - Math.pow(10, 5) + 1) +
-        Math.pow(10, 5),
-    );
+    const randomIdCar = 10000;
+    const randomAccountNumber = 100000;
     const randomPhone =
       Math.floor(Math.random() * (999999999 - 100000000)) + 100000000;
 
@@ -105,9 +99,9 @@ export const users = async (): Promise<any[]> => {
           imageCarFront: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
           imageCarLeft: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
           imageCarRight: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
-          idCar: `51F-${randomIdCar}`,
+          idCar: `51F-${randomIdCar + 1}`,
           bankName: i < 60 ? 'TP BANK' : 'AGRIBANK',
-          bankAccountNumber: `${randomAccountNumber}`,
+          bankAccountNumber: `${randomAccountNumber + 1}`,
           bankAccountOwner: FAKE_OWNER_BUSINESS[random],
         },
       },
