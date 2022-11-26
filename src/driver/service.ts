@@ -118,10 +118,9 @@ export class DriversService {
         throw new Error('This campaign is not host in your location!!!');
       }
 
-      const now = moment(new Date());
       if (
-        now < moment(campaign.startRegisterDate) ||
-        now > moment(campaign.endRegisterDate)
+        moment() < moment(campaign.startRegisterDate) ||
+        moment() > moment(campaign.endRegisterDate)
       ) {
         throw new BadRequestException(
           'This campaign is not open for register, can you re-check the date!',
@@ -176,6 +175,7 @@ export class DriversService {
 
       await this.prisma.driverJoinCampaign.create({
         data: {
+          createDate: moment().toDate().toLocaleDateString('vn-VN'),
           campaign: {
             connect: {
               id: campaignId,
@@ -363,8 +363,7 @@ export class DriversService {
 
     const campaignApprove = campaigns.find((cam) => cam.status === 'APPROVE');
     if (campaignApprove) {
-      const now = moment(new Date());
-      const campaignDayCount = now.diff(
+      const campaignDayCount = moment().diff(
         moment(campaignApprove.campaign.startRunningDate),
         'days',
       );
@@ -450,6 +449,7 @@ export class DriversService {
                 id: driverJoinCampaign.id,
               },
             },
+            createDate: moment().toDate().toLocaleDateString('vn-VN'),
           },
         });
     }
@@ -462,6 +462,9 @@ export class DriversService {
             id: isDriverTrackingLocationExist.id,
           },
         },
+        timeSubmit: moment()
+          .toDate()
+          .toLocaleDateString('vn-VN', { hour: 'numeric', minute: 'numeric' }),
       },
     });
   }
@@ -488,24 +491,12 @@ export class DriversService {
 
     const driverTrackingLocation = listDriverTrackingLocation.find(
       (driverTracking) =>
-        moment(new Date()).diff(driverTracking.createDate, 'days') === 0,
+        moment().diff(driverTracking.createDate, 'days') === 0,
     );
     if (!driverTrackingLocation) return 0;
     const listTracking = await this.prisma.tracking.findMany({
       where: {
         driverTrackingLocationId: driverTrackingLocation.id,
-        OR: [
-          {
-            timeSubmit: {
-              lte: new Date(),
-            },
-          },
-          {
-            timeSubmit: {
-              gte: new Date(),
-            },
-          },
-        ],
       },
     });
     let total = 0;
@@ -618,7 +609,8 @@ export class DriversService {
     const dataRes = driverJoinCampaign.map((driver) => {
       const endDateCampaign = moment(driver.campaign.startRunningDate)
         .add(Number(driver.campaign.duration) + 1, 'days')
-        .toISOString();
+        .toDate()
+        .toLocaleDateString('vn-VN');
       const totalMoneyEarned =
         Number(driver.campaign.wrapPrice) +
         Number(driver.campaign.minimumKmDrive) *

@@ -22,6 +22,7 @@ import {
 } from '@nestjs/common';
 import { AppConfigService } from 'src/config/appConfigService';
 import { PrismaService } from 'src/prisma/service';
+import * as moment from 'moment';
 
 @Injectable()
 export class VerifyCampaignService {
@@ -185,7 +186,7 @@ export class VerifyCampaignService {
                 Math.random() * (Math.pow(5, 6) * 9.9 - Math.pow(5, 6) + 1) +
                   Math.pow(6, 6),
               ),
-            startRunningDate: new Date(),
+            startRunningDate: moment().toDate().toLocaleDateString('vn-VN'),
             duration: FAKE_DURATION[j],
             quantityDriver: FAKE_QUANTITY_DRIVER[j],
             totalKm: FAKE_TOTALKM[j],
@@ -220,6 +221,7 @@ export class VerifyCampaignService {
                 id: campaignId.id,
               },
             },
+            createDate: moment().toDate().toLocaleDateString('vn-VN'),
           },
         });
       }
@@ -464,7 +466,6 @@ export class VerifyCampaignService {
         status: true,
         detail: true,
         createDate: true,
-        updateAt: true,
       },
       orderBy: {
         createDate: 'asc',
@@ -473,14 +474,10 @@ export class VerifyCampaignService {
     return taskCampaign
       .map((task) => task)
       .map((task) => {
-        let time = null;
+        const time = task?.createDate;
         const name = task?.campaign?.campaignName;
         delete task?.campaign;
-        task?.status === 'PENDING'
-          ? (time = task?.createDate)
-          : (time = task?.updateAt);
         delete task?.createDate;
-        delete task?.updateAt;
         return {
           action: 'Verify Campaign',
           name,

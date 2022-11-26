@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 import { UserSignIn } from 'src/auth/dto';
 import { PrismaService } from 'src/prisma/service';
@@ -12,6 +13,7 @@ import * as fs from 'fs';
 
 @Injectable()
 export class CampaignService {
+  private readonly logger = new Logger(CampaignService.name);
   constructor(private readonly prisma: PrismaService) {}
 
   async getListVerifiesCampaignByUserId(userId: string) {
@@ -246,7 +248,6 @@ export class CampaignService {
             status: true,
             detail: true,
             createDate: true,
-            updateAt: true,
           },
         },
         brand: {
@@ -320,8 +321,6 @@ export class CampaignService {
         id: dto.idWrap,
       },
     });
-    const currentDate = new Date(dto.startRunningDate);
-    currentDate.setDate(currentDate.getDate() + 1);
     await this.prisma.user.update({
       where: {
         id,
@@ -336,7 +335,10 @@ export class CampaignService {
                 },
                 data: {
                   campaignName: dto.campaignName,
-                  startRunningDate: currentDate.toISOString(),
+                  startRunningDate: moment(dto.startRunningDate)
+                    .add(1, 'days')
+                    .toDate()
+                    .toLocaleDateString('vn-VN'),
                   totalKm: dto.totalKm,
                   quantityDriver: dto.quantityDriver,
                   minimumKmDrive: dto.minimumKmDrive,
@@ -481,8 +483,7 @@ export class CampaignService {
     const objDataConfig = JSON.parse(
       fs.readFileSync('./dataConfig.json', 'utf-8'),
     );
-    const currentDate = new Date(dto.startRunningDate);
-    currentDate.setDate(currentDate.getDate() + 1);
+
     if (objDataConfig.minimumKmDrive !== dto.minimumKmDrive)
       throw new BadRequestException(
         `Minimum Km must drive/day is ${objDataConfig.minimumKmDrive}`,
@@ -490,7 +491,10 @@ export class CampaignService {
     const campaign = await this.prisma.campaign.create({
       data: {
         campaignName: dto.campaignName,
-        startRunningDate: currentDate.toISOString(),
+        startRunningDate: moment(dto.startRunningDate)
+          .add(1, 'days')
+          .toDate()
+          .toLocaleDateString('vn-VN'),
         quantityDriver: dto.quantityDriver,
         totalKm: dto.totalKm,
         description: dto.description,
@@ -548,6 +552,7 @@ export class CampaignService {
             id: campaign.id,
           },
         },
+        createDate: moment().toDate().toLocaleDateString('vn-VN'),
       },
     });
     return campaign;
@@ -701,27 +706,24 @@ export class CampaignService {
   }
 
   async getAllCampaignRegisterIsExpired() {
-    const now = moment(new Date());
     const campaigns = await this.prisma.campaign.findMany({
       where: {
         statusCampaign: 'OPEN',
       },
     });
-    return campaigns.filter((c) => now >= moment(c.endRegisterDate));
+    return campaigns.filter((c) => moment() >= moment(c.endRegisterDate));
   }
 
   async getAllCampaignWrapIsExpired() {
-    const now = moment(new Date());
     const campaigns = await this.prisma.campaign.findMany({
       where: {
         statusCampaign: 'WRAPPING',
       },
     });
-    return campaigns.filter((c) => now >= moment(c.endWrapDate));
+    return campaigns.filter((c) => moment() >= moment(c.endWrapDate));
   }
 
   async getAllCampaignRunningIsExpired() {
-    const now = moment(new Date());
     const campaigns = await this.prisma.campaign.findMany({
       where: {
         statusCampaign: 'RUNNING',
@@ -742,7 +744,8 @@ export class CampaignService {
       },
     });
     return campaigns.filter(
-      (c) => now >= moment(c.startRunningDate).add(Number(c.duration), 'days'),
+      (c) =>
+        moment() >= moment(c.startRunningDate).add(Number(c.duration), 'days'),
     );
   }
 
@@ -874,8 +877,7 @@ export class CampaignService {
       throw new BadRequestException('You are not the owner this campaign!');
 
     const totalKmPerDay = Number(campaign.totalKm) / Number(campaign.duration);
-    const now = moment(new Date());
-    const totalLength = now.diff(campaign.startRunningDate, 'days');
+    const totalLength = moment().diff(campaign.startRunningDate, 'days');
 
     const listDriver = (date: moment.Moment) => {
       return campaign.driverJoinCampaign.map((driverJoin) => {
@@ -979,6 +981,46 @@ export class CampaignService {
           },
         },
       },
+    });
+  }
+
+  async triggerDriversJoinCampaign(campaignId: string) {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: {
+        id: campaignId,
+        statusCampaign: 'OPEN',
+      },
+      include: {
+        locationCampaign: true,
+      },
+    });
+    const quantityDriverRequire =
+      Math.ceil(Number(campaign.quantityDriver) * 0.8) - 1;
+    const drivers = await this.prisma.driver.findMany({
+      where: {
+        user: {
+          address: campaign.locationCampaign.locationName,
+        },
+      },
+      take: quantityDriverRequire,
+    });
+
+    if (drivers.length < quantityDriverRequire) {
+      this.logger.debug(
+        `We dont have enough drivers to auto register driver for campaign in ${campaign.locationCampaign.locationName}`,
+      );
+      return;
+    }
+    const data = drivers.map((driver) => {
+      return {
+        campaignId: campaign.id,
+        driverId: driver.id,
+        description: 'Auto join',
+        createDate: moment().toDate().toLocaleDateString('vn-VN'),
+      };
+    });
+    await this.prisma.driverJoinCampaign.createMany({
+      data,
     });
   }
 }

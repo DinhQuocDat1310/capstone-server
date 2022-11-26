@@ -89,8 +89,7 @@ model Driver {
 model DriverJoinCampaign {
   id          String           @id @default(uuid())
   status      StatusDriverJoin @default(JOIN)
-  createDate  DateTime         @default(now())
-  updateDate  DateTime         @updatedAt
+  createDate  String
   description String?
 
   driverId      String
@@ -105,7 +104,7 @@ model DriverJoinCampaign {
 
 model DriverTrackingLocation {
   id                   String              @id @default(uuid())
-  createDate           DateTime            @default(now())
+  createDate           String
   driverJoinCampaign   DriverJoinCampaign? @relation(fields: [driverJoinCampaignId], references: [id])
   driverJoinCampaignId String?
   tracking             Tracking[]
@@ -114,7 +113,7 @@ model DriverTrackingLocation {
 model Tracking {
   id                       String                  @id @default(uuid())
   totalMeterDriven         String
-  timeSubmit               DateTime                @default(now())
+  timeSubmit               String
   driverTrackingLocation   DriverTrackingLocation? @relation(fields: [driverTrackingLocationId], references: [id])
   driverTrackingLocationId String?
 }
@@ -140,7 +139,7 @@ model ReporterDriverCampaign {
   imageCarLeft         String?
   imageCarRight        String?
   imageCarOdo          String?
-  createDate           DateTime           @default(now())
+  createDate           String
   isChecked            Boolean            @default(false)
   reporter             Reporter           @relation(fields: [reporterId], references: [id])
   reporterId           String
@@ -160,8 +159,7 @@ model VerifyAccount {
   id         String              @id @default(uuid())
   status     VerifyAccountStatus @default(NEW)
   detail     String?
-  createDate DateTime            @default(now())
-  updateAt   DateTime            @updatedAt
+  createDate String
   assignBy   AssignBy?
   brand      Brand?              @relation(fields: [brandId], references: [id])
   brandId    String?
@@ -187,9 +185,9 @@ enum VerifyAccountStatus {
 model Campaign {
   id                String         @id @default(uuid())
   campaignName      String         @unique
-  startRegisterDate DateTime?
-  endRegisterDate   DateTime?
-  startRunningDate  DateTime
+  startRegisterDate String?
+  endRegisterDate   String?
+  startRunningDate  String
   statusCampaign    CampaignStatus @default(NEW)
   detailMessage     String?
   duration          String
@@ -198,8 +196,8 @@ model Campaign {
   description       String?
   minimumKmDrive    String         @default("20")
 
-  startWrapDate DateTime?
-  endWrapDate   DateTime?
+  startWrapDate String?
+  endWrapDate   String?
   wrapPrice     String
   poster        String
 
@@ -233,8 +231,7 @@ enum CampaignStatus {
 
 model LocationCampaignPerKm {
   id           String     @id @default(uuid())
-  createDate   DateTime   @default(now())
-  updateAt     DateTime   @default(now()) @updatedAt
+  createDate   String
   locationName String
   addressPoint String
   price        String
@@ -251,7 +248,6 @@ model Wrap {
   id           String       @id @default(uuid())
   positionWrap PositionWrap
   price        String
-  updateAt     DateTime     @updatedAt
   status       Status
   campaign     Campaign[]
 }
@@ -266,8 +262,7 @@ model VerifyCampaign {
   id         String               @id @default(uuid())
   status     VerifyCampaignStatus @default(NEW)
   detail     String?
-  createDate DateTime             @default(now())
-  updateAt   DateTime             @updatedAt
+  createDate String
   assignBy   AssignBy?
   manager    Manager?             @relation(fields: [managerId], references: [id])
   managerId  String?
@@ -287,9 +282,9 @@ model PaymentDebit {
   id          String      @id @default(uuid())
   price       String?
   type        TypePayment
-  createDate  DateTime    @default(now())
-  paidDate    DateTime?
-  expiredDate DateTime
+  createDate  String
+  paidDate    String?
+  expiredDate String
   campaign    Campaign?   @relation(fields: [campaignId], references: [id])
   campaignId  String
   isValid     Boolean     @default(false)

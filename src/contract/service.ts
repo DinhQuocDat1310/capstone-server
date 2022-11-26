@@ -32,79 +32,62 @@ export class ContractService {
       fs.readFileSync('./dataConfig.json', 'utf-8'),
     );
 
-    const parseDateOpenRegister = new Date(dto.dateOpenRegister);
-    parseDateOpenRegister.setDate(parseDateOpenRegister.getDate() + 1);
-    const dateOpenRegis = parseDateOpenRegister.toISOString();
+    const dateOpenRegister = moment(dto.dateOpenRegister)
+      .toDate()
+      .toLocaleDateString('vn-VN');
 
-    const dateEndRegister = parseDateOpenRegister.setDate(
-      parseDateOpenRegister.getDate() +
-        parseInt(objDataConfig.gapOpenRegisterForm),
-    );
-    const parseDateEndRegister = new Date(dateEndRegister);
-    const dateEndRegis = parseDateEndRegister.toISOString();
+    const dateEndRegister = moment(dto.dateOpenRegister)
+      .add(parseInt(objDataConfig.gapOpenRegisterForm), 'days')
+      .toDate()
+      .toLocaleDateString('vn-VN');
 
-    const parseDatePaymentDeposit = new Date(dto.datePaymentDeposit);
-    parseDatePaymentDeposit.setDate(parseDatePaymentDeposit.getDate() + 1);
-    const datePaymentDepose = parseDatePaymentDeposit.toISOString();
+    const datePaymentDepose = moment(dto.datePaymentDeposit)
+      .toDate()
+      .toLocaleDateString('vn-VN');
 
-    const dateEndPaymentDeposit = parseDatePaymentDeposit.setDate(
-      parseDatePaymentDeposit.getDate() +
-        parseInt(objDataConfig.gapPaymentDeposit),
-    );
-    const parseEndDatePaymentDeposit = new Date(dateEndPaymentDeposit);
-    const dateEndPaymentDepose = parseEndDatePaymentDeposit.toISOString();
+    const dateEndPaymentDeposit = moment(dto.datePaymentDeposit)
+      .add(parseInt(objDataConfig.gapPaymentDeposit), 'days')
+      .toDate()
+      .toLocaleDateString('vn-VN');
 
-    const parseDateWarpSticket = new Date(dto.dateWarpSticket);
-    parseDateWarpSticket.setDate(parseDateWarpSticket.getDate() + 1);
-    const dateWrapStick = parseDateWarpSticket.toISOString();
+    const dateWrapStick = moment(dto.dateWarpSticket)
+      .toDate()
+      .toLocaleDateString('vn-VN');
 
-    const dateEndWarpSticket = parseDateWarpSticket.setDate(
-      parseDateWarpSticket.getDate() + parseInt(objDataConfig.gapWrapping),
-    );
-    const parseEndWarpSticket = new Date(dateEndWarpSticket);
-    const dateEndWarpStick = parseEndWarpSticket.toISOString();
+    const dateEndWarpSticket = moment(dto.dateWarpSticket)
+      .add(parseInt(objDataConfig.gapWrapping), 'days')
+      .toDate()
+      .toLocaleDateString('vn-VN');
 
-    const inputDateOpenRegis = moment(dto.dateOpenRegister, 'MM-DD-YYYY');
-    const inputDatePayment = moment(dto.datePaymentDeposit, 'MM-DD-YYYY');
-    const validDatePayment = new Date(dateEndRegis);
-    const diffDateOpenRegis = inputDateOpenRegis.diff(inputDatePayment, 'days');
+    const inputDateOpenRegis = moment(dto.dateOpenRegister);
+    const inputDatePayment = moment(dto.datePaymentDeposit);
 
     if (
-      Math.abs(diffDateOpenRegis) !==
-      parseInt(objDataConfig.gapOpenRegisterForm) + 1
+      inputDateOpenRegis.diff(inputDatePayment, 'days') !==
+      parseInt(objDataConfig.gapOpenRegisterForm)
     )
       throw new BadRequestException(
         `Gap Date Open Register must be in ${
           objDataConfig.gapOpenRegisterForm
-        } day(s). Date Payment must be: ${
-          validDatePayment.getMonth() +
-          1 +
-          '/' +
-          validDatePayment.getDate() +
-          '/' +
-          validDatePayment.getFullYear()
-        }`,
+        } day(s). Date Payment must be: ${inputDateOpenRegis
+          .add(parseInt(objDataConfig.gapOpenRegisterForm), 'days')
+          .toDate()
+          .toLocaleDateString('vn-VN')}`,
       );
 
-    const inputDateWrap = moment(dto.dateWarpSticket, 'MM-DD-YYYY');
-    const diffDatePayment = inputDatePayment.diff(inputDateWrap, 'days');
-    const validDateWrap = new Date(dateEndPaymentDepose);
+    const inputDateWrap = moment(dto.dateWarpSticket);
 
     if (
-      Math.abs(diffDatePayment) !==
-      parseInt(objDataConfig.gapPaymentDeposit) + 1
+      inputDatePayment.diff(inputDateWrap, 'days') !==
+      parseInt(objDataConfig.gapPaymentDeposit)
     )
       throw new BadRequestException(
         `Gap Date Payment Deposit must be in ${
           objDataConfig.gapPaymentDeposit
-        } day(s). Date Wrapping must be: ${
-          validDateWrap.getMonth() +
-          1 +
-          '/' +
-          validDateWrap.getDate() +
-          '/' +
-          validDateWrap.getFullYear()
-        }`,
+        } day(s). Date Wrapping must be: ${inputDateWrap
+          .add(parseInt(objDataConfig.gapPaymentDeposit), 'days')
+          .toDate()
+          .toLocaleDateString('vn-VN')}`,
       );
     try {
       const verifyCampaign = await this.prisma.verifyCampaign.update({
@@ -115,10 +98,10 @@ export class ContractService {
           status: VerifyCampaignStatus.ACCEPT,
           campaign: {
             update: {
-              startRegisterDate: dateOpenRegis,
-              endRegisterDate: dateEndRegis,
+              startRegisterDate: dateOpenRegister,
+              endRegisterDate: dateEndRegister,
               startWrapDate: dateWrapStick,
-              endWrapDate: dateEndWarpStick,
+              endWrapDate: dateEndWarpSticket,
             },
           },
         },
@@ -198,17 +181,19 @@ export class ContractService {
             campaignId: verifyCampaign.campaignId,
             type: 'PREPAY',
             createDate: datePaymentDepose,
-            expiredDate: dateEndPaymentDepose,
+            expiredDate: dateEndPaymentDeposit,
           },
           {
             campaignId: verifyCampaign.campaignId,
             type: 'POSTPAID',
             createDate: moment(verifyCampaign.campaign.startRunningDate)
               .add(Number(verifyCampaign.campaign.duration) + 1, 'days')
-              .toISOString(),
+              .toDate()
+              .toLocaleDateString('vn-VN'),
             expiredDate: moment(verifyCampaign.campaign.startRunningDate)
               .add(Number(verifyCampaign.campaign.duration) + 6, 'days')
-              .toISOString(),
+              .toDate()
+              .toLocaleDateString('vn-VN'),
           },
         ],
       });

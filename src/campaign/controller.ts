@@ -218,4 +218,18 @@ export class CampaignController {
       campaignId,
     );
   }
+
+  @ApiOperation({ summary: 'Trigger auto driver join campaign' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Roles(Role.ADMIN)
+  @Status(UserStatus.VERIFIED)
+  @Get('/total-km-final-report/:id')
+  async triggerDriversJoinCampaign(
+    @Request() req: RequestUser,
+    @Param('id') campaignId: string,
+  ) {
+    return await this.campaignService.triggerDriversJoinCampaign(campaignId);
+  }
 }

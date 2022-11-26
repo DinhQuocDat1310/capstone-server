@@ -24,7 +24,10 @@ export const campaignRunning = async () => {
     priceLocation: location.price,
     priceWrap: wrap.price,
     campaignName: 'Campaign Running Prisma',
-    startRunningDate: moment(new Date()).subtract(4, 'days').toISOString(),
+    startRunningDate: moment()
+      .subtract(4, 'days')
+      .toDate()
+      .toLocaleDateString('sv'),
     duration: '30',
     totalKm: '15000',
     quantityDriver: `50`,
@@ -45,10 +48,22 @@ export const campaignRunning = async () => {
       locationPricePerKm: dtoCampaign.priceLocation,
       wrapPrice: dtoCampaign.priceWrap,
       duration: dtoCampaign.duration,
-      startRegisterDate: moment(new Date()).subtract(22, 'days').toISOString(),
-      endRegisterDate: moment(new Date()).subtract(17, 'days').toISOString(),
-      startWrapDate: moment(new Date()).subtract(10, 'days').toISOString(),
-      endWrapDate: moment(new Date()).subtract(5, 'days').toISOString(),
+      startRegisterDate: moment()
+        .subtract(22, 'days')
+        .toDate()
+        .toLocaleDateString('vn-VN'),
+      endRegisterDate: moment()
+        .subtract(17, 'days')
+        .toDate()
+        .toLocaleDateString('vn-VN'),
+      startWrapDate: moment()
+        .subtract(10, 'days')
+        .toDate()
+        .toLocaleDateString('vn-VN'),
+      endWrapDate: moment()
+        .subtract(5, 'days')
+        .toDate()
+        .toLocaleDateString('vn-VN'),
       brand: {
         connect: {
           userId: brand.userId,
@@ -93,6 +108,7 @@ export const campaignRunning = async () => {
           },
         },
         status: 'APPROVE',
+        createDate: moment().toDate().toLocaleDateString('vn-VN'),
       },
     });
   }
@@ -123,6 +139,7 @@ export const campaignRunning = async () => {
           id: manager.id,
         },
       },
+      createDate: moment().toDate().toLocaleDateString('vn-VN'),
     },
     include: {
       campaign: {
@@ -163,15 +180,25 @@ export const campaignRunning = async () => {
       isAccept: true,
     },
   });
+  console.log(moment().toDate().toLocaleDateString('sv'));
   await prisma.paymentDebit.createMany({
     data: [
       {
         campaignId: verifyCampaign.campaignId,
         type: 'PREPAY',
-        createDate: moment(new Date()).subtract(11, 'days').toISOString(),
-        expiredDate: moment(new Date()).subtract(16, 'days').toISOString(),
+        createDate: moment()
+          .subtract(11, 'days')
+          .toDate()
+          .toLocaleDateString('vn-VN'),
+        expiredDate: moment()
+          .subtract(16, 'days')
+          .toDate()
+          .toLocaleDateString('vn-VN'),
         price: totalDeposit.toString(),
-        paidDate: moment(new Date()).subtract(14, 'days').toISOString(),
+        paidDate: moment()
+          .subtract(14, 'days')
+          .toDate()
+          .toLocaleDateString('vn-VN'),
         isValid: true,
       },
       {
@@ -179,10 +206,12 @@ export const campaignRunning = async () => {
         type: 'POSTPAID',
         createDate: moment(verifyCampaign.campaign.startRunningDate)
           .add(Number(verifyCampaign.campaign.duration) + 1, 'days')
-          .toISOString(),
+          .toDate()
+          .toLocaleDateString('vn-VN'),
         expiredDate: moment(verifyCampaign.campaign.startRunningDate)
           .add(Number(verifyCampaign.campaign.duration) + 6, 'days')
-          .toISOString(),
+          .toDate()
+          .toLocaleDateString('vn-VN'),
         isValid: true,
       },
     ],
@@ -197,7 +226,8 @@ export const campaignRunning = async () => {
         data: {
           createDate: moment(campaign.startRunningDate)
             .add(i, 'days')
-            .toISOString(),
+            .toDate()
+            .toLocaleDateString('vn-VN'),
           imageCarBack: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
           imageCarLeft: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
           imageCarRight: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
@@ -214,7 +244,8 @@ export const campaignRunning = async () => {
         data: {
           createDate: moment(campaign.startRunningDate)
             .add(i, 'days')
-            .toISOString(),
+            .toDate()
+            .toLocaleDateString('vn-VN'),
           driverJoinCampaign: {
             connect: {
               id: driverJoinCampaign[j].id,
@@ -266,7 +297,7 @@ export const campaignRunning = async () => {
 //     priceLocation: location.price,
 //     priceWrap: wrap.price,
 //     campaignName: 'Campaign Open Prisma',
-//     startRunningDate: moment(new Date()).subtract(4, 'days').toISOString(),
+//     startRunningDate: moment(new Date()).subtract(4, 'days').toDate().toLocaleDateString('vn-VN'),
 //     duration: '30',
 //     totalKm: '3000',
 //     quantityDriver: `5`,
@@ -287,7 +318,7 @@ export const campaignRunning = async () => {
 //       locationPricePerKm: dtoCampaign.priceLocation,
 //       wrapPrice: dtoCampaign.priceWrap,
 //       duration: dtoCampaign.duration,
-//       startRegisterDate: moment(new Date()).subtract(22, 'days').toISOString(),
+//       startRegisterDate: moment(new Date()).subtract(22, 'days').toDate().toLocaleDateString('vn-VN'),
 //       endRegisterDate: moment(new Date()).subtract(17, 'days').toISOString(),
 //       startWrapDate: moment(new Date()).subtract(10, 'days').toISOString(),
 //       endWrapDate: moment(new Date()).subtract(5, 'days').toISOString(),

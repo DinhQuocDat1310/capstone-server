@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import * as moment from 'moment';
 import fetch, { Response } from 'node-fetch';
 import { PrismaService } from 'src/prisma/service';
 import { TransactionCampaignDTO } from './dto';
@@ -113,7 +114,7 @@ export class PaymentService {
             id: typePayment.id,
           },
           data: {
-            paidDate: new Date(),
+            paidDate: moment().toDate().toLocaleDateString('vn-VN'),
           },
         });
 

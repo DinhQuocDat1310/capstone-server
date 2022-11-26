@@ -67,10 +67,10 @@ export class ReporterService {
           campaignId: resultCampaign[i].id,
         },
       });
-      const dateEndCampaign = new Date(resultCampaign[i].startRunningDate);
-      dateEndCampaign.setDate(
-        dateEndCampaign.getDate() + Number(resultCampaign[i].duration),
-      );
+      const dateEndCampaign = moment(resultCampaign[i].startRunningDate)
+        .add(Number(resultCampaign[i].duration), 'days')
+        .toDate()
+        .toLocaleDateString('vn-VN');
 
       resultCampaign[i]['endDateCampaign'] = dateEndCampaign;
       resultCampaign[i]['quantityDriverJoinning'] = countDriver;
@@ -147,14 +147,13 @@ export class ReporterService {
     if (!dataDriver) {
       throw new BadRequestException('CarId is not in reporter location');
     }
-    const now = moment(new Date());
     let resultCheck = null;
     let checkedResult = false;
     if (dataDriver.reporterDriverCampaign[0]) {
       const dateCreateCheck = moment(
         dataDriver.reporterDriverCampaign[0].createDate,
       );
-      const differDateCheck = now.diff(dateCreateCheck, 'days');
+      const differDateCheck = moment().diff(dateCreateCheck, 'days');
       if (Math.abs(differDateCheck) !== 0) {
         resultCheck = dataDriver.reporterDriverCampaign[0].isChecked === false;
       } else {
@@ -227,10 +226,9 @@ export class ReporterService {
       },
     );
 
-    const now = moment(new Date());
     if (dataDriverReport) {
       const dateCreateCheck = moment(dataDriverReport.createDate);
-      const differDateCheck = now.diff(dateCreateCheck, 'days');
+      const differDateCheck = moment().diff(dateCreateCheck, 'days');
       if (
         Math.abs(differDateCheck) === 0 &&
         dataDriverReport.isChecked !== null
@@ -257,6 +255,7 @@ export class ReporterService {
           isChecked: true,
           driverJoinCampaignId: dto.driverJoinCampaignId,
           reporterId: reporter.id,
+          createDate: moment().toDate().toLocaleDateString('vn-VN'),
         },
       });
     } else {
@@ -269,6 +268,7 @@ export class ReporterService {
           isChecked: true,
           driverJoinCampaignId: dto.driverJoinCampaignId,
           reporterId: reporter.id,
+          createDate: moment().toDate().toLocaleDateString('vn-VN'),
         },
       });
       await this.prisma.driverJoinCampaign.update({
