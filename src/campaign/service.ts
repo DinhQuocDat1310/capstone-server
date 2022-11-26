@@ -885,9 +885,8 @@ export class CampaignService {
       throw new BadRequestException('You are not the owner this campaign!');
 
     const totalKmPerDay = Number(campaign.totalKm) / Number(campaign.duration);
-    const totalLength = moment().diff(
-      moment(campaign.startRunningDate, 'MM-DD-YYYY'),
-      'days',
+    const totalLength = Math.abs(
+      moment().diff(moment(campaign.startRunningDate, 'MM-DD-YYYY'), 'days'),
     );
 
     const listDriver = (date: moment.Moment) => {
