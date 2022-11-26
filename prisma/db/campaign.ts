@@ -27,7 +27,7 @@ export const campaignRunning = async () => {
     startRunningDate: moment()
       .subtract(4, 'days')
       .toDate()
-      .toLocaleDateString('sv'),
+      .toLocaleDateString('vn-VN'),
     duration: '30',
     totalKm: '15000',
     quantityDriver: `50`,
@@ -180,18 +180,17 @@ export const campaignRunning = async () => {
       isAccept: true,
     },
   });
-  console.log(moment().toDate().toLocaleDateString('sv'));
   await prisma.paymentDebit.createMany({
     data: [
       {
         campaignId: verifyCampaign.campaignId,
         type: 'PREPAY',
         createDate: moment()
-          .subtract(11, 'days')
+          .subtract(16, 'days')
           .toDate()
           .toLocaleDateString('vn-VN'),
         expiredDate: moment()
-          .subtract(16, 'days')
+          .subtract(11, 'days')
           .toDate()
           .toLocaleDateString('vn-VN'),
         price: totalDeposit.toString(),
@@ -204,11 +203,17 @@ export const campaignRunning = async () => {
       {
         campaignId: verifyCampaign.campaignId,
         type: 'POSTPAID',
-        createDate: moment(verifyCampaign.campaign.startRunningDate)
+        createDate: moment(
+          verifyCampaign.campaign.startRunningDate,
+          'MM-DD-YYYY',
+        )
           .add(Number(verifyCampaign.campaign.duration) + 1, 'days')
           .toDate()
           .toLocaleDateString('vn-VN'),
-        expiredDate: moment(verifyCampaign.campaign.startRunningDate)
+        expiredDate: moment(
+          verifyCampaign.campaign.startRunningDate,
+          'MM-DD-YYYY',
+        )
           .add(Number(verifyCampaign.campaign.duration) + 6, 'days')
           .toDate()
           .toLocaleDateString('vn-VN'),
@@ -224,7 +229,7 @@ export const campaignRunning = async () => {
     for (let j = 0; j < driverJoinCampaign.length; j++) {
       await prisma.reporterDriverCampaign.create({
         data: {
-          createDate: moment(campaign.startRunningDate)
+          createDate: moment(campaign.startRunningDate, 'MM-DD-YYYY')
             .add(i, 'days')
             .toDate()
             .toLocaleDateString('vn-VN'),
@@ -242,7 +247,7 @@ export const campaignRunning = async () => {
       });
       const driverTracking = await prisma.driverTrackingLocation.create({
         data: {
-          createDate: moment(campaign.startRunningDate)
+          createDate: moment(campaign.startRunningDate, 'MM-DD-YYYY')
             .add(i, 'days')
             .toDate()
             .toLocaleDateString('vn-VN'),

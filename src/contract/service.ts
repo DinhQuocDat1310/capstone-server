@@ -32,35 +32,35 @@ export class ContractService {
       fs.readFileSync('./dataConfig.json', 'utf-8'),
     );
 
-    const dateOpenRegister = moment(dto.dateOpenRegister)
+    const dateOpenRegister = moment(dto.dateOpenRegister, 'MM-DD-YYYY')
       .toDate()
       .toLocaleDateString('vn-VN');
 
-    const dateEndRegister = moment(dto.dateOpenRegister)
+    const dateEndRegister = moment(dto.dateOpenRegister, 'MM-DD-YYYY')
       .add(parseInt(objDataConfig.gapOpenRegisterForm), 'days')
       .toDate()
       .toLocaleDateString('vn-VN');
 
-    const datePaymentDepose = moment(dto.datePaymentDeposit)
+    const datePaymentDepose = moment(dto.datePaymentDeposit, 'MM-DD-YYYY')
       .toDate()
       .toLocaleDateString('vn-VN');
 
-    const dateEndPaymentDeposit = moment(dto.datePaymentDeposit)
+    const dateEndPaymentDeposit = moment(dto.datePaymentDeposit, 'MM-DD-YYYY')
       .add(parseInt(objDataConfig.gapPaymentDeposit), 'days')
       .toDate()
       .toLocaleDateString('vn-VN');
 
-    const dateWrapStick = moment(dto.dateWarpSticket)
+    const dateWrapStick = moment(dto.dateWarpSticket, 'MM-DD-YYYY')
       .toDate()
       .toLocaleDateString('vn-VN');
 
-    const dateEndWarpSticket = moment(dto.dateWarpSticket)
+    const dateEndWarpSticket = moment(dto.dateWarpSticket, 'MM-DD-YYYY')
       .add(parseInt(objDataConfig.gapWrapping), 'days')
       .toDate()
       .toLocaleDateString('vn-VN');
 
-    const inputDateOpenRegis = moment(dto.dateOpenRegister);
-    const inputDatePayment = moment(dto.datePaymentDeposit);
+    const inputDateOpenRegis = moment(dto.dateOpenRegister, 'MM-DD-YYYY');
+    const inputDatePayment = moment(dto.datePaymentDeposit, 'MM-DD-YYYY');
 
     if (
       inputDateOpenRegis.diff(inputDatePayment, 'days') !==
@@ -75,7 +75,7 @@ export class ContractService {
           .toLocaleDateString('vn-VN')}`,
       );
 
-    const inputDateWrap = moment(dto.dateWarpSticket);
+    const inputDateWrap = moment(dto.dateWarpSticket, 'MM-DD-YYYY');
 
     if (
       inputDatePayment.diff(inputDateWrap, 'days') !==
@@ -186,11 +186,17 @@ export class ContractService {
           {
             campaignId: verifyCampaign.campaignId,
             type: 'POSTPAID',
-            createDate: moment(verifyCampaign.campaign.startRunningDate)
+            createDate: moment(
+              verifyCampaign.campaign.startRunningDate,
+              'MM-DD-YYYY',
+            )
               .add(Number(verifyCampaign.campaign.duration) + 1, 'days')
               .toDate()
               .toLocaleDateString('vn-VN'),
-            expiredDate: moment(verifyCampaign.campaign.startRunningDate)
+            expiredDate: moment(
+              verifyCampaign.campaign.startRunningDate,
+              'MM-DD-YYYY',
+            )
               .add(Number(verifyCampaign.campaign.duration) + 6, 'days')
               .toDate()
               .toLocaleDateString('vn-VN'),

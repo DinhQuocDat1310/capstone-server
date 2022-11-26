@@ -1,4 +1,5 @@
 import { Status } from '@prisma/client';
+import * as moment from 'moment';
 import {
   FAKE_ADDRESS,
   FAKE_ADDRESS_POINT,
@@ -12,6 +13,7 @@ export const location = async (): Promise<any[]> => {
       price: `${FAKE_PRICE_PER_KM[i]}`,
       status: Status.ENABLE,
       addressPoint: FAKE_ADDRESS_POINT[i],
+      createDate: moment().toDate().toLocaleDateString('vn-VN'),
     });
   }
   return [...locations];

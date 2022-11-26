@@ -335,7 +335,7 @@ export class CampaignService {
                 },
                 data: {
                   campaignName: dto.campaignName,
-                  startRunningDate: moment(dto.startRunningDate)
+                  startRunningDate: moment(dto.startRunningDate, 'MM-DD-YYYY')
                     .add(1, 'days')
                     .toDate()
                     .toLocaleDateString('vn-VN'),
@@ -491,7 +491,7 @@ export class CampaignService {
     const campaign = await this.prisma.campaign.create({
       data: {
         campaignName: dto.campaignName,
-        startRunningDate: moment(dto.startRunningDate)
+        startRunningDate: moment(dto.startRunningDate, 'MM-DD-YYYY')
           .add(1, 'days')
           .toDate()
           .toLocaleDateString('vn-VN'),
@@ -711,7 +711,9 @@ export class CampaignService {
         statusCampaign: 'OPEN',
       },
     });
-    return campaigns.filter((c) => moment() >= moment(c.endRegisterDate));
+    return campaigns.filter(
+      (c) => moment() >= moment(c.endRegisterDate, 'MM-DD-YYYY'),
+    );
   }
 
   async getAllCampaignWrapIsExpired() {
@@ -720,7 +722,9 @@ export class CampaignService {
         statusCampaign: 'WRAPPING',
       },
     });
-    return campaigns.filter((c) => moment() >= moment(c.endWrapDate));
+    return campaigns.filter(
+      (c) => moment() >= moment(c.endWrapDate, 'MM-DD-YYYY'),
+    );
   }
 
   async getAllCampaignRunningIsExpired() {
@@ -745,7 +749,11 @@ export class CampaignService {
     });
     return campaigns.filter(
       (c) =>
-        moment() >= moment(c.startRunningDate).add(Number(c.duration), 'days'),
+        moment() >=
+        moment(c.startRunningDate, 'MM-DD-YYYY').add(
+          Number(c.duration),
+          'days',
+        ),
     );
   }
 
@@ -877,12 +885,17 @@ export class CampaignService {
       throw new BadRequestException('You are not the owner this campaign!');
 
     const totalKmPerDay = Number(campaign.totalKm) / Number(campaign.duration);
-    const totalLength = moment().diff(campaign.startRunningDate, 'days');
+    const totalLength = moment().diff(
+      moment(campaign.startRunningDate, 'MM-DD-YYYY'),
+      'days',
+    );
 
     const listDriver = (date: moment.Moment) => {
       return campaign.driverJoinCampaign.map((driverJoin) => {
         const driverTracking = driverJoin.driverTrackingLocation.find(
-          (driverTrack) => date.diff(driverTrack.createDate, 'days') === 0,
+          (driverTrack) =>
+            date.diff(moment(driverTrack.createDate, 'MM-DD-YYYY'), 'days') ===
+            0,
         );
         const totalKm =
           driverTracking?.tracking?.reduce(
@@ -891,7 +904,8 @@ export class CampaignService {
           ) ?? 0;
 
         const reporterImage = driverJoin?.reporterDriverCampaign?.find(
-          (report) => date.diff(report.createDate, 'days') === 0,
+          (report) =>
+            date.diff(moment(report.createDate, 'MM-DD-YYYY'), 'days') === 0,
         );
 
         return {
@@ -913,14 +927,14 @@ export class CampaignService {
     const array = [];
     for (let i = 0; i <= totalLength + 1; i++) {
       const listDriverFormat = listDriver(
-        moment(campaign.startRunningDate).add(i, 'days'),
+        moment(campaign.startRunningDate, 'MM-DD-YYYY').add(i, 'days'),
       );
       const totalKmDriven = listDriverFormat.reduce((acc, driver) => {
         return acc + Number(driver.totalKm);
       }, 0);
 
       array.push({
-        date: moment(campaign.startRunningDate).add(i, 'days'),
+        date: moment(campaign.startRunningDate, 'MM-DD-YYYY').add(i, 'days'),
         totalKm: totalKmPerDay,
         totalKmDriven: totalKmDriven / 1000,
         listDriver: listDriverFormat,

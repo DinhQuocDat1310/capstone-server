@@ -67,7 +67,10 @@ export class ReporterService {
           campaignId: resultCampaign[i].id,
         },
       });
-      const dateEndCampaign = moment(resultCampaign[i].startRunningDate)
+      const dateEndCampaign = moment(
+        resultCampaign[i].startRunningDate,
+        'MM-DD-YYYY',
+      )
         .add(Number(resultCampaign[i].duration), 'days')
         .toDate()
         .toLocaleDateString('vn-VN');
@@ -152,6 +155,7 @@ export class ReporterService {
     if (dataDriver.reporterDriverCampaign[0]) {
       const dateCreateCheck = moment(
         dataDriver.reporterDriverCampaign[0].createDate,
+        'MM-DD-YYYY',
       );
       const differDateCheck = moment().diff(dateCreateCheck, 'days');
       if (Math.abs(differDateCheck) !== 0) {
@@ -227,7 +231,7 @@ export class ReporterService {
     );
 
     if (dataDriverReport) {
-      const dateCreateCheck = moment(dataDriverReport.createDate);
+      const dateCreateCheck = moment(dataDriverReport.createDate, 'MM-DD-YYYY');
       const differDateCheck = moment().diff(dateCreateCheck, 'days');
       if (
         Math.abs(differDateCheck) === 0 &&

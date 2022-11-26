@@ -119,8 +119,8 @@ export class DriversService {
       }
 
       if (
-        moment() < moment(campaign.startRegisterDate) ||
-        moment() > moment(campaign.endRegisterDate)
+        moment() < moment(campaign.startRegisterDate, 'MM-DD-YYYY') ||
+        moment() > moment(campaign.endRegisterDate, 'MM-DD-YYYY')
       ) {
         throw new BadRequestException(
           'This campaign is not open for register, can you re-check the date!',
@@ -364,7 +364,7 @@ export class DriversService {
     const campaignApprove = campaigns.find((cam) => cam.status === 'APPROVE');
     if (campaignApprove) {
       const campaignDayCount = moment().diff(
-        moment(campaignApprove.campaign.startRunningDate),
+        moment(campaignApprove.campaign.startRunningDate, 'MM-DD-YYYY'),
         'days',
       );
 
@@ -433,10 +433,11 @@ export class DriversService {
         },
       });
 
-    const toDay = moment();
     let isDriverTrackingLocationExist = listDriverTrackingLocation.find(
       (track) => {
-        return toDay.diff(moment(track.createDate), 'days') === 0;
+        return (
+          moment().diff(moment(track.createDate, 'MM-DD-YYYY'), 'days') === 0
+        );
       },
     );
 
@@ -491,7 +492,10 @@ export class DriversService {
 
     const driverTrackingLocation = listDriverTrackingLocation.find(
       (driverTracking) =>
-        moment().diff(driverTracking.createDate, 'days') === 0,
+        moment().diff(
+          moment(driverTracking.createDate, 'MM-DD-YYYY'),
+          'days',
+        ) === 0,
     );
     if (!driverTrackingLocation) return 0;
     const listTracking = await this.prisma.tracking.findMany({
@@ -607,7 +611,10 @@ export class DriversService {
     }
 
     const dataRes = driverJoinCampaign.map((driver) => {
-      const endDateCampaign = moment(driver.campaign.startRunningDate)
+      const endDateCampaign = moment(
+        driver.campaign.startRunningDate,
+        'MM-DD-YYYY',
+      )
         .add(Number(driver.campaign.duration) + 1, 'days')
         .toDate()
         .toLocaleDateString('vn-VN');
