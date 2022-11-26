@@ -368,7 +368,7 @@ export class DriversService {
         'days',
       );
 
-      campaignApprove['campaignDayCount'] = campaignDayCount;
+      campaignApprove['campaignDayCount'] = Math.abs(campaignDayCount);
       const totalMoneyPerDriver =
         Number(campaignApprove.campaign.wrapPrice) +
         Number(campaignApprove.campaign.minimumKmDrive) *

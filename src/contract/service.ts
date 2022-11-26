@@ -63,7 +63,7 @@ export class ContractService {
     const inputDatePayment = moment(dto.datePaymentDeposit, 'MM-DD-YYYY');
 
     if (
-      inputDateOpenRegis.diff(inputDatePayment, 'days') !==
+      Math.abs(inputDateOpenRegis.diff(inputDatePayment, 'days')) !==
       parseInt(objDataConfig.gapOpenRegisterForm)
     )
       throw new BadRequestException(
@@ -78,7 +78,7 @@ export class ContractService {
     const inputDateWrap = moment(dto.dateWarpSticket, 'MM-DD-YYYY');
 
     if (
-      inputDatePayment.diff(inputDateWrap, 'days') !==
+      Math.abs(inputDatePayment.diff(inputDateWrap, 'days')) !==
       parseInt(objDataConfig.gapPaymentDeposit)
     )
       throw new BadRequestException(
