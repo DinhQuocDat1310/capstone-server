@@ -64,7 +64,7 @@ export class ContractService {
 
     if (
       Math.abs(inputDateOpenRegis.diff(inputDatePayment, 'days')) !==
-      parseInt(objDataConfig.gapOpenRegisterForm) - 1
+      parseInt(objDataConfig.gapOpenRegisterForm)
     )
       throw new BadRequestException(
         `Gap Date Open Register must be in ${
@@ -79,7 +79,7 @@ export class ContractService {
 
     if (
       Math.abs(inputDatePayment.diff(inputDateWrap, 'days')) !==
-      parseInt(objDataConfig.gapPaymentDeposit) - 1
+      parseInt(objDataConfig.gapPaymentDeposit)
     )
       throw new BadRequestException(
         `Gap Date Payment Deposit must be in ${
@@ -197,7 +197,11 @@ export class ContractService {
               verifyCampaign.campaign.startRunningDate,
               'MM-DD-YYYY',
             )
-              .add(Number(verifyCampaign.campaign.duration) + 6, 'days')
+              .add(
+                Number(verifyCampaign.campaign.duration) +
+                  parseInt(objDataConfig.gapPaymentDeposit),
+                'days',
+              )
               .toDate()
               .toLocaleDateString('vn-VN'),
           },
