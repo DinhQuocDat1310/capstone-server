@@ -275,10 +275,4 @@ export class TasksService {
       this.logger.error(e.message);
     }
   }
-
-  @Cron(CronExpression.EVERY_10_SECONDS)
-  handleSystemHandler() {
-    const minutes = new Date().getMinutes();
-    this.logger.debug('Handle System Change Date: ', minutes);
-  }
 }
