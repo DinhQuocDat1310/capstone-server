@@ -305,7 +305,50 @@ export class CampaignService {
     if (!brandOwnCampaign) {
       throw new BadRequestException('Campaign ID not found');
     }
-    return brandOwnCampaign;
+    let isWaiting = false;
+    let days = 0;
+    let messageWaiting = '';
+    switch (brandOwnCampaign.statusCampaign) {
+      case 'OPEN':
+        isWaiting = moment() >= moment(brandOwnCampaign.startRegisterDate);
+        days = moment().diff(
+          moment(brandOwnCampaign.startRegisterDate),
+          'days',
+        );
+        break;
+      case 'PAYMENT':
+        isWaiting =
+          moment() >=
+          moment(
+            brandOwnCampaign.paymentDebit.find(
+              (payment) => payment.type === 'PREPAY',
+            ).createDate,
+          );
+        days = moment().diff(
+          moment(
+            brandOwnCampaign.paymentDebit.find(
+              (payment) => payment.type === 'PREPAY',
+            ).createDate,
+          ),
+          'days',
+        );
+        break;
+      case 'WRAPPING':
+        isWaiting = moment() >= moment(brandOwnCampaign.startWrapDate);
+        days = moment().diff(moment(brandOwnCampaign.startWrapDate), 'days');
+        break;
+        break;
+      case 'RUNNING':
+        isWaiting = moment() >= moment(brandOwnCampaign.startRunningDate);
+        days = moment().diff(moment(brandOwnCampaign.startRunningDate), 'days');
+        break;
+    }
+    if (isWaiting) {
+      messageWaiting = `Our system is processing, please wait ${Math.abs(
+        days,
+      )} days to ${brandOwnCampaign.statusCampaign}`;
+    }
+    return { ...brandOwnCampaign, isWaiting: `${isWaiting}`, messageWaiting };
   }
 
   async updateCampaignInformation(

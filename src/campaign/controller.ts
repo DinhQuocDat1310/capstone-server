@@ -223,7 +223,7 @@ export class CampaignController {
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.BRAND)
   @Status(UserStatus.VERIFIED)
   @Get('/trigger-driver-join/:id')
   async triggerDriversJoinCampaign(
