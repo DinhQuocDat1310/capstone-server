@@ -310,7 +310,8 @@ export class CampaignService {
     let messageWaiting = '';
     switch (brandOwnCampaign.statusCampaign) {
       case 'OPEN':
-        isWaiting = moment() >= moment(brandOwnCampaign.startRegisterDate);
+        isWaiting =
+          moment() < moment(brandOwnCampaign.startRegisterDate, 'MM-DD-YYYY');
         days = moment().diff(
           moment(brandOwnCampaign.startRegisterDate),
           'days',
@@ -318,29 +319,39 @@ export class CampaignService {
         break;
       case 'PAYMENT':
         isWaiting =
-          moment() >=
+          moment() <
           moment(
             brandOwnCampaign.paymentDebit.find(
               (payment) => payment.type === 'PREPAY',
             ).createDate,
+            'MM-DD-YYYY',
           );
         days = moment().diff(
           moment(
             brandOwnCampaign.paymentDebit.find(
               (payment) => payment.type === 'PREPAY',
             ).createDate,
+            'MM-DD-YYYY',
           ),
           'days',
         );
         break;
       case 'WRAPPING':
-        isWaiting = moment() >= moment(brandOwnCampaign.startWrapDate);
-        days = moment().diff(moment(brandOwnCampaign.startWrapDate), 'days');
+        isWaiting =
+          moment() < moment(brandOwnCampaign.startWrapDate, 'MM-DD-YYYY');
+        days = moment().diff(
+          moment(brandOwnCampaign.startWrapDate, 'MM-DD-YYYY'),
+          'days',
+        );
         break;
         break;
       case 'RUNNING':
-        isWaiting = moment() >= moment(brandOwnCampaign.startRunningDate);
-        days = moment().diff(moment(brandOwnCampaign.startRunningDate), 'days');
+        isWaiting =
+          moment() < moment(brandOwnCampaign.startRunningDate, 'MM-DD-YYYY');
+        days = moment().diff(
+          moment(brandOwnCampaign.startRunningDate, 'MM-DD-YYYY'),
+          'days',
+        );
         break;
     }
     if (isWaiting) {
@@ -929,6 +940,9 @@ export class CampaignService {
     if (!campaign)
       throw new BadRequestException('You are not the owner this campaign!');
 
+    if (moment() < moment(campaign.startRunningDate, 'MM-DD-YYYY')) {
+      return [];
+    }
     const totalKmPerDay = Number(campaign.totalKm) / Number(campaign.duration);
     const totalLength = Math.abs(
       moment().diff(moment(campaign.startRunningDate, 'MM-DD-YYYY'), 'days'),
@@ -1064,6 +1078,8 @@ export class CampaignService {
         driverJoinCampaign: true,
       },
     });
+    if (!campaign)
+      throw new BadRequestException('Please input correct campaign ID');
     if (
       moment() > moment(campaign.endRegisterDate, 'MM-DD-YYYY') ||
       moment() < moment(campaign.startRegisterDate, 'MM-DD-YYYY')
