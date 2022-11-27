@@ -891,12 +891,14 @@ export class CampaignService {
       moment().diff(moment(campaign.startRunningDate, 'MM-DD-YYYY'), 'days'),
     );
 
-    const listDriver = (date: moment.Moment) => {
+    const listDriver = (date: string) => {
       return campaign.driverJoinCampaign.map((driverJoin) => {
         const driverTracking = driverJoin.driverTrackingLocation.find(
           (driverTrack) =>
-            date.diff(moment(driverTrack.createDate, 'MM-DD-YYYY'), 'days') ===
-            0,
+            moment(date, 'MM-DD-YYYY').diff(
+              moment(driverTrack.createDate, 'MM-DD-YYYY'),
+              'days',
+            ) === 0,
         );
         const totalKm =
           driverTracking?.tracking?.reduce(
@@ -906,7 +908,10 @@ export class CampaignService {
 
         const reporterImage = driverJoin?.reporterDriverCampaign?.find(
           (report) =>
-            date.diff(moment(report.createDate, 'MM-DD-YYYY'), 'days') === 0,
+            moment(date, 'MM-DD-YYYY').diff(
+              moment(report.createDate, 'MM-DD-YYYY'),
+              'days',
+            ) === 0,
         );
 
         return {
@@ -926,16 +931,22 @@ export class CampaignService {
     };
 
     const array = [];
-    for (let i = 0; i <= totalLength + 1; i++) {
+    for (let i = 0; i <= totalLength; i++) {
       const listDriverFormat = listDriver(
-        moment(campaign.startRunningDate, 'MM-DD-YYYY').add(i, 'days'),
+        moment(campaign.startRunningDate, 'MM-DD-YYYY')
+          .add(i, 'days')
+          .toDate()
+          .toLocaleDateString('vn-VN'),
       );
       const totalKmDriven = listDriverFormat.reduce((acc, driver) => {
         return acc + Number(driver.totalKm);
       }, 0);
 
       array.push({
-        date: moment(campaign.startRunningDate, 'MM-DD-YYYY').add(i, 'days'),
+        date: moment(campaign.startRunningDate, 'MM-DD-YYYY')
+          .add(i, 'days')
+          .toDate()
+          .toLocaleDateString('vn-VN'),
         totalKm: totalKmPerDay,
         totalKmDriven: totalKmDriven / 1000,
         listDriver: listDriverFormat,
@@ -1009,6 +1020,11 @@ export class CampaignService {
         locationCampaign: true,
       },
     });
+    if (moment() < moment(campaign.endRegisterDate, 'MM-DD-YYYY')) {
+      throw new BadRequestException(
+        'This campaign is not open for register, can you re-check the date!',
+      );
+    }
     const quantityDriverRequire =
       Math.ceil(Number(campaign.quantityDriver) * 0.8) - 1;
     const drivers = await this.prisma.driver.findMany({

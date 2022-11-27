@@ -21,7 +21,7 @@ export class TasksService {
     private readonly prisma: PrismaService,
   ) {}
 
-  @Cron(CronExpression.MONDAY_TO_FRIDAY_AT_11PM)
+  @Cron(CronExpression.EVERY_DAY_AT_11PM)
   async handleCompleteRegisterCampaignPhase() {
     const campaigns =
       await this.campaignsService.getAllCampaignRegisterIsExpired();
@@ -62,7 +62,7 @@ export class TasksService {
     }
   }
 
-  @Cron(CronExpression.MONDAY_TO_FRIDAY_AT_11PM)
+  @Cron(CronExpression.EVERY_DAY_AT_11PM)
   async handleCompleteWrappingCampaignPhase() {
     const campaigns = await this.campaignsService.getAllCampaignWrapIsExpired();
     if (campaigns.length === 0) {
@@ -77,7 +77,7 @@ export class TasksService {
     }
   }
 
-  @Cron(CronExpression.MONDAY_TO_FRIDAY_AT_11PM)
+  @Cron(CronExpression.EVERY_DAY_AT_11PM)
   async handleCompleteRunningCampaignPhase() {
     try {
       const campaigns =
@@ -188,7 +188,7 @@ export class TasksService {
     }
   }
 
-  @Cron(CronExpression.MONDAY_TO_FRIDAY_AT_11PM)
+  @Cron(CronExpression.EVERY_DAY_AT_11PM)
   async handleAddManagerVerifyAccountData() {
     try {
       //Add mananger verify Account

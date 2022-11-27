@@ -428,6 +428,10 @@ export class UsersService {
   }
 
   async test() {
-    return moment().toDate().toLocaleDateString('vn-VN');
+    return {
+      date: moment().isAfter(moment('11/26/2022', 'MM-DD-YYYY')),
+      test: 'test',
+    };
+    // return moment().toDate().toLocaleDateString('vn-VN');
   }
 }

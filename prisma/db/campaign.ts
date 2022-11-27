@@ -108,7 +108,10 @@ export const campaignRunning = async () => {
           },
         },
         status: 'APPROVE',
-        createDate: moment().toDate().toLocaleDateString('vn-VN'),
+        createDate: moment()
+          .subtract(4, 'days')
+          .toDate()
+          .toLocaleDateString('vn-VN'),
       },
     });
   }
