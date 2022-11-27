@@ -1018,15 +1018,24 @@ export class CampaignService {
       },
       include: {
         locationCampaign: true,
+        driverJoinCampaign: true,
       },
     });
-    if (moment() < moment(campaign.endRegisterDate, 'MM-DD-YYYY')) {
+    if (
+      moment() > moment(campaign.endRegisterDate, 'MM-DD-YYYY') ||
+      moment() < moment(campaign.startRegisterDate, 'MM-DD-YYYY')
+    ) {
       throw new BadRequestException(
         'This campaign is not open for register, can you re-check the date!',
       );
     }
+    const totalJoined = campaign.driverJoinCampaign.filter((c) => {
+      return c.status === 'JOIN' || c.status === 'APPROVE';
+    }).length;
+
     const quantityDriverRequire =
-      Math.ceil(Number(campaign.quantityDriver) * 0.8) - 1;
+      Math.ceil(Number(campaign.quantityDriver) * 0.8) - 1 - totalJoined;
+
     const drivers = await this.prisma.driver.findMany({
       where: {
         user: {
