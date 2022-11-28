@@ -313,7 +313,7 @@ export class CampaignService {
         isWaiting =
           moment() < moment(brandOwnCampaign.startRegisterDate, 'MM-DD-YYYY');
         days = moment().diff(
-          moment(brandOwnCampaign.startRegisterDate),
+          moment(brandOwnCampaign.startRegisterDate, 'MM-DD-YYYY'),
           'days',
         );
         break;
@@ -1095,6 +1095,8 @@ export class CampaignService {
     const quantityDriverRequire =
       Math.ceil(Number(campaign.quantityDriver) * 0.8) - 1 - totalJoined;
 
+    if (quantityDriverRequire <= 0)
+      throw new BadRequestException('You are already trigger enough drivers');
     const drivers = await this.prisma.driver.findMany({
       where: {
         user: {
@@ -1108,6 +1110,7 @@ export class CampaignService {
       },
       take: quantityDriverRequire,
     });
+
     if (drivers.length < quantityDriverRequire) {
       this.logger.debug(
         `We dont have enough drivers to auto register driver for campaign in ${campaign.locationCampaign.locationName}`,
