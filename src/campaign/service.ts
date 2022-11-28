@@ -1108,7 +1108,6 @@ export class CampaignService {
       },
       take: quantityDriverRequire,
     });
-    return drivers;
     if (drivers.length < quantityDriverRequire) {
       this.logger.debug(
         `We dont have enough drivers to auto register driver for campaign in ${campaign.locationCampaign.locationName}`,
