@@ -1077,9 +1077,7 @@ export class CampaignService {
         locationCampaign: true,
         driverJoinCampaign: {
           where: {
-            status: {
-              in: ['FINISH', 'CANCEL'],
-            },
+            status: 'FINISH',
           },
         },
       },
