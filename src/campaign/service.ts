@@ -1100,10 +1100,15 @@ export class CampaignService {
         user: {
           address: campaign.locationCampaign.locationName,
         },
+        campaigns: {
+          none: {
+            status: 'APPROVE',
+          },
+        },
       },
       take: quantityDriverRequire,
     });
-
+    return drivers;
     if (drivers.length < quantityDriverRequire) {
       this.logger.debug(
         `We dont have enough drivers to auto register driver for campaign in ${campaign.locationCampaign.locationName}`,
