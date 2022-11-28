@@ -280,7 +280,9 @@ export class DriversService {
         where: {
           driverId: driver.id,
           campaignId: campaigns[i].id,
-          status: 'JOIN',
+          status: {
+            in: ['JOIN', 'APPROVE'],
+          },
         },
       });
       const countDriver = await this.prisma.driverJoinCampaign.count({
@@ -296,6 +298,13 @@ export class DriversService {
 
       campaigns[i]['totalMoneyPerDriver'] = totalMoneyPerDriver;
       campaigns[i]['quantityDriverJoinning'] = countDriver;
+      campaigns[i]['closeDateCampaign'] = moment(
+        campaigns[i].startRunningDate,
+        'MM-DD-YYYY',
+      )
+        .add(Number(campaigns[i].duration) + 1, 'days')
+        .toDate()
+        .toLocaleDateString('vn-VN');
       campaigns[i]['isJoined'] = isJoined ? true : false;
     }
 
@@ -394,6 +403,13 @@ export class DriversService {
         totalKmTraveled += Number(track.totalMeterDriven);
       });
       campaignApprove.campaign['totalKmTraveled'] = totalKmTraveled;
+      campaignApprove.campaign['closeDateCampaign'] = moment(
+        campaignApprove.campaign.startRunningDate,
+        'MM-DD-YYYY',
+      )
+        .add(Number(campaignApprove.campaign.duration) + 1, 'days')
+        .toDate()
+        .toLocaleDateString('vn-VN');
       delete campaignApprove.campaign.driverJoinCampaign;
       return campaigns;
     }
@@ -405,6 +421,13 @@ export class DriversService {
         Number(c.campaign.minimumKmDrive) *
           Number(c.campaign.duration) *
           Number(c.campaign.locationPricePerKm);
+      c.campaign['closeDateCampaign'] = moment(
+        campaignApprove.campaign.startRunningDate,
+        'MM-DD-YYYY',
+      )
+        .add(Number(campaignApprove.campaign.duration) + 1, 'days')
+        .toDate()
+        .toLocaleDateString('vn-VN');
       delete c.campaign.driverJoinCampaign;
       return {
         ...c,
