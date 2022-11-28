@@ -1081,8 +1081,8 @@ export class CampaignService {
     if (!campaign)
       throw new BadRequestException('Please input correct campaign ID');
     if (
-      moment() > moment(campaign.endRegisterDate, 'MM-DD-YYYY') ||
-      moment() < moment(campaign.startRegisterDate, 'MM-DD-YYYY')
+      moment() <= moment(campaign.endRegisterDate, 'MM-DD-YYYY') &&
+      moment() >= moment(campaign.startRegisterDate, 'MM-DD-YYYY')
     ) {
       throw new BadRequestException(
         'This campaign is not open for register, can you re-check the date!',
