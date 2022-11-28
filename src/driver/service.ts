@@ -369,7 +369,7 @@ export class DriversService {
         },
       },
     });
-
+    if (campaigns.length === 0) return [];
     const campaignApprove = campaigns.find((cam) => cam.status === 'APPROVE');
     if (campaignApprove) {
       const campaignDayCount = moment().diff(
