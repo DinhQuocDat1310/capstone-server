@@ -1075,7 +1075,13 @@ export class CampaignService {
       },
       include: {
         locationCampaign: true,
-        driverJoinCampaign: true,
+        driverJoinCampaign: {
+          where: {
+            status: {
+              in: ['FINISH', 'CANCEL'],
+            },
+          },
+        },
       },
     });
     if (!campaign)
