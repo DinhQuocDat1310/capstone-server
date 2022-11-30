@@ -296,9 +296,6 @@ export class CampaignService {
             price: true,
             isValid: true,
           },
-          orderBy: {
-            createDate: 'asc',
-          },
         },
       },
     });
@@ -308,6 +305,12 @@ export class CampaignService {
     let isWaiting = false;
     let days = 0;
     let messageWaiting = '';
+    const sortDatePayment = brandOwnCampaign.paymentDebit.sort(
+      (a, b) =>
+        moment(a.createDate, 'MM-DD-YYYY').valueOf() -
+        moment(b.createDate, 'MM-DD-YYYY').valueOf(),
+    );
+
     switch (brandOwnCampaign.statusCampaign) {
       case 'OPEN':
         isWaiting =
@@ -359,6 +362,7 @@ export class CampaignService {
         days,
       )} days to ${brandOwnCampaign.statusCampaign}`;
     }
+    brandOwnCampaign.paymentDebit = sortDatePayment;
     return { ...brandOwnCampaign, isWaiting: `${isWaiting}`, messageWaiting };
   }
 
