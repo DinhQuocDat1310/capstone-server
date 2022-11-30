@@ -192,9 +192,8 @@ export class DriversService {
             : StatusDriverJoin.JOIN,
         },
       });
-
       const isUpdateAllDriverJoinCampaign =
-        listDriversJoinCampaign.length + 1 ===
+        listDriversJoinCampaign.length >=
         Math.floor((Number(campaign.quantityDriver) * 80) / 100);
 
       //Just wanna this method is running only one
