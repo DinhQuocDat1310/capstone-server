@@ -104,6 +104,7 @@ export class DriversService {
       const campaign = await this.prisma.campaign.findFirst({
         where: {
           id: campaignId,
+          statusCampaign: 'OPEN',
         },
         include: {
           locationCampaign: true,
@@ -111,7 +112,7 @@ export class DriversService {
       });
       if (!campaign)
         throw new BadRequestException(
-          'The campaignId is not exist!. Please make sure you join correct Campaign',
+          'The campaignId is not exist or not open!. Please make sure you join correct Campaign',
         );
 
       if (driver.user.address !== campaign.locationCampaign.locationName) {
@@ -170,8 +171,8 @@ export class DriversService {
       );
 
       const isApproveCampaign =
-        listDriversJoinCampaign.length >=
-        Math.floor((Number(campaign.quantityDriver) * 80) / 100);
+        listDriversJoinCampaign.length + 1 >=
+        Number(campaign.quantityDriver) * 0.8;
 
       await this.prisma.driverJoinCampaign.create({
         data: {

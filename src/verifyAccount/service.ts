@@ -218,9 +218,6 @@ export class VerifyAccountsService {
           status: VerifyAccountStatus.PENDING,
         },
         select,
-        orderBy: {
-          createDate: 'asc',
-        },
       });
       return verifies
         .map((verify) => {
@@ -242,7 +239,21 @@ export class VerifyAccountsService {
           }
           return verify;
         })
-        .filter((verify) => Object.keys(verify[`${type}`]).length !== 0);
+        .filter((verify) => Object.keys(verify[`${type}`]).length !== 0)
+        .sort((v1, v2) => {
+          if (
+            moment(v1.createDate, 'MM-DD-YYYY') >
+            moment(v2.createDate, 'MM-DD-YYYY')
+          ) {
+            return 1;
+          } else if (
+            moment(v1.createDate, 'MM-DD-YYYY') <
+            moment(v2.createDate, 'MM-DD-YYYY')
+          ) {
+            return -1;
+          }
+          return 0;
+        });
     } catch (e) {
       throw new InternalServerErrorException(e.message);
     }
