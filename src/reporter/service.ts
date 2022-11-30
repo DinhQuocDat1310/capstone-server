@@ -194,63 +194,74 @@ export class ReporterService {
       },
     });
 
-    const dataDriverReport = await this.prisma.reporterDriverCampaign.findFirst(
-      {
-        where: {
-          driverJoinCampaignId: dto.driverJoinCampaignId,
-          reporter: {
-            user: {
-              address: reporter.user.address,
-            },
-          },
-          driverJoinCampaign: {
-            campaign: {
-              statusCampaign: 'RUNNING',
-            },
+    const dataDriverReport = await this.prisma.reporterDriverCampaign.findMany({
+      where: {
+        driverJoinCampaignId: dto.driverJoinCampaignId,
+        reporter: {
+          user: {
+            address: reporter.user.address,
           },
         },
-        select: {
-          reporterId: true,
-          createDate: true,
-          isChecked: true,
-          driverJoinCampaign: {
-            select: {
-              isRequiredOdo: true,
-              driver: {
-                select: {
-                  idCar: true,
-                },
+        driverJoinCampaign: {
+          campaign: {
+            statusCampaign: 'RUNNING',
+          },
+        },
+      },
+      select: {
+        reporterId: true,
+        createDate: true,
+        isChecked: true,
+        driverJoinCampaign: {
+          select: {
+            isRequiredOdo: true,
+            driver: {
+              select: {
+                idCar: true,
               },
             },
           },
         },
-        orderBy: {
-          createDate: 'desc',
-        },
       },
+    });
+    dataDriverReport.sort(
+      (a, b) =>
+        moment(b.createDate, 'MM-DD-YYYY').valueOf() -
+        moment(a.createDate, 'MM-DD-YYYY').valueOf(),
     );
 
-    if (dataDriverReport) {
-      const dateCreateCheck = moment(dataDriverReport.createDate, 'MM-DD-YYYY');
+    console.log(dataDriverReport);
+
+    if (dataDriverReport.length !== 0) {
+      const dateCreateCheck = moment(
+        dataDriverReport[0].createDate,
+        'MM-DD-YYYY',
+      );
       const differDateCheck = moment().diff(dateCreateCheck, 'days');
       if (
         Math.abs(differDateCheck) === 0 &&
-        dataDriverReport.isChecked !== null
+        dataDriverReport[0].isChecked !== null
       ) {
         throw new BadRequestException('Today is checked for this driver');
       }
     }
-    if (dataDriverReport.driverJoinCampaign.isRequiredOdo && !dto.imageCarOdo) {
+    if (
+      dataDriverReport[0]?.driverJoinCampaign.isRequiredOdo &&
+      !dto.imageCarOdo
+    ) {
       throw new BadRequestException(
         'Odo image is required. Please take photo Odo',
       );
     }
-    if (!dataDriverReport.driverJoinCampaign.isRequiredOdo && dto.imageCarOdo) {
+    if (
+      !dataDriverReport[0]?.driverJoinCampaign.isRequiredOdo &&
+      dto.imageCarOdo
+    ) {
       throw new BadRequestException(
         'Odo image is not required. Please remove field Odo',
       );
     }
-    if (!dataDriverReport.driverJoinCampaign.isRequiredOdo) {
+    if (!dataDriverReport[0]?.driverJoinCampaign.isRequiredOdo) {
       await this.prisma.reporterDriverCampaign.create({
         data: {
           imageCarBack: dto.imageCarBack,
@@ -284,7 +295,6 @@ export class ReporterService {
         },
       });
     }
-
     return 'Checked success';
   }
 }
