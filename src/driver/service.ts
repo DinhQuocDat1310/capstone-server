@@ -422,10 +422,10 @@ export class DriversService {
           Number(c.campaign.duration) *
           Number(c.campaign.locationPricePerKm);
       c.campaign['closeDateCampaign'] = moment(
-        campaignApprove.campaign.startRunningDate,
+        c.campaign.startRunningDate,
         'MM-DD-YYYY',
       )
-        .add(Number(campaignApprove.campaign.duration) + 1, 'days')
+        .add(Number(c.campaign.duration) + 1, 'days')
         .toDate()
         .toLocaleDateString('vn-VN');
       delete c.campaign.driverJoinCampaign;
