@@ -214,7 +214,6 @@ export class ReporterService {
         isChecked: true,
         driverJoinCampaign: {
           select: {
-            isRequiredOdo: true,
             driver: {
               select: {
                 idCar: true,
@@ -229,9 +228,14 @@ export class ReporterService {
         moment(b.createDate, 'MM-DD-YYYY').valueOf() -
         moment(a.createDate, 'MM-DD-YYYY').valueOf(),
     );
-
-    console.log(dataDriverReport);
-
+    const requiredOdo = await this.prisma.driverJoinCampaign.findFirst({
+      where: {
+        id: dto.driverJoinCampaignId,
+      },
+      select: {
+        isRequiredOdo: true,
+      },
+    });
     if (dataDriverReport.length !== 0) {
       const dateCreateCheck = moment(
         dataDriverReport[0].createDate,
@@ -245,23 +249,18 @@ export class ReporterService {
         throw new BadRequestException('Today is checked for this driver');
       }
     }
-    if (
-      dataDriverReport[0]?.driverJoinCampaign.isRequiredOdo &&
-      !dto.imageCarOdo
-    ) {
+
+    if (requiredOdo.isRequiredOdo && !dto.imageCarOdo) {
       throw new BadRequestException(
         'Odo image is required. Please take photo Odo',
       );
     }
-    if (
-      !dataDriverReport[0]?.driverJoinCampaign.isRequiredOdo &&
-      dto.imageCarOdo
-    ) {
+    if (!requiredOdo.isRequiredOdo && dto.imageCarOdo) {
       throw new BadRequestException(
         'Odo image is not required. Please remove field Odo',
       );
     }
-    if (!dataDriverReport[0]?.driverJoinCampaign.isRequiredOdo) {
+    if (!requiredOdo.isRequiredOdo) {
       await this.prisma.reporterDriverCampaign.create({
         data: {
           imageCarBack: dto.imageCarBack,
