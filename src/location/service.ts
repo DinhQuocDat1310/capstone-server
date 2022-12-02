@@ -5,7 +5,7 @@ import { Role, Status, UserStatus } from '@prisma/client';
 import { PrismaService } from 'src/prisma/service';
 import { LocationCoordinate, CreateLocationDTO } from './dto';
 import * as haversine from 'haversine-distance';
-import moment from 'moment';
+import * as moment from 'moment';
 
 @Injectable()
 export class LocationService {
