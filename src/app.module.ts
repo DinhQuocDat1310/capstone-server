@@ -1,4 +1,3 @@
-import { SmsModule } from './sms/module';
 import { PrismaService } from './prisma/service';
 import { AppConfigService } from './config/appConfigService';
 import { MailerModule } from '@nestjs-modules/mailer';
@@ -11,7 +10,6 @@ import { AuthModule } from './auth/module';
 import { UsersService } from './user/service';
 import { CloudinaryModule } from './cloudinary/module';
 import { ManagerModule } from './manager/module';
-import * as Joi from '@hapi/joi';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TasksModule } from './task/module';
 import { DriverModule } from './driver/module';
@@ -32,15 +30,9 @@ import { ReporterModule } from './reporter/module';
     BrandModule,
     DriverModule,
     ManagerModule,
-    SmsModule,
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,
-      validationSchema: Joi.object({
-        TWILIO_ACCOUNT_SID: Joi.string().required(),
-        TWILIO_AUTH_TOKEN: Joi.string().required(),
-        TWILIO_VERIFICATION_SERVICE_SID: Joi.string().required(),
-      }),
     }),
     MailerModule.forRoot({
       transport: {
