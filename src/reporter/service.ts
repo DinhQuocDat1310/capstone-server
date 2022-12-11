@@ -156,6 +156,14 @@ export class ReporterService {
         moment(b.createDate, 'MM/DD/YYYY').valueOf() -
         moment(a.createDate, 'MM/DD/YYYY').valueOf(),
     );
+    if (
+      moment(globalDate, 'MM/DD/YYYY') <
+      moment(dataDriver.campaign.startRunningDate, 'MM/DD/YYYY')
+    ) {
+      throw new BadRequestException(
+        'Your campaign is not running yet. please try again!',
+      );
+    }
     let resultCheck = null;
     let checkedResult = false;
     if (dataDriver.reporterDriverCampaign[0]) {
