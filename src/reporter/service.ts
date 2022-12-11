@@ -337,7 +337,13 @@ export class ReporterService {
           },
         },
       );
-
+      this.logger.debug(moment(globalDate, 'MM/DD/YYYY'));
+      this.logger.debug(
+        moment(campaignDriverJoin.campaign.startRunningDate, 'MM/DD/YYYY').add(
+          Number(campaignDriverJoin.campaign.duration),
+          'days',
+        ),
+      );
       if (
         moment(globalDate, 'MM/DD/YYYY').diff(
           moment(
