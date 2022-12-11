@@ -6,12 +6,14 @@ import { PrismaService } from 'src/prisma/service';
 import * as moment from 'moment';
 import { Cache } from 'cache-manager';
 import { GLOBAL_DATE } from 'src/constants/cache-code';
+import { CampaignService } from 'src/campaign/service';
 @Injectable()
 export class ReporterService {
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly prisma: PrismaService,
     private readonly usersService: UsersService,
+    private readonly campaignsService: CampaignService,
   ) {}
   async getListReporter() {
     const listReporters = await this.usersService.getListReporters();
@@ -318,6 +320,48 @@ export class ReporterService {
           isRequiredOdo: false,
         },
       });
+      // TODO: handle close if the last driver is reported just for demo.
+      const campaignDriverJoin = await this.prisma.driverJoinCampaign.findFirst(
+        {
+          where: {
+            id: dto.driverJoinCampaignId,
+          },
+          include: {
+            campaign: {
+              include: {
+                driverJoinCampaign: true,
+              },
+            },
+          },
+        },
+      );
+
+      if (
+        moment(globalDate, 'MM/DD/YYYY') ===
+        moment(campaignDriverJoin.campaign.startRunningDate, 'MM/DD/YYYY').add(
+          Number(campaignDriverJoin.campaign.duration) - 1,
+          'days',
+        )
+      ) {
+        const reports = await this.prisma.reporterDriverCampaign.findMany({
+          where: {
+            createDate: moment(globalDate, 'MM/DD/YYYY')
+              .toDate()
+              .toLocaleDateString('vn-VN'),
+          },
+        });
+        if (
+          reports.length ===
+          campaignDriverJoin.campaign.driverJoinCampaign.filter(
+            (driver) => driver.status === 'APPROVE',
+          ).length
+        ) {
+          await this.campaignsService.updateStatusCampaign(
+            campaignDriverJoin.campaign.id,
+            'FINISH',
+          );
+        }
+      }
     }
     return 'Checked success';
   }
