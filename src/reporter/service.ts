@@ -1,6 +1,6 @@
 import { CreateReportDriverCampaignDTO } from './dto';
 import { UsersService } from 'src/user/service';
-import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
+import { CACHE_MANAGER, Inject, Injectable, Logger } from '@nestjs/common';
 import { BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/service';
 import * as moment from 'moment';
@@ -10,6 +10,7 @@ import { TasksService } from 'src/task/service';
 
 @Injectable()
 export class ReporterService {
+  private readonly logger = new Logger(ReporterService.name);
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly prisma: PrismaService,
@@ -338,11 +339,13 @@ export class ReporterService {
       );
 
       if (
-        moment(globalDate, 'MM/DD/YYYY') ===
-        moment(campaignDriverJoin.campaign.startRunningDate, 'MM/DD/YYYY').add(
-          Number(campaignDriverJoin.campaign.duration),
+        moment(globalDate, 'MM/DD/YYYY').diff(
+          moment(
+            campaignDriverJoin.campaign.startRunningDate,
+            'MM/DD/YYYY',
+          ).add(Number(campaignDriverJoin.campaign.duration), 'days'),
           'days',
-        )
+        ) === 0
       ) {
         const reports = await this.prisma.reporterDriverCampaign.findMany({
           where: {
@@ -351,6 +354,7 @@ export class ReporterService {
               .toLocaleDateString('vn-VN'),
           },
         });
+        this.logger.debug(reports.length);
         if (
           reports.length ===
           campaignDriverJoin.campaign.driverJoinCampaign.filter(
