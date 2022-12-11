@@ -424,7 +424,7 @@ export class DriversService {
 
       campaignApprove.campaign['isWaiting'] =
         moment(globalDate, 'MM/DD/YYYY') <
-        moment(campaignApprove.campaign.startRunningDate, 'DD/MM/YYYY');
+        moment(campaignApprove.campaign.startRunningDate, 'MM/DD/YYYY');
 
       delete campaignApprove.campaign.driverJoinCampaign;
       return campaigns;
