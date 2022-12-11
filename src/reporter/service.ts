@@ -285,6 +285,7 @@ export class ReporterService {
         'Odo image is not required. Please remove field Odo',
       );
     }
+    this.logger.debug('run');
     if (!requiredOdo.isRequiredOdo) {
       await this.prisma.reporterDriverCampaign.create({
         data: {
@@ -322,59 +323,50 @@ export class ReporterService {
           isRequiredOdo: false,
         },
       });
-      // TODO: handle close if the last driver is reported just for demo.
-      const campaignDriverJoin = await this.prisma.driverJoinCampaign.findFirst(
-        {
-          where: {
-            id: dto.driverJoinCampaignId,
-          },
+    }
+    // TODO: handle close if the last driver is reported just for demo.
+    const campaignDriverJoin = await this.prisma.driverJoinCampaign.findFirst({
+      where: {
+        id: dto.driverJoinCampaignId,
+      },
+      include: {
+        campaign: {
           include: {
-            campaign: {
-              include: {
-                driverJoinCampaign: true,
-              },
-            },
+            driverJoinCampaign: true,
           },
         },
-      );
-      this.logger.debug(moment(globalDate, 'MM/DD/YYYY'));
-      this.logger.debug(
+      },
+    });
+    if (
+      moment(globalDate, 'MM/DD/YYYY').diff(
         moment(campaignDriverJoin.campaign.startRunningDate, 'MM/DD/YYYY').add(
           Number(campaignDriverJoin.campaign.duration),
           'days',
         ),
-      );
-      if (
-        moment(globalDate, 'MM/DD/YYYY').diff(
-          moment(
-            campaignDriverJoin.campaign.startRunningDate,
-            'MM/DD/YYYY',
-          ).add(Number(campaignDriverJoin.campaign.duration), 'days'),
-          'days',
-        ) === 0
-      ) {
-        const reports = await this.prisma.reporterDriverCampaign.findMany({
-          where: {
-            createDate: moment(globalDate, 'MM/DD/YYYY')
-              .toDate()
-              .toLocaleDateString('vn-VN'),
-          },
-        });
-        this.logger.debug(reports.length);
-        if (
-          reports.length ===
-          campaignDriverJoin.campaign.driverJoinCampaign.filter(
-            (driver) => driver.status === 'APPROVE',
-          ).length
-        ) {
-          const newGlobalDate = moment(globalDate, 'MM/DD/YYYY')
+        'days',
+      ) === 0
+    ) {
+      const reports = await this.prisma.reporterDriverCampaign.findMany({
+        where: {
+          createDate: moment(globalDate, 'MM/DD/YYYY')
             .toDate()
-            .toLocaleDateString('vn-VN');
+            .toLocaleDateString('vn-VN'),
+        },
+      });
+      this.logger.debug(reports.length);
+      if (
+        reports.length ===
+        campaignDriverJoin.campaign.driverJoinCampaign.filter(
+          (driver) => driver.status === 'APPROVE',
+        ).length
+      ) {
+        const newGlobalDate = moment(globalDate, 'MM/DD/YYYY')
+          .toDate()
+          .toLocaleDateString('vn-VN');
 
-          await this.tasksService.handleCompleteRunningCampaignPhase(
-            newGlobalDate,
-          );
-        }
+        await this.tasksService.handleCompleteRunningCampaignPhase(
+          newGlobalDate,
+        );
       }
     }
     return 'Checked success';

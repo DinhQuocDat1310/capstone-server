@@ -40,7 +40,7 @@ export class DemoController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiCreatedResponse({ description: 'Created' })
-  @Get('/resetGlobalDate')
+  @Post('/resetGlobalDate')
   async resetGlobalDate() {
     return await this.demoService.resetGlobalDate();
   }
