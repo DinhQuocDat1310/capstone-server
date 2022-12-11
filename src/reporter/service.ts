@@ -141,15 +141,17 @@ export class ReporterService {
             isChecked: true,
             createDate: true,
           },
-          orderBy: {
-            createDate: 'desc',
-          },
         },
       },
     });
     if (!dataDriver) {
       throw new BadRequestException('CarId is not in reporter location');
     }
+    dataDriver.reporterDriverCampaign.sort(
+      (a, b) =>
+        moment(b.createDate, 'MM/DD/YYYY').valueOf() -
+        moment(a.createDate, 'MM/DD/YYYY').valueOf(),
+    );
     let resultCheck = null;
     let checkedResult = false;
     if (dataDriver.reporterDriverCampaign[0]) {
