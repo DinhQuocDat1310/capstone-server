@@ -69,7 +69,7 @@ export class ReporterService {
       });
       const dateEndCampaign = moment(
         resultCampaign[i].startRunningDate,
-        'MM-DD-YYYY',
+        'MM/DD/YYYY',
       )
         .add(Number(resultCampaign[i].duration), 'days')
         .toDate()
@@ -155,7 +155,7 @@ export class ReporterService {
     if (dataDriver.reporterDriverCampaign[0]) {
       const dateCreateCheck = moment(
         dataDriver.reporterDriverCampaign[0].createDate,
-        'MM-DD-YYYY',
+        'MM/DD/YYYY',
       );
       const differDateCheck = moment().diff(dateCreateCheck, 'days');
       if (Math.abs(differDateCheck) !== 0) {
@@ -225,8 +225,8 @@ export class ReporterService {
     });
     dataDriverReport.sort(
       (a, b) =>
-        moment(b.createDate, 'MM-DD-YYYY').valueOf() -
-        moment(a.createDate, 'MM-DD-YYYY').valueOf(),
+        moment(b.createDate, 'MM/DD/YYYY').valueOf() -
+        moment(a.createDate, 'MM/DD/YYYY').valueOf(),
     );
     const requiredOdo = await this.prisma.driverJoinCampaign.findFirst({
       where: {
@@ -239,7 +239,7 @@ export class ReporterService {
     if (dataDriverReport.length !== 0) {
       const dateCreateCheck = moment(
         dataDriverReport[0].createDate,
-        'MM-DD-YYYY',
+        'MM/DD/YYYY',
       );
       const differDateCheck = moment().diff(dateCreateCheck, 'days');
       if (

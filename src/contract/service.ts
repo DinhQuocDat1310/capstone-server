@@ -32,35 +32,35 @@ export class ContractService {
       fs.readFileSync('./dataConfig.json', 'utf-8'),
     );
 
-    const dateOpenRegister = moment(dto.dateOpenRegister, 'MM-DD-YYYY')
+    const dateOpenRegister = moment(dto.dateOpenRegister, 'MM/DD/YYYY')
       .toDate()
       .toLocaleDateString('vn-VN');
 
-    const dateEndRegister = moment(dto.dateOpenRegister, 'MM-DD-YYYY')
+    const dateEndRegister = moment(dto.dateOpenRegister, 'MM/DD/YYYY')
       .add(parseInt(objDataConfig.gapOpenRegisterForm) - 1, 'days')
       .toDate()
       .toLocaleDateString('vn-VN');
 
-    const datePaymentDepose = moment(dto.datePaymentDeposit, 'MM-DD-YYYY')
+    const datePaymentDepose = moment(dto.datePaymentDeposit, 'MM/DD/YYYY')
       .toDate()
       .toLocaleDateString('vn-VN');
 
-    const dateEndPaymentDeposit = moment(dto.datePaymentDeposit, 'MM-DD-YYYY')
+    const dateEndPaymentDeposit = moment(dto.datePaymentDeposit, 'MM/DD/YYYY')
       .add(parseInt(objDataConfig.gapPaymentDeposit) - 1, 'days')
       .toDate()
       .toLocaleDateString('vn-VN');
 
-    const dateWrapStick = moment(dto.dateWarpSticket, 'MM-DD-YYYY')
+    const dateWrapStick = moment(dto.dateWarpSticket, 'MM/DD/YYYY')
       .toDate()
       .toLocaleDateString('vn-VN');
 
-    const dateEndWarpSticket = moment(dto.dateWarpSticket, 'MM-DD-YYYY')
+    const dateEndWarpSticket = moment(dto.dateWarpSticket, 'MM/DD/YYYY')
       .add(parseInt(objDataConfig.gapWrapping) - 1, 'days')
       .toDate()
       .toLocaleDateString('vn-VN');
 
-    const inputDateOpenRegis = moment(dto.dateOpenRegister, 'MM-DD-YYYY');
-    const inputDatePayment = moment(dto.datePaymentDeposit, 'MM-DD-YYYY');
+    const inputDateOpenRegis = moment(dto.dateOpenRegister, 'MM/DD/YYYY');
+    const inputDatePayment = moment(dto.datePaymentDeposit, 'MM/DD/YYYY');
 
     if (
       Math.abs(inputDateOpenRegis.diff(inputDatePayment, 'days')) !==
@@ -75,7 +75,7 @@ export class ContractService {
           .toLocaleDateString('vn-VN')}`,
       );
 
-    const inputDateWrap = moment(dto.dateWarpSticket, 'MM-DD-YYYY');
+    const inputDateWrap = moment(dto.dateWarpSticket, 'MM/DD/YYYY');
 
     if (
       Math.abs(inputDatePayment.diff(inputDateWrap, 'days')) !==
@@ -188,14 +188,14 @@ export class ContractService {
             type: 'POSTPAID',
             createDate: moment(
               verifyCampaign.campaign.startRunningDate,
-              'MM-DD-YYYY',
+              'MM/DD/YYYY',
             )
               .add(Number(verifyCampaign.campaign.duration) + 1, 'days')
               .toDate()
               .toLocaleDateString('vn-VN'),
             expiredDate: moment(
               verifyCampaign.campaign.startRunningDate,
-              'MM-DD-YYYY',
+              'MM/DD/YYYY',
             )
               .add(
                 Number(verifyCampaign.campaign.duration) +

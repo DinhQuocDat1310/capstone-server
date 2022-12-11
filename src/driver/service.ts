@@ -3,6 +3,8 @@ import {
   Injectable,
   Logger,
   InternalServerErrorException,
+  CACHE_MANAGER,
+  Inject,
 } from '@nestjs/common';
 import { UserSignIn } from 'src/auth/dto';
 import { AppConfigService } from 'src/config/appConfigService';
@@ -12,11 +14,14 @@ import { PrismaService } from './../prisma/service';
 import { DriverTrackingLocation, DriverVerifyInformationDTO } from './dto';
 import * as moment from 'moment';
 import { CampaignStatus, StatusDriverJoin } from '@prisma/client';
+import { Cache } from 'cache-manager';
+import { GLOBAL_DATE } from 'src/constants/cache-code';
 
 @Injectable()
 export class DriversService {
   private readonly logger = new Logger(DriversService.name);
   constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly prisma: PrismaService,
     private readonly verifyAccountService: VerifyAccountsService,
     private readonly configService: AppConfigService,
@@ -91,7 +96,8 @@ export class DriversService {
     }
   }
 
-  async driverJoinCampaigin(campaignId: string, userReq: UserSignIn) {
+  async driverJoinCampaign(campaignId: string, userReq: UserSignIn) {
+    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
     try {
       const driver = await this.prisma.driver.findFirst({
         where: {
@@ -120,8 +126,10 @@ export class DriversService {
       }
 
       if (
-        moment() < moment(campaign.startRegisterDate, 'MM-DD-YYYY') ||
-        moment() > moment(campaign.endRegisterDate, 'MM-DD-YYYY')
+        moment(globalDate, 'MM/DD/YYYY') <
+          moment(campaign.startRegisterDate, 'MM/DD/YYYY') ||
+        moment(globalDate, 'MM/DD/YYYY') >
+          moment(campaign.endRegisterDate, 'MM/DD/YYYY')
       ) {
         throw new BadRequestException(
           'This campaign is not open for register, can you re-check the date!',
@@ -176,7 +184,9 @@ export class DriversService {
 
       await this.prisma.driverJoinCampaign.create({
         data: {
-          createDate: moment().toDate().toLocaleDateString('vn-VN'),
+          createDate: moment(globalDate, 'MM/DD/YYYY')
+            .toDate()
+            .toLocaleDateString('vn-VN'),
           campaign: {
             connect: {
               id: campaignId,
@@ -300,7 +310,7 @@ export class DriversService {
       campaigns[i]['quantityDriverJoinning'] = countDriver;
       campaigns[i]['closeDateCampaign'] = moment(
         campaigns[i].startRunningDate,
-        'MM-DD-YYYY',
+        'MM/DD/YYYY',
       )
         .add(Number(campaigns[i].duration) + 1, 'days')
         .toDate()
@@ -328,6 +338,7 @@ export class DriversService {
   }
 
   async getCampaignJoiningAndJoined(userId: string) {
+    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
     const campaigns = await this.prisma.driverJoinCampaign.findMany({
       where: {
         driver: {
@@ -372,8 +383,8 @@ export class DriversService {
     if (campaigns.length === 0) return [];
     const campaignApprove = campaigns.find((cam) => cam.status === 'APPROVE');
     if (campaignApprove) {
-      const campaignDayCount = moment().diff(
-        moment(campaignApprove.campaign.startRunningDate, 'MM-DD-YYYY'),
+      const campaignDayCount = moment(globalDate, 'MM/DD/YYYY').diff(
+        moment(campaignApprove.campaign.startRunningDate, 'MM/DD/YYYY'),
         'days',
       );
 
@@ -405,7 +416,7 @@ export class DriversService {
       campaignApprove.campaign['totalKmTraveled'] = totalKmTraveled;
       campaignApprove.campaign['closeDateCampaign'] = moment(
         campaignApprove.campaign.startRunningDate,
-        'MM-DD-YYYY',
+        'MM/DD/YYYY',
       )
         .add(Number(campaignApprove.campaign.duration) + 1, 'days')
         .toDate()
@@ -423,7 +434,7 @@ export class DriversService {
           Number(c.campaign.locationPricePerKm);
       c.campaign['closeDateCampaign'] = moment(
         c.campaign.startRunningDate,
-        'MM-DD-YYYY',
+        'MM/DD/YYYY',
       )
         .add(Number(c.campaign.duration) + 1, 'days')
         .toDate()
@@ -436,6 +447,7 @@ export class DriversService {
   }
 
   async saveCurrentLocationDriverByDate(dto: DriverTrackingLocation) {
+    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
     const driverJoinCampaign = await this.prisma.driverJoinCampaign.findFirst({
       where: {
         id: dto.idDriverJoinCampaign,
@@ -459,7 +471,10 @@ export class DriversService {
     let isDriverTrackingLocationExist = listDriverTrackingLocation.find(
       (track) => {
         return (
-          moment().diff(moment(track.createDate, 'MM-DD-YYYY'), 'days') === 0
+          moment(globalDate, 'MM/DD/YYYY').diff(
+            moment(track.createDate, 'MM/DD/YYYY'),
+            'days',
+          ) === 0
         );
       },
     );
@@ -473,7 +488,9 @@ export class DriversService {
                 id: driverJoinCampaign.id,
               },
             },
-            createDate: moment().toDate().toLocaleDateString('vn-VN'),
+            createDate: moment(globalDate, 'MM/DD/YYYY')
+              .toDate()
+              .toLocaleDateString('vn-VN'),
           },
         });
     }
@@ -486,13 +503,14 @@ export class DriversService {
             id: isDriverTrackingLocationExist.id,
           },
         },
-        timeSubmit: moment()
+        timeSubmit: moment(globalDate, 'MM/DD/YYYY')
           .toDate()
           .toLocaleDateString('vn-VN', { hour: 'numeric', minute: 'numeric' }),
       },
     });
   }
   async getTotalKmByCurrentDate(driverJoinCampaignId: string) {
+    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
     const driverJoinCampaign = await this.prisma.driverJoinCampaign.findFirst({
       where: {
         id: driverJoinCampaignId,
@@ -515,8 +533,8 @@ export class DriversService {
 
     const driverTrackingLocation = listDriverTrackingLocation.find(
       (driverTracking) =>
-        moment().diff(
-          moment(driverTracking.createDate, 'MM-DD-YYYY'),
+        moment(globalDate, 'MM/DD/YYYY').diff(
+          moment(driverTracking.createDate, 'MM/DD/YYYY'),
           'days',
         ) === 0,
     );
@@ -636,7 +654,7 @@ export class DriversService {
     const dataRes = driverJoinCampaign.map((driver) => {
       const endDateCampaign = moment(
         driver.campaign.startRunningDate,
-        'MM-DD-YYYY',
+        'MM/DD/YYYY',
       )
         .add(Number(driver.campaign.duration) + 1, 'days')
         .toDate()

@@ -84,7 +84,7 @@ export class DriverController {
     @Request() req: RequestUser,
     @Body() campaign: { id: string },
   ) {
-    return await this.driverService.driverJoinCampaigin(campaign.id, req.user);
+    return await this.driverService.driverJoinCampaign(campaign.id, req.user);
   }
 
   @ApiOperation({ summary: 'Get the list campaign in location driver' })

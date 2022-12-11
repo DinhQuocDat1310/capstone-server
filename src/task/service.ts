@@ -8,6 +8,7 @@ import { CampaignService } from 'src/campaign/service';
 import { CampaignStatus, StatusDriverJoin } from '@prisma/client';
 import { PaymentService } from 'src/payment/service';
 import { DriversService } from 'src/driver/service';
+
 @Injectable()
 export class TasksService {
   private readonly logger = new Logger(TasksService.name);
@@ -22,9 +23,9 @@ export class TasksService {
   ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_11PM)
-  async handleCompleteRegisterCampaignPhase() {
+  async handleCompleteRegisterCampaignPhase(globalDate?: string) {
     const campaigns =
-      await this.campaignsService.getAllCampaignRegisterIsExpired();
+      await this.campaignsService.getAllCampaignRegisterIsExpired(globalDate);
     if (campaigns.length === 0) {
       this.logger.debug('No campaigns is end register phase today');
       return;
@@ -47,7 +48,7 @@ export class TasksService {
           campaigns[i].id,
         );
       } else {
-        const messageDesc = 'lack of quantity driver';
+        const messageDesc = 'OPEN: Lack of quantity driver';
         await this.campaignsService.updateStatusCampaign(
           campaigns[i].id,
           CampaignStatus.CANCELED,
@@ -63,8 +64,70 @@ export class TasksService {
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_11PM)
-  async handleCompleteWrappingCampaignPhase() {
-    const campaigns = await this.campaignsService.getAllCampaignWrapIsExpired();
+  async handleCompletePrePaymentCampaignPhase(globalDate?: string) {
+    const campaigns =
+      await this.campaignsService.getAllCampaignPaymentIsExpired(
+        true,
+        globalDate,
+      );
+    if (campaigns.length === 0) {
+      this.logger.debug('No campaigns is end prepay Payment phase today');
+      return;
+    }
+    for (let i = 0; i < campaigns.length; i++) {
+      const payment = campaigns[i].paymentDebit.find(
+        (pay) => pay.type === 'PREPAY',
+      );
+      if (payment.paidDate) {
+        await this.campaignsService.updateStatusCampaign(
+          campaigns[i].id,
+          CampaignStatus.WRAPPING,
+        );
+      } else {
+        await this.campaignsService.updateStatusCampaign(
+          campaigns[i].id,
+          CampaignStatus.CANCELED,
+          `PAYMENT: This campaign is close because you dont purchase 20%!`,
+        );
+      }
+    }
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_11PM)
+  async handleCompletePostPaymentCampaignPhase(globalDate?: string) {
+    const campaigns =
+      await this.campaignsService.getAllCampaignPaymentIsExpired(
+        false,
+        globalDate,
+      );
+    if (campaigns.length === 0) {
+      this.logger.debug('No campaigns is end postpaid Payment phase today');
+      return;
+    }
+    for (let i = 0; i < campaigns.length; i++) {
+      const payment = campaigns[i].paymentDebit.find(
+        (pay) => pay.type === 'POSTPAID',
+      );
+      if (payment.paidDate) {
+        await this.campaignsService.updateStatusCampaign(
+          campaigns[i].id,
+          CampaignStatus.CLOSED,
+        );
+      } else {
+        await this.campaignsService.updateStatusCampaign(
+          campaigns[i].id,
+          CampaignStatus.CANCELED,
+          'FINISH: This campaign is canceled because you are not purchase 80%!!',
+        );
+      }
+    }
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_11PM)
+  async handleCompleteWrappingCampaignPhase(globalDate?: string) {
+    const campaigns = await this.campaignsService.getAllCampaignWrapIsExpired(
+      globalDate,
+    );
     if (campaigns.length === 0) {
       this.logger.debug('No campaigns is end wrapping phase today');
       return;
@@ -106,7 +169,7 @@ export class TasksService {
           await this.campaignsService.updateStatusCampaign(
             campaigns[i].id,
             CampaignStatus.CANCELED,
-            'Your campaign will be completely free as we do not meet the minimum kilometers for the entire campaign, you will get your refund ASAP. We sincerely apologize, thank you for using the service.',
+            'RUNNING: Your campaign will be completely free as we do not meet the minimum kilometers for the entire campaign, you will get your refund ASAP. We sincerely apologize, thank you for using the service.',
           );
           await this.driverService.updateAllStatusDriverJoinCampaign(
             campaigns[i].id,

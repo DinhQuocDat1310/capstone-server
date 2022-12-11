@@ -22,9 +22,11 @@ import { PolicyModule } from './policy/module';
 import { ConfigJsonModule } from './config-json/module';
 import { PaymentModule } from './payment/module';
 import { ReporterModule } from './reporter/module';
+import { DemoModule } from './demo/module';
 
 @Module({
   imports: [
+    DemoModule,
     AuthModule,
     UserModule,
     BrandModule,

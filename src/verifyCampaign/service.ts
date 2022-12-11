@@ -17,16 +17,21 @@ import {
 import { MailerService } from '@nestjs-modules/mailer';
 import {
   BadRequestException,
+  CACHE_MANAGER,
+  Inject,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
 import { AppConfigService } from 'src/config/appConfigService';
 import { PrismaService } from 'src/prisma/service';
 import * as moment from 'moment';
+import { Cache } from 'cache-manager';
+import { GLOBAL_DATE } from 'src/constants/cache-code';
 
 @Injectable()
 export class VerifyCampaignService {
   constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly prisma: PrismaService,
     private readonly mailerService: MailerService,
     private readonly configService: AppConfigService,
@@ -141,6 +146,7 @@ export class VerifyCampaignService {
   }
 
   async fakeAutoCreateVerifyCampaignRequest() {
+    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
     const brand = await this.prisma.user.findMany({
       where: {
         status: UserStatus.VERIFIED,
@@ -186,7 +192,9 @@ export class VerifyCampaignService {
                 Math.random() * (Math.pow(5, 6) * 9.9 - Math.pow(5, 6) + 1) +
                   Math.pow(6, 6),
               ),
-            startRunningDate: moment().toDate().toLocaleDateString('vn-VN'),
+            startRunningDate: moment(globalDate, 'MM/DD/YYYY')
+              .toDate()
+              .toLocaleDateString('vn-VN'),
             duration: FAKE_DURATION[j],
             quantityDriver: FAKE_QUANTITY_DRIVER[j],
             totalKm: FAKE_TOTALKM[j],
@@ -221,7 +229,9 @@ export class VerifyCampaignService {
                 id: campaignId.id,
               },
             },
-            createDate: moment().toDate().toLocaleDateString('vn-VN'),
+            createDate: moment(globalDate, 'MM/DD/YYYY')
+              .toDate()
+              .toLocaleDateString('vn-VN'),
           },
         });
       }
@@ -378,7 +388,6 @@ export class VerifyCampaignService {
       status: true,
       detail: true,
       createDate: true,
-      updateAt: true,
     };
     try {
       return await this.prisma.verifyCampaign.findMany({

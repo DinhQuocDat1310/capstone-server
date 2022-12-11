@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  CACHE_MANAGER,
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -10,11 +12,16 @@ import { CampaignVerifyInformationDTO, StepsCampaignDTO } from './dto';
 import { CampaignStatus, Role } from '@prisma/client';
 import * as moment from 'moment';
 import * as fs from 'fs';
+import { GLOBAL_DATE } from 'src/constants/cache-code';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class CampaignService {
   private readonly logger = new Logger(CampaignService.name);
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly prisma: PrismaService,
+  ) {}
 
   async getListVerifiesCampaignByUserId(userId: string) {
     return await this.prisma.campaign.findMany({
@@ -199,6 +206,8 @@ export class CampaignService {
   }
 
   async viewCampaignDetails(userId: string, campaignId: string) {
+    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
+
     const brandOwnCampaign = await this.prisma.campaign.findFirst({
       where: {
         AND: [
@@ -307,52 +316,55 @@ export class CampaignService {
     let messageWaiting = '';
     const sortDatePayment = brandOwnCampaign.paymentDebit.sort(
       (a, b) =>
-        moment(a.createDate, 'MM-DD-YYYY').valueOf() -
-        moment(b.createDate, 'MM-DD-YYYY').valueOf(),
+        moment(a.createDate, 'MM/DD/YYYY').valueOf() -
+        moment(b.createDate, 'MM/DD/YYYY').valueOf(),
     );
 
     switch (brandOwnCampaign.statusCampaign) {
       case 'OPEN':
         isWaiting =
-          moment() < moment(brandOwnCampaign.startRegisterDate, 'MM-DD-YYYY');
-        days = moment().diff(
-          moment(brandOwnCampaign.startRegisterDate, 'MM-DD-YYYY'),
+          moment(globalDate, 'MM/DD/YYYY') <
+          moment(brandOwnCampaign.startRegisterDate, 'MM/DD/YYYY');
+        days = moment(globalDate, 'MM/DD/YYYY').diff(
+          moment(brandOwnCampaign.startRegisterDate, 'MM/DD/YYYY'),
           'days',
         );
         break;
       case 'PAYMENT':
         isWaiting =
-          moment() <
+          moment(globalDate, 'MM/DD/YYYY') <
           moment(
             brandOwnCampaign.paymentDebit.find(
               (payment) => payment.type === 'PREPAY',
             ).createDate,
-            'MM-DD-YYYY',
+            'MM/DD/YYYY',
           );
-        days = moment().diff(
+        days = moment(globalDate, 'MM/DD/YYYY').diff(
           moment(
             brandOwnCampaign.paymentDebit.find(
               (payment) => payment.type === 'PREPAY',
             ).createDate,
-            'MM-DD-YYYY',
+            'MM/DD/YYYY',
           ),
           'days',
         );
         break;
       case 'WRAPPING':
         isWaiting =
-          moment() < moment(brandOwnCampaign.startWrapDate, 'MM-DD-YYYY');
-        days = moment().diff(
-          moment(brandOwnCampaign.startWrapDate, 'MM-DD-YYYY'),
+          moment(globalDate, 'MM/DD/YYYY') <
+          moment(brandOwnCampaign.startWrapDate, 'MM/DD/YYYY');
+        days = moment(globalDate, 'MM/DD/YYYY').diff(
+          moment(brandOwnCampaign.startWrapDate, 'MM/DD/YYYY'),
           'days',
         );
         break;
         break;
       case 'RUNNING':
         isWaiting =
-          moment() < moment(brandOwnCampaign.startRunningDate, 'MM-DD-YYYY');
-        days = moment().diff(
-          moment(brandOwnCampaign.startRunningDate, 'MM-DD-YYYY'),
+          moment(globalDate, 'MM/DD/YYYY') <
+          moment(brandOwnCampaign.startRunningDate, 'MM/DD/YYYY');
+        days = moment(globalDate, 'MM/DD/YYYY').diff(
+          moment(brandOwnCampaign.startRunningDate, 'MM/DD/YYYY'),
           'days',
         );
         break;
@@ -396,7 +408,7 @@ export class CampaignService {
                 },
                 data: {
                   campaignName: dto.campaignName,
-                  startRunningDate: moment(dto.startRunningDate, 'MM-DD-YYYY')
+                  startRunningDate: moment(dto.startRunningDate, 'MM/DD/YYYY')
                     .add(1, 'days')
                     .toDate()
                     .toLocaleDateString('vn-VN'),
@@ -534,6 +546,7 @@ export class CampaignService {
   }
 
   async createCampaign(dto: CampaignVerifyInformationDTO, userId: string) {
+    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
     const isCampaignNameExist = await this.prisma.campaign.findFirst({
       where: {
         campaignName: dto.campaignName,
@@ -552,7 +565,7 @@ export class CampaignService {
     const campaign = await this.prisma.campaign.create({
       data: {
         campaignName: dto.campaignName,
-        startRunningDate: moment(dto.startRunningDate, 'MM-DD-YYYY')
+        startRunningDate: moment(dto.startRunningDate, 'MM/DD/YYYY')
           .toDate()
           .toLocaleDateString('vn-VN'),
         quantityDriver: dto.quantityDriver,
@@ -612,7 +625,9 @@ export class CampaignService {
             id: campaign.id,
           },
         },
-        createDate: moment().toDate().toLocaleDateString('vn-VN'),
+        createDate: moment(globalDate, 'MM/DD/YYYY')
+          .toDate()
+          .toLocaleDateString('vn-VN'),
       },
     });
     return campaign;
@@ -765,29 +780,74 @@ export class CampaignService {
       throw new BadRequestException('Campaign ID is not exist');
   }
 
-  async getAllCampaignRegisterIsExpired() {
+  async getAllCampaignRegisterIsExpired(globalDate: string) {
     const campaigns = await this.prisma.campaign.findMany({
       where: {
         statusCampaign: 'OPEN',
       },
     });
+    if (globalDate)
+      return campaigns.filter(
+        (c) =>
+          moment(globalDate, 'MM/DD/YYYY') >=
+          moment(c.endRegisterDate, 'MM/DD/YYYY'),
+      );
+
     return campaigns.filter(
-      (c) => moment() >= moment(c.endRegisterDate, 'MM-DD-YYYY'),
+      (c) =>
+        moment(globalDate, 'MM/DD/YYYY') >=
+        moment(c.endRegisterDate, 'MM/DD/YYYY'),
     );
   }
 
-  async getAllCampaignWrapIsExpired() {
+  async getAllCampaignWrapIsExpired(globalDate: string) {
     const campaigns = await this.prisma.campaign.findMany({
       where: {
         statusCampaign: 'WRAPPING',
       },
     });
+    if (globalDate)
+      return campaigns.filter(
+        (c) =>
+          moment(globalDate, 'MM/DD/YYYY') >=
+          moment(c.endWrapDate, 'MM/DD/YYYY'),
+      );
+
     return campaigns.filter(
-      (c) => moment() >= moment(c.endWrapDate, 'MM-DD-YYYY'),
+      (c) =>
+        moment(globalDate, 'MM/DD/YYYY') >= moment(c.endWrapDate, 'MM/DD/YYYY'),
+    );
+  }
+
+  async getAllCampaignPaymentIsExpired(isPrePay: boolean, globalDate: string) {
+    const statusCampaign = isPrePay ? 'PAYMENT' : 'FINISH';
+    const campaigns = await this.prisma.campaign.findMany({
+      where: {
+        statusCampaign,
+      },
+      include: {
+        paymentDebit: true,
+      },
+    });
+    const type = isPrePay ? 'PREPAY' : 'POSTPAID';
+    if (globalDate)
+      return campaigns.filter(
+        (c) =>
+          moment(globalDate, 'MM/DD/YYYY') >=
+          moment(
+            c.paymentDebit.find((pay) => pay.type === type).expiredDate,
+            'MM/DD/YYYY',
+          ),
+      );
+
+    return campaigns.filter(
+      (c) =>
+        moment(globalDate, 'MM/DD/YYYY') >= moment(c.endWrapDate, 'MM/DD/YYYY'),
     );
   }
 
   async getAllCampaignRunningIsExpired() {
+    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
     const campaigns = await this.prisma.campaign.findMany({
       where: {
         statusCampaign: 'RUNNING',
@@ -809,8 +869,8 @@ export class CampaignService {
     });
     return campaigns.filter(
       (c) =>
-        moment() >=
-        moment(c.startRunningDate, 'MM-DD-YYYY').add(
+        moment(globalDate, 'MM/DD/YYYY') >=
+        moment(c.startRunningDate, 'MM/DD/YYYY').add(
           Number(c.duration),
           'days',
         ),
@@ -896,6 +956,7 @@ export class CampaignService {
     role: Role,
     campaignId: string,
   ) {
+    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
     const where = {
       id: campaignId,
       statusCampaign: {
@@ -944,20 +1005,26 @@ export class CampaignService {
     if (!campaign)
       throw new BadRequestException('You are not the owner this campaign!');
 
-    if (moment() < moment(campaign.startRunningDate, 'MM-DD-YYYY')) {
+    if (
+      moment(globalDate, 'MM/DD/YYYY') <
+      moment(campaign.startRunningDate, 'MM/DD/YYYY')
+    ) {
       return [];
     }
     const totalKmPerDay = Number(campaign.totalKm) / Number(campaign.duration);
     const totalLength = Math.abs(
-      moment().diff(moment(campaign.startRunningDate, 'MM-DD-YYYY'), 'days'),
+      moment(globalDate, 'MM/DD/YYYY').diff(
+        moment(campaign.startRunningDate, 'MM/DD/YYYY'),
+        'days',
+      ),
     );
 
     const listDriver = (date: string) => {
       return campaign.driverJoinCampaign.map((driverJoin) => {
         const driverTracking = driverJoin.driverTrackingLocation.find(
           (driverTrack) =>
-            moment(date, 'MM-DD-YYYY').diff(
-              moment(driverTrack.createDate, 'MM-DD-YYYY'),
+            moment(date, 'MM/DD/YYYY').diff(
+              moment(driverTrack.createDate, 'MM/DD/YYYY'),
               'days',
             ) === 0,
         );
@@ -969,8 +1036,8 @@ export class CampaignService {
 
         const reporterImage = driverJoin?.reporterDriverCampaign?.find(
           (report) =>
-            moment(date, 'MM-DD-YYYY').diff(
-              moment(report.createDate, 'MM-DD-YYYY'),
+            moment(date, 'MM/DD/YYYY').diff(
+              moment(report.createDate, 'MM/DD/YYYY'),
               'days',
             ) === 0,
         );
@@ -994,7 +1061,7 @@ export class CampaignService {
     const array = [];
     for (let i = 0; i <= totalLength; i++) {
       const listDriverFormat = listDriver(
-        moment(campaign.startRunningDate, 'MM-DD-YYYY')
+        moment(campaign.startRunningDate, 'MM/DD/YYYY')
           .add(i, 'days')
           .toDate()
           .toLocaleDateString('vn-VN'),
@@ -1004,7 +1071,7 @@ export class CampaignService {
       }, 0);
 
       array.push({
-        date: moment(campaign.startRunningDate, 'MM-DD-YYYY')
+        date: moment(campaign.startRunningDate, 'MM/DD/YYYY')
           .add(i, 'days')
           .toDate()
           .toLocaleDateString('vn-VN'),
@@ -1072,6 +1139,7 @@ export class CampaignService {
   }
 
   async triggerDriversJoinCampaign(campaignId: string) {
+    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
     const campaign = await this.prisma.campaign.findFirst({
       where: {
         id: campaignId,
@@ -1085,8 +1153,10 @@ export class CampaignService {
     if (!campaign)
       throw new BadRequestException('Please input correct campaign ID');
     if (
-      moment() < moment(campaign.startRegisterDate, 'MM-DD-YYYY') ||
-      moment() > moment(campaign.endRegisterDate, 'MM-DD-YYYY')
+      moment(globalDate, 'MM/DD/YYYY') <
+        moment(campaign.startRegisterDate, 'MM/DD/YYYY') ||
+      moment(globalDate, 'MM/DD/YYYY') >
+        moment(campaign.endRegisterDate, 'MM/DD/YYYY')
     ) {
       throw new BadRequestException(
         'This campaign is not open for register, can you re-check the date!',
@@ -1126,7 +1196,9 @@ export class CampaignService {
         campaignId: campaign.id,
         driverId: driver.id,
         description: 'Auto join',
-        createDate: moment().toDate().toLocaleDateString('vn-VN'),
+        createDate: moment(globalDate, 'MM/DD/YYYY')
+          .toDate()
+          .toLocaleDateString('vn-VN'),
       };
     });
     await this.prisma.driverJoinCampaign.createMany({

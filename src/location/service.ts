@@ -1,16 +1,27 @@
 import { UpdateLocationDTO } from 'src/location/dto';
 import { hash } from 'bcrypt';
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  CACHE_MANAGER,
+  Inject,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 import { Role, Status, UserStatus } from '@prisma/client';
 import { PrismaService } from 'src/prisma/service';
 import { LocationCoordinate, CreateLocationDTO } from './dto';
 import * as haversine from 'haversine-distance';
 import * as moment from 'moment';
+import { GLOBAL_DATE } from 'src/constants/cache-code';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class LocationService {
   private readonly logger = new Logger(LocationService.name);
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly prisma: PrismaService,
+  ) {}
 
   async getListLocation(userRole: string) {
     return userRole === Role.BRAND
@@ -30,6 +41,7 @@ export class LocationService {
   }
 
   async createNewLocation(location: CreateLocationDTO) {
+    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
     const campaign = await this.prisma.locationCampaignPerKm.findFirst({
       where: {
         locationName: location.locationName,
@@ -42,7 +54,9 @@ export class LocationService {
         price: location.price,
         status: Status.ENABLE,
         addressPoint: location.addressCheckPoint,
-        createDate: moment().toDate().toLocaleDateString('vn-VN'),
+        createDate: moment(globalDate, 'MM/DD/YYYY')
+          .toDate()
+          .toLocaleDateString('vn-VN'),
       },
       select: {
         id: true,

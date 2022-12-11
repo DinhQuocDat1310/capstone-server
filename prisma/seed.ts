@@ -2,7 +2,7 @@ import { wrap } from './db/wrap';
 import { users } from './db/user';
 import { faq, policies } from './db/policy';
 
-import { campaignRunning } from './db/campaign';
+import { campaignOpen, campaignRunning } from './db/campaign';
 
 import { PrismaService } from '../src/prisma/service';
 import { Logger } from '@nestjs/common';
@@ -48,6 +48,7 @@ async function main() {
       });
     }
     await campaignRunning();
+    await campaignOpen();
   } catch (error) {
     logger.error(error);
     process.exit(1);

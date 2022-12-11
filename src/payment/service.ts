@@ -1,6 +1,14 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  CACHE_MANAGER,
+  Inject,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
+import { Cache } from 'cache-manager';
 import * as moment from 'moment';
 import fetch, { Response } from 'node-fetch';
+import { GLOBAL_DATE } from 'src/constants/cache-code';
 import { PrismaService } from 'src/prisma/service';
 import { TransactionCampaignDTO } from './dto';
 
@@ -8,7 +16,10 @@ import { TransactionCampaignDTO } from './dto';
 export class PaymentService {
   private readonly logger = new Logger(PaymentService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly prisma: PrismaService,
+  ) {}
 
   async createOrder(dto: TransactionCampaignDTO) {
     const campaign = await this.prisma.campaign.findFirst({
@@ -72,6 +83,7 @@ export class PaymentService {
   }
 
   async captureTransaction(orderId: string, campaignId: string) {
+    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
     const accessToken = await this.generateAccessToken();
     const campaign = await this.prisma.campaign.findFirst({
       where: {
@@ -114,7 +126,9 @@ export class PaymentService {
             id: typePayment.id,
           },
           data: {
-            paidDate: moment().toDate().toLocaleDateString('vn-VN'),
+            paidDate: moment(globalDate, 'MM/DD/YYYY')
+              .toDate()
+              .toLocaleDateString('vn-VN'),
           },
         });
 

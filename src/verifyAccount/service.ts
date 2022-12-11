@@ -11,6 +11,8 @@ import {
 import { PrismaService } from './../prisma/service';
 import {
   BadRequestException,
+  CACHE_MANAGER,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -20,20 +22,26 @@ import { UserStatus, VerifyAccountStatus } from '@prisma/client';
 import { MailerService } from '@nestjs-modules/mailer';
 import { AppConfigService } from 'src/config/appConfigService';
 import * as moment from 'moment';
+import { Cache } from 'cache-manager';
+import { GLOBAL_DATE } from 'src/constants/cache-code';
 
 @Injectable()
 export class VerifyAccountsService {
   constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly prisma: PrismaService,
     private readonly mailerService: MailerService,
     private readonly configService: AppConfigService,
   ) {}
 
   async createNewRequestVerifyBrandAccount(id: string) {
+    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
     try {
       return await this.prisma.verifyAccount.create({
         data: {
-          createDate: moment().toDate().toLocaleDateString('vn-VN'),
+          createDate: moment(globalDate, 'MM/DD/YYYY')
+            .toDate()
+            .toLocaleDateString('vn-VN'),
           brand: {
             connect: {
               id,
@@ -115,10 +123,13 @@ export class VerifyAccountsService {
   }
 
   async createNewRequestVerifyDriverAccount(id: string) {
+    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
     try {
       return await this.prisma.verifyAccount.create({
         data: {
-          createDate: moment().toDate().toLocaleDateString('vn-VN'),
+          createDate: moment(globalDate, 'MM/DD/YYYY')
+            .toDate()
+            .toLocaleDateString('vn-VN'),
           driver: {
             connect: {
               id,
@@ -242,13 +253,13 @@ export class VerifyAccountsService {
         .filter((verify) => Object.keys(verify[`${type}`]).length !== 0)
         .sort((v1, v2) => {
           if (
-            moment(v1.createDate, 'MM-DD-YYYY') >
-            moment(v2.createDate, 'MM-DD-YYYY')
+            moment(v1.createDate, 'MM/DD/YYYY') >
+            moment(v2.createDate, 'MM/DD/YYYY')
           ) {
             return 1;
           } else if (
-            moment(v1.createDate, 'MM-DD-YYYY') <
-            moment(v2.createDate, 'MM-DD-YYYY')
+            moment(v1.createDate, 'MM/DD/YYYY') <
+            moment(v2.createDate, 'MM/DD/YYYY')
           ) {
             return -1;
           }
@@ -363,6 +374,7 @@ export class VerifyAccountsService {
   }
 
   async fakeAutoCreateVerifyRequest() {
+    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
     const users = await this.prisma.user.findMany({
       where: {
         status: 'NEW',
@@ -428,7 +440,9 @@ export class VerifyAccountsService {
       });
       await this.prisma.verifyAccount.create({
         data: {
-          createDate: moment().toDate().toLocaleDateString('vn-VN'),
+          createDate: moment(globalDate, 'MM/DD/YYYY')
+            .toDate()
+            .toLocaleDateString('vn-VN'),
           brand: {
             connect: {
               id: brandsFilter[i].brand.id,
@@ -481,7 +495,9 @@ export class VerifyAccountsService {
       });
       await this.prisma.verifyAccount.create({
         data: {
-          createDate: moment().toDate().toLocaleDateString('vn-VN'),
+          createDate: moment(globalDate, 'MM/DD/YYYY')
+            .toDate()
+            .toLocaleDateString('vn-VN'),
           driver: {
             connect: {
               id: driversFilter[i].driver.id,
@@ -572,7 +588,6 @@ export class VerifyAccountsService {
       status: true,
       detail: true,
       createDate: true,
-      updateAt: true,
     };
     try {
       return await this.prisma.verifyAccount.findMany({

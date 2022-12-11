@@ -208,14 +208,14 @@ export const campaignRunning = async () => {
         type: 'POSTPAID',
         createDate: moment(
           verifyCampaign.campaign.startRunningDate,
-          'MM-DD-YYYY',
+          'MM/DD/YYYY',
         )
           .add(Number(verifyCampaign.campaign.duration) + 1, 'days')
           .toDate()
           .toLocaleDateString('vn-VN'),
         expiredDate: moment(
           verifyCampaign.campaign.startRunningDate,
-          'MM-DD-YYYY',
+          'MM/DD/YYYY',
         )
           .add(Number(verifyCampaign.campaign.duration) + 6, 'days')
           .toDate()
@@ -232,7 +232,7 @@ export const campaignRunning = async () => {
     for (let j = 0; j < driverJoinCampaign.length; j++) {
       await prisma.reporterDriverCampaign.create({
         data: {
-          createDate: moment(campaign.startRunningDate, 'MM-DD-YYYY')
+          createDate: moment(campaign.startRunningDate, 'MM/DD/YYYY')
             .add(i, 'days')
             .toDate()
             .toLocaleDateString('vn-VN'),
@@ -250,7 +250,7 @@ export const campaignRunning = async () => {
       });
       const driverTracking = await prisma.driverTrackingLocation.create({
         data: {
-          createDate: moment(campaign.startRunningDate, 'MM-DD-YYYY')
+          createDate: moment(campaign.startRunningDate, 'MM/DD/YYYY')
             .add(i, 'days')
             .toDate()
             .toLocaleDateString('vn-VN'),
@@ -278,136 +278,187 @@ export const campaignRunning = async () => {
   }
 };
 
-// export const campaignOpen = async () => {
-//   const prisma = new PrismaService();
-//   const manager = await prisma.manager.findFirst({
-//     where: {
-//       user: {
-//         fullname: 'Manager 1',
-//       },
-//     },
-//   });
-//   const brand = await prisma.brand.findFirst({
-//     where: {
-//       brandName: 'Brand 1',
-//     },
-//   });
-//   const wrap = await prisma.wrap.findFirst({});
-//   const location = await prisma.locationCampaignPerKm.findFirst({
-//     where: {
-//       locationName: 'TP Hồ Chí Minh',
-//     },
-//   });
+export const campaignOpen = async () => {
+  const prisma = new PrismaService();
+  const manager = await prisma.manager.findFirst({
+    where: {
+      user: {
+        fullname: 'Manager 1',
+      },
+    },
+  });
+  const brand = await prisma.brand.findFirst({
+    where: {
+      brandName: 'Brand 1',
+    },
+  });
+  const wrap = await prisma.wrap.findFirst({});
+  const location = await prisma.locationCampaignPerKm.findFirst({
+    where: {
+      locationName: 'TP Hồ Chí Minh',
+    },
+  });
 
-//   const dtoCampaign: CampaignVerifyInformationDTO = {
-//     idLocation: location.id,
-//     idWrap: wrap.id,
-//     priceLocation: location.price,
-//     priceWrap: wrap.price,
-//     campaignName: 'Campaign Open Prisma',
-//     startRunningDate: moment(new Date()).subtract(4, 'days').toDate().toLocaleDateString('vn-VN'),
-//     duration: '30',
-//     totalKm: '3000',
-//     quantityDriver: `5`,
-//     description: 'Campaign is Open from seeding prisma',
-//     minimumKmDrive: '2',
-//     poster: FAKE_LOGO[2],
-//   };
-//   const campaign = await prisma.campaign.create({
-//     data: {
-//       statusCampaign: 'OPEN',
-//       campaignName: dtoCampaign.campaignName,
-//       startRunningDate: dtoCampaign.startRunningDate,
-//       quantityDriver: dtoCampaign.quantityDriver,
-//       totalKm: dtoCampaign.totalKm,
-//       description: dtoCampaign.description,
-//       poster: dtoCampaign.poster,
-//       minimumKmDrive: dtoCampaign.minimumKmDrive,
-//       locationPricePerKm: dtoCampaign.priceLocation,
-//       wrapPrice: dtoCampaign.priceWrap,
-//       duration: dtoCampaign.duration,
-//       startRegisterDate: moment(new Date()).subtract(22, 'days').toDate().toLocaleDateString('vn-VN'),
-//       endRegisterDate: moment(new Date()).subtract(17, 'days').toISOString(),
-//       startWrapDate: moment(new Date()).subtract(10, 'days').toISOString(),
-//       endWrapDate: moment(new Date()).subtract(5, 'days').toISOString(),
-//       brand: {
-//         connect: {
-//           userId: brand.userId,
-//         },
-//       },
-//       locationCampaign: {
-//         connect: {
-//           id: dtoCampaign.idLocation,
-//         },
-//       },
-//       wrap: {
-//         connect: {
-//           id: dtoCampaign.idWrap,
-//         },
-//       },
-//     },
-//     include: {
-//       locationCampaign: true,
-//     },
-//   });
+  const dtoCampaign: CampaignVerifyInformationDTO = {
+    idLocation: location.id,
+    idWrap: wrap.id,
+    priceLocation: location.price,
+    priceWrap: wrap.price,
+    campaignName: 'Campaign Open Prisma',
+    startRunningDate: moment()
+      .add(16, 'days')
+      .toDate()
+      .toLocaleDateString('vn-VN'),
+    duration: '2',
+    totalKm: '4',
+    quantityDriver: `2`,
+    description: 'Campaign is Open from seeding prisma',
+    minimumKmDrive: '1',
+    poster: FAKE_LOGO[4],
+  };
+  const campaign = await prisma.campaign.create({
+    data: {
+      statusCampaign: 'OPEN',
+      campaignName: dtoCampaign.campaignName,
+      startRunningDate: dtoCampaign.startRunningDate,
+      quantityDriver: dtoCampaign.quantityDriver,
+      totalKm: dtoCampaign.totalKm,
+      description: dtoCampaign.description,
+      poster: dtoCampaign.poster,
+      minimumKmDrive: dtoCampaign.minimumKmDrive,
+      locationPricePerKm: dtoCampaign.priceLocation,
+      wrapPrice: dtoCampaign.priceWrap,
+      duration: dtoCampaign.duration,
+      startRegisterDate: moment().toDate().toLocaleDateString('vn-VN'),
+      endRegisterDate: moment()
+        .add(4, 'days')
+        .toDate()
+        .toLocaleDateString('vn-VN'),
+      startWrapDate: moment()
+        .add(10, 'days')
+        .toDate()
+        .toLocaleDateString('vn-VN'),
+      endWrapDate: moment()
+        .add(14, 'days')
+        .toDate()
+        .toLocaleDateString('vn-VN'),
+      brand: {
+        connect: {
+          userId: brand.userId,
+        },
+      },
+      locationCampaign: {
+        connect: {
+          id: dtoCampaign.idLocation,
+        },
+      },
+      wrap: {
+        connect: {
+          id: dtoCampaign.idWrap,
+        },
+      },
+    },
+    include: {
+      locationCampaign: true,
+    },
+  });
 
-//   const verifyCampaign = await prisma.verifyCampaign.create({
-//     data: {
-//       status: VerifyCampaignStatus.ACCEPT,
-//       campaign: {
-//         connect: {
-//           id: campaign.id,
-//         },
-//       },
-//       manager: {
-//         connect: {
-//           id: manager.id,
-//         },
-//       },
-//     },
-//     include: {
-//       campaign: {
-//         include: {
-//           wrap: true,
-//         },
-//       },
-//     },
-//   });
-//   const isBothSide = verifyCampaign.campaign.wrap.positionWrap === 'BOTH_SIDE';
-//   const extraWrapMoney = isBothSide ? 400000 : 200000;
-//   const priceWrap = parseFloat(verifyCampaign.campaign.wrapPrice);
-//   const numDriver = parseInt(verifyCampaign.campaign.quantityDriver);
-//   const time = parseInt(verifyCampaign.campaign.duration) / 30 - 1;
-//   const totalWrapMoney = (priceWrap + time * extraWrapMoney) * numDriver;
+  const verifyCampaign = await prisma.verifyCampaign.create({
+    data: {
+      status: VerifyCampaignStatus.ACCEPT,
+      createDate: moment().toDate().toLocaleDateString(),
+      campaign: {
+        connect: {
+          id: campaign.id,
+        },
+      },
+      manager: {
+        connect: {
+          id: manager.id,
+        },
+      },
+    },
+    include: {
+      campaign: {
+        include: {
+          wrap: true,
+        },
+      },
+    },
+  });
 
-//   const totalDriverMoney =
-//     parseFloat(verifyCampaign.campaign.minimumKmDrive) *
-//     parseFloat(verifyCampaign.campaign.locationPricePerKm) *
-//     parseFloat(verifyCampaign.campaign.quantityDriver) *
-//     parseFloat(verifyCampaign.campaign.duration);
+  const isBothSide = verifyCampaign.campaign.wrap.positionWrap === 'BOTH_SIDE';
+  const extraWrapMoney = isBothSide ? 400000 : 200000;
+  const priceWrap = parseFloat(verifyCampaign.campaign.wrapPrice);
+  const numDriver = parseInt(verifyCampaign.campaign.quantityDriver);
+  const time = parseInt(verifyCampaign.campaign.duration) / 30 - 1;
+  const totalWrapMoney = (priceWrap + time * extraWrapMoney) * numDriver;
 
-//   const totalMoney = totalDriverMoney + totalWrapMoney;
-//   const totalDeposit = totalMoney * 0.2;
-//   const totalSystemMoney = totalDriverMoney * 0.1;
+  const totalDriverMoney =
+    parseFloat(verifyCampaign.campaign.minimumKmDrive) *
+    parseFloat(verifyCampaign.campaign.locationPricePerKm) *
+    parseFloat(verifyCampaign.campaign.quantityDriver) *
+    parseFloat(verifyCampaign.campaign.duration);
 
-//   await prisma.contractCampaign.create({
-//     data: {
-//       contractName: 'Contract ' + verifyCampaign.campaignId,
-//       campaign: {
-//         connect: {
-//           id: verifyCampaign.campaignId,
-//         },
-//       },
-//       totalDriverMoney: totalDriverMoney.toString(),
-//       totalWrapMoney: totalWrapMoney.toString(),
-//       totalSystemMoney: totalSystemMoney.toString(),
-//       isAccept: false,
-//     },
-//   });
-// };
+  const totalMoney = totalDriverMoney + totalWrapMoney;
+  const totalDeposit = totalMoney * 0.2;
+  const totalSystemMoney = totalDriverMoney * 0.1;
 
-// export const campaignPayment = async () => {};
-
-// export const campaignWrapping = async () => {};
-
-// export const campaignFinish = async () => {};
+  await prisma.contractCampaign.create({
+    data: {
+      contractName: 'Contract ' + verifyCampaign.campaignId,
+      campaign: {
+        connect: {
+          id: verifyCampaign.campaignId,
+        },
+      },
+      totalDriverMoney: totalDriverMoney.toString(),
+      totalWrapMoney: totalWrapMoney.toString(),
+      totalSystemMoney: totalSystemMoney.toString(),
+      isAccept: true,
+    },
+  });
+  await prisma.paymentDebit.createMany({
+    data: [
+      {
+        campaignId: verifyCampaign.campaignId,
+        type: 'PREPAY',
+        createDate: moment(
+          verifyCampaign.campaign.endRegisterDate,
+          'MM/DD/YYYY',
+        )
+          .add(1, 'days')
+          .toDate()
+          .toLocaleDateString('vn-VN'),
+        expiredDate: moment(
+          verifyCampaign.campaign.endRegisterDate,
+          'MM/DD/YYYY',
+        )
+          .add(5, 'days')
+          .toDate()
+          .toLocaleDateString('vn-VN'),
+        price: totalDeposit.toString(),
+        isValid: true,
+      },
+      {
+        campaignId: verifyCampaign.campaignId,
+        type: 'POSTPAID',
+        createDate: moment(
+          verifyCampaign.campaign.startRunningDate,
+          'MM/DD/YYYY',
+        )
+          .add(Number(verifyCampaign.campaign.duration) + 1, 'days')
+          .toDate()
+          .toLocaleDateString('vn-VN'),
+        expiredDate: moment(
+          verifyCampaign.campaign.startRunningDate,
+          'MM/DD/YYYY',
+        )
+          .add(Number(verifyCampaign.campaign.duration) + 5, 'days')
+          .toDate()
+          .toLocaleDateString('vn-VN'),
+        isValid: false,
+      },
+    ],
+  });
+};

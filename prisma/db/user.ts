@@ -92,7 +92,7 @@ export const users = async (): Promise<any[]> => {
       role: Role.DRIVER,
       password,
       status: 'VERIFIED',
-      phoneNumber: `+84${randomPhone + i}`,
+      phoneNumber: `+84${910000000 + i}`,
       driver: {
         create: {
           imageCarBack: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
@@ -111,7 +111,7 @@ export const users = async (): Promise<any[]> => {
   for (let i = 0; i < FAKE_ADDRESS.length; i++) {
     reporter.push({
       email: `reporter${i + 1}@gmail.com`,
-      phoneNumber: i >= 9 ? `+8400000${i + 999}` : `+84000000${i + 999}`,
+      phoneNumber: `+84${920000000 + i}`,
       password,
       role: Role.REPORTER,
       fullname: `Reporter ${i + 1}`,
