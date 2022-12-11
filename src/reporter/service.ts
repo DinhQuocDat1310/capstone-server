@@ -1,12 +1,15 @@
 import { CreateReportDriverCampaignDTO } from './dto';
 import { UsersService } from 'src/user/service';
-import { Injectable } from '@nestjs/common';
+import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
 import { BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/service';
 import * as moment from 'moment';
+import { Cache } from 'cache-manager';
+import { GLOBAL_DATE } from 'src/constants/cache-code';
 @Injectable()
 export class ReporterService {
   constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly prisma: PrismaService,
     private readonly usersService: UsersService,
   ) {}
@@ -89,6 +92,7 @@ export class ReporterService {
   }
 
   async getDriverDetailByCarId(carId: string, userId: string) {
+    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
     const checkCarIdExist = await this.prisma.driver.findMany({
       where: {
         idCar: carId,
@@ -159,7 +163,10 @@ export class ReporterService {
         dataDriver.reporterDriverCampaign[0].createDate,
         'MM/DD/YYYY',
       );
-      const differDateCheck = moment().diff(dateCreateCheck, 'days');
+      const differDateCheck = moment(globalDate, 'MM/YY/DDDD').diff(
+        dateCreateCheck,
+        'days',
+      );
       if (Math.abs(differDateCheck) !== 0) {
         resultCheck = dataDriver.reporterDriverCampaign[0].isChecked === false;
       } else {
@@ -182,6 +189,7 @@ export class ReporterService {
     dto: CreateReportDriverCampaignDTO,
     userId: string,
   ) {
+    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
     const reporter = await this.prisma.reporter.findFirst({
       where: {
         userId,
@@ -243,7 +251,10 @@ export class ReporterService {
         dataDriverReport[0].createDate,
         'MM/DD/YYYY',
       );
-      const differDateCheck = moment().diff(dateCreateCheck, 'days');
+      const differDateCheck = moment(globalDate, 'MM/YY/DDDD').diff(
+        dateCreateCheck,
+        'days',
+      );
       if (
         Math.abs(differDateCheck) === 0 &&
         dataDriverReport[0].isChecked !== null
@@ -271,7 +282,9 @@ export class ReporterService {
           isChecked: true,
           driverJoinCampaignId: dto.driverJoinCampaignId,
           reporterId: reporter.id,
-          createDate: moment().toDate().toLocaleDateString('vn-VN'),
+          createDate: moment(globalDate, 'MM/YY/DDDD')
+            .toDate()
+            .toLocaleDateString('vn-VN'),
         },
       });
     } else {
@@ -284,7 +297,9 @@ export class ReporterService {
           isChecked: true,
           driverJoinCampaignId: dto.driverJoinCampaignId,
           reporterId: reporter.id,
-          createDate: moment().toDate().toLocaleDateString('vn-VN'),
+          createDate: moment(globalDate, 'MM/YY/DDDD')
+            .toDate()
+            .toLocaleDateString('vn-VN'),
         },
       });
       await this.prisma.driverJoinCampaign.update({
