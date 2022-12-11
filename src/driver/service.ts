@@ -421,6 +421,11 @@ export class DriversService {
         .add(Number(campaignApprove.campaign.duration) + 1, 'days')
         .toDate()
         .toLocaleDateString('vn-VN');
+
+      campaignApprove.campaign['isWaiting'] =
+        moment(globalDate, 'MM/DD/YYYY') <
+        moment(campaignApprove.campaign.startRunningDate, 'DD/MM/YYYY');
+
       delete campaignApprove.campaign.driverJoinCampaign;
       return campaigns;
     }

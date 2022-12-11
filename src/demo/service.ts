@@ -3,6 +3,7 @@ import {
   CACHE_MANAGER,
   Inject,
   Injectable,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/service';
 import { Cache } from 'cache-manager';
@@ -15,6 +16,7 @@ import { TasksService } from 'src/task/service';
 
 @Injectable()
 export class DemoService {
+  private readonly logger = new Logger(DemoService.name);
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly prisma: PrismaService,
@@ -88,10 +90,11 @@ export class DemoService {
 
   async setGlobalDate(newDate: string) {
     const globalDate = await this.cacheManager.get(GLOBAL_DATE);
-    if (moment(globalDate, 'MM/DD/YYYY') > moment(newDate, 'MM/DD/YYYY'))
-      throw new BadRequestException(
-        'New date must be greater than current global date',
-      );
+    if (moment(globalDate, 'MM/DD/YYYY') > moment(newDate, 'MM/DD/YYYY')) {
+      this.logger.error('New date must be greater than current global date');
+      return;
+    }
+
     const newGlobalDate = moment(newDate, 'MM/DD/YYYY')
       .toDate()
       .toLocaleDateString('vn-VN');
