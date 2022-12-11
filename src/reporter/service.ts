@@ -146,6 +146,17 @@ export class ReporterService {
             createDate: true,
           },
         },
+        driverTrackingLocation: {
+          select: {
+            createDate: true,
+            tracking: {
+              select: {
+                timeSubmit: true,
+                totalMeterDriven: true,
+              },
+            },
+          },
+        },
       },
     });
     if (!dataDriver) {
@@ -156,6 +167,25 @@ export class ReporterService {
         moment(b.createDate, 'MM/DD/YYYY').valueOf() -
         moment(a.createDate, 'MM/DD/YYYY').valueOf(),
     );
+    dataDriver.driverTrackingLocation.sort(
+      (a, b) =>
+        moment(b.createDate, 'MM/DD/YYYY').valueOf() -
+        moment(a.createDate, 'MM/DD/YYYY').valueOf(),
+    );
+    let totalMeterDrive = 0;
+    if (
+      moment(
+        dataDriver.driverTrackingLocation[0]?.createDate,
+        'MM/DD/YYYY',
+      ).diff(moment(globalDate, 'MM/DD/YYYY')) !== 0
+    ) {
+      totalMeterDrive = 0;
+    } else {
+      dataDriver.driverTrackingLocation[0].tracking.forEach(
+        (track) => (totalMeterDrive += Number(track.totalMeterDriven)),
+      );
+    }
+
     if (
       moment(globalDate, 'MM/DD/YYYY') <
       moment(dataDriver.campaign.startRunningDate, 'MM/DD/YYYY')
@@ -184,9 +214,13 @@ export class ReporterService {
         dataDriver['reporterDriverCampaign'][0].isChecked = resultCheck;
       });
       checkedResult = dataDriver.reporterDriverCampaign[0].isChecked;
+      dataDriver['todayOdoMeter'] = totalMeterDrive;
       delete dataDriver.reporterDriverCampaign;
+      delete dataDriver.driverTrackingLocation;
     }
+    dataDriver['todayOdoMeter'] = totalMeterDrive;
     delete dataDriver.reporterDriverCampaign;
+    delete dataDriver.driverTrackingLocation;
     return {
       ...dataDriver,
       checkedResult,
