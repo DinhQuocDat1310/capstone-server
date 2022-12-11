@@ -872,7 +872,7 @@ export class CampaignService {
         (c) =>
           moment(globalDate, 'MM/DD/YYYY') >=
           moment(c.startRunningDate, 'MM/DD/YYYY').add(
-            Number(c.duration) - 1,
+            Number(c.duration),
             'days',
           ),
       );
@@ -881,7 +881,7 @@ export class CampaignService {
       (c) =>
         moment() >=
         moment(c.startRunningDate, 'MM/DD/YYYY').add(
-          Number(c.duration) - 1,
+          Number(c.duration),
           'days',
         ),
     );
@@ -1021,8 +1021,7 @@ export class CampaignService {
     ) {
       return [];
     }
-    const totalKmPerDay =
-      Number(campaign.totalKm) / (Number(campaign.duration) - 1);
+    const totalKmPerDay = Number(campaign.totalKm) / Number(campaign.duration);
     const totalLength = Math.abs(
       moment(globalDate, 'MM/DD/YYYY').diff(
         moment(campaign.startRunningDate, 'MM/DD/YYYY'),

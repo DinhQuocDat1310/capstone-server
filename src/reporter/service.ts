@@ -340,7 +340,7 @@ export class ReporterService {
       if (
         moment(globalDate, 'MM/DD/YYYY') ===
         moment(campaignDriverJoin.campaign.startRunningDate, 'MM/DD/YYYY').add(
-          Number(campaignDriverJoin.campaign.duration) - 1,
+          Number(campaignDriverJoin.campaign.duration),
           'days',
         )
       ) {
