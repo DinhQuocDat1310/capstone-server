@@ -171,7 +171,7 @@ export class ReporterService {
         dataDriver.reporterDriverCampaign[0].createDate,
         'MM/DD/YYYY',
       );
-      const differDateCheck = moment(globalDate, 'MM/YY/DDDD').diff(
+      const differDateCheck = moment(globalDate, 'MM/DD/YYYY').diff(
         dateCreateCheck,
         'days',
       );
@@ -259,7 +259,7 @@ export class ReporterService {
         dataDriverReport[0].createDate,
         'MM/DD/YYYY',
       );
-      const differDateCheck = moment(globalDate, 'MM/YY/DDDD').diff(
+      const differDateCheck = moment(globalDate, 'MM/DD/YYYY').diff(
         dateCreateCheck,
         'days',
       );
@@ -290,7 +290,7 @@ export class ReporterService {
           isChecked: true,
           driverJoinCampaignId: dto.driverJoinCampaignId,
           reporterId: reporter.id,
-          createDate: moment(globalDate, 'MM/YY/DDDD')
+          createDate: moment(globalDate, 'MM/DD/YYYY')
             .toDate()
             .toLocaleDateString('vn-VN'),
         },
@@ -305,7 +305,7 @@ export class ReporterService {
           isChecked: true,
           driverJoinCampaignId: dto.driverJoinCampaignId,
           reporterId: reporter.id,
-          createDate: moment(globalDate, 'MM/YY/DDDD')
+          createDate: moment(globalDate, 'MM/DD/YYYY')
             .toDate()
             .toLocaleDateString('vn-VN'),
         },
