@@ -88,6 +88,14 @@ export class DemoService {
     return date;
   }
 
+  async resetGlobalDate() {
+    const today = moment().toDate().toLocaleDateString('vn-VN');
+    await this.cacheManager.set(GLOBAL_DATE, today, {
+      ttl: EXPIRED_GLOBAL_DATE_ONE_DAY,
+    });
+    return today;
+  }
+
   async setGlobalDate(newDate: string) {
     const globalDate = await this.cacheManager.get(GLOBAL_DATE);
     if (moment(globalDate, 'MM/DD/YYYY') > moment(newDate, 'MM/DD/YYYY')) {

@@ -35,6 +35,16 @@ export class DemoController {
     return await this.demoService.getGlobalDate();
   }
 
+  @ApiOperation({ summary: 'Reset global date' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiCreatedResponse({ description: 'Created' })
+  @Get('/resetGlobalDate')
+  async resetGlobalDate() {
+    return await this.demoService.resetGlobalDate();
+  }
+
   @ApiBody({ type: globalDateDTO })
   @ApiOperation({ summary: 'Get global date' })
   @ApiForbiddenResponse({ description: 'Forbidden' })

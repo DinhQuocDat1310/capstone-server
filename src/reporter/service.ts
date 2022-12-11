@@ -6,14 +6,15 @@ import { PrismaService } from 'src/prisma/service';
 import * as moment from 'moment';
 import { Cache } from 'cache-manager';
 import { GLOBAL_DATE } from 'src/constants/cache-code';
-import { CampaignService } from 'src/campaign/service';
+import { TasksService } from 'src/task/service';
+
 @Injectable()
 export class ReporterService {
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly prisma: PrismaService,
     private readonly usersService: UsersService,
-    private readonly campaignsService: CampaignService,
+    private readonly tasksService: TasksService,
   ) {}
   async getListReporter() {
     const listReporters = await this.usersService.getListReporters();
@@ -356,9 +357,12 @@ export class ReporterService {
             (driver) => driver.status === 'APPROVE',
           ).length
         ) {
-          await this.campaignsService.updateStatusCampaign(
-            campaignDriverJoin.campaign.id,
-            'FINISH',
+          const newGlobalDate = moment(globalDate, 'MM/DD/YYYY')
+            .toDate()
+            .toLocaleDateString('vn-VN');
+
+          await this.tasksService.handleCompleteRunningCampaignPhase(
+            newGlobalDate,
           );
         }
       }

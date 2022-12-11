@@ -156,14 +156,14 @@ export const campaignRunning = async () => {
   const extraWrapMoney = isBothSide ? 400000 : 200000;
   const priceWrap = parseFloat(verifyCampaign.campaign.wrapPrice);
   const numDriver = parseInt(verifyCampaign.campaign.quantityDriver);
-  const time = parseInt(verifyCampaign.campaign.duration) / 30 - 1;
+  const time = (parseInt(verifyCampaign.campaign.duration) - 1) / 30 - 1;
   const totalWrapMoney = (priceWrap + time * extraWrapMoney) * numDriver;
 
   const totalDriverMoney =
     parseFloat(verifyCampaign.campaign.minimumKmDrive) *
     parseFloat(verifyCampaign.campaign.locationPricePerKm) *
     parseFloat(verifyCampaign.campaign.quantityDriver) *
-    parseFloat(verifyCampaign.campaign.duration);
+    (parseFloat(verifyCampaign.campaign.duration) - 1);
 
   const totalMoney = totalDriverMoney + totalWrapMoney;
   const totalDeposit = totalMoney * 0.2;

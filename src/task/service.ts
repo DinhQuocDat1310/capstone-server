@@ -141,10 +141,10 @@ export class TasksService {
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_11PM)
-  async handleCompleteRunningCampaignPhase() {
+  async handleCompleteRunningCampaignPhase(globalDate?: string) {
     try {
       const campaigns =
-        await this.campaignsService.getAllCampaignRunningIsExpired();
+        await this.campaignsService.getAllCampaignRunningIsExpired(globalDate);
       if (campaigns.length === 0) {
         this.logger.debug('No campaigns is end running phase today');
         return;

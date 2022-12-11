@@ -780,46 +780,43 @@ export class CampaignService {
       throw new BadRequestException('Campaign ID is not exist');
   }
 
-  async getAllCampaignRegisterIsExpired(globalDate: string) {
+  async getAllCampaignRegisterIsExpired(globalDate?: string) {
     const campaigns = await this.prisma.campaign.findMany({
       where: {
         statusCampaign: 'OPEN',
       },
     });
-    if (globalDate)
+    if (globalDate) {
       return campaigns.filter(
         (c) =>
           moment(globalDate, 'MM/DD/YYYY') >=
           moment(c.endRegisterDate, 'MM/DD/YYYY'),
       );
-
+    }
     return campaigns.filter(
-      (c) =>
-        moment(globalDate, 'MM/DD/YYYY') >=
-        moment(c.endRegisterDate, 'MM/DD/YYYY'),
+      (c) => moment() >= moment(c.endRegisterDate, 'MM/DD/YYYY'),
     );
   }
 
-  async getAllCampaignWrapIsExpired(globalDate: string) {
+  async getAllCampaignWrapIsExpired(globalDate?: string) {
     const campaigns = await this.prisma.campaign.findMany({
       where: {
         statusCampaign: 'WRAPPING',
       },
     });
-    if (globalDate)
+    if (globalDate) {
       return campaigns.filter(
         (c) =>
           moment(globalDate, 'MM/DD/YYYY') >=
           moment(c.endWrapDate, 'MM/DD/YYYY'),
       );
-
+    }
     return campaigns.filter(
-      (c) =>
-        moment(globalDate, 'MM/DD/YYYY') >= moment(c.endWrapDate, 'MM/DD/YYYY'),
+      (c) => moment() >= moment(c.endWrapDate, 'MM/DD/YYYY'),
     );
   }
 
-  async getAllCampaignPaymentIsExpired(isPrePay: boolean, globalDate: string) {
+  async getAllCampaignPaymentIsExpired(isPrePay: boolean, globalDate?: string) {
     const statusCampaign = isPrePay ? 'PAYMENT' : 'FINISH';
     const campaigns = await this.prisma.campaign.findMany({
       where: {
@@ -830,7 +827,7 @@ export class CampaignService {
       },
     });
     const type = isPrePay ? 'PREPAY' : 'POSTPAID';
-    if (globalDate)
+    if (globalDate) {
       return campaigns.filter(
         (c) =>
           moment(globalDate, 'MM/DD/YYYY') >=
@@ -839,15 +836,18 @@ export class CampaignService {
             'MM/DD/YYYY',
           ),
       );
-
+    }
     return campaigns.filter(
       (c) =>
-        moment(globalDate, 'MM/DD/YYYY') >= moment(c.endWrapDate, 'MM/DD/YYYY'),
+        moment() >=
+        moment(
+          c.paymentDebit.find((pay) => pay.type === type).expiredDate,
+          'MM/DD/YYYY',
+        ),
     );
   }
 
-  async getAllCampaignRunningIsExpired() {
-    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
+  async getAllCampaignRunningIsExpired(globalDate?: string) {
     const campaigns = await this.prisma.campaign.findMany({
       where: {
         statusCampaign: 'RUNNING',
@@ -867,11 +867,21 @@ export class CampaignService {
         paymentDebit: true,
       },
     });
+    if (globalDate) {
+      return campaigns.filter(
+        (c) =>
+          moment(globalDate, 'MM/DD/YYYY') >=
+          moment(c.startRunningDate, 'MM/DD/YYYY').add(
+            Number(c.duration) - 1,
+            'days',
+          ),
+      );
+    }
     return campaigns.filter(
       (c) =>
-        moment(globalDate, 'MM/DD/YYYY') >=
+        moment() >=
         moment(c.startRunningDate, 'MM/DD/YYYY').add(
-          Number(c.duration),
+          Number(c.duration) - 1,
           'days',
         ),
     );
@@ -1011,7 +1021,8 @@ export class CampaignService {
     ) {
       return [];
     }
-    const totalKmPerDay = Number(campaign.totalKm) / Number(campaign.duration);
+    const totalKmPerDay =
+      Number(campaign.totalKm) / (Number(campaign.duration) - 1);
     const totalLength = Math.abs(
       moment(globalDate, 'MM/DD/YYYY').diff(
         moment(campaign.startRunningDate, 'MM/DD/YYYY'),
