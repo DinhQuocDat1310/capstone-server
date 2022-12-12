@@ -380,17 +380,17 @@ export class ReporterService {
         'days',
       ) === 0
     ) {
-      const reportAll = await this.prisma.reporterDriverCampaign.findMany({});
-      const reports = reportAll.filter((report) => {
-        this.logger.debug(report.driverJoinCampaignId);
-        this.logger.debug(report.createDate);
-        return (
-          moment(globalDate, 'MM/DD/YYYY').diff(
-            moment(report.createDate, 'MM/DD/YYYY'),
-            'days',
-          ) === 0
-        );
+      const reports = await this.prisma.reporterDriverCampaign.findMany({
+        where: {
+          driverJoinCampaign: {
+            campaignId: campaignDriverJoin.campaignId,
+          },
+          createDate: moment(globalDate, 'MM/DD/YYYY')
+            .toDate()
+            .toLocaleDateString('vn-VN'),
+        },
       });
+
       this.logger.debug(reports.length);
       if (
         reports.length ===
