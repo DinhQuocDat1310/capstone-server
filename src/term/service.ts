@@ -1,15 +1,15 @@
-import { PolicyDto } from './dto';
+import { TermDto } from './dto';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/service';
 
 @Injectable()
-export class PolicyService {
+export class TermService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createPolicy(dto: PolicyDto) {
+  async createTerm(dto: TermDto) {
     await this.prisma.policiesTerm.create({
       data: {
-        type: 'POLICY',
+        type: 'TERM',
         question: dto.question,
         answer: dto.answer,
       },
@@ -17,7 +17,11 @@ export class PolicyService {
     return `Created`;
   }
 
-  async viewListPolicyUser() {
+  async viewListTermAdmin() {
+    return await this.prisma.fAQs.findMany({});
+  }
+
+  async viewListTermUser() {
     return await this.prisma.policiesTerm.findMany({
       where: {
         status: 'ENABLE',
@@ -25,12 +29,8 @@ export class PolicyService {
     });
   }
 
-  async viewListPolicyAdmin() {
-    return await this.prisma.policiesTerm.findMany({});
-  }
-
-  async enablePolicy(id: string) {
-    await this.checkIdPolicy(id);
+  async enableTerm(id: string) {
+    await this.checkIdTerm(id);
     await this.prisma.policiesTerm.update({
       where: {
         id,
@@ -39,11 +39,11 @@ export class PolicyService {
         status: 'ENABLE',
       },
     });
-    return `Enable Policy`;
+    return `Enable Term`;
   }
 
-  async disablePolicy(id: string) {
-    await this.checkIdPolicy(id);
+  async disableTerm(id: string) {
+    await this.checkIdTerm(id);
     await this.prisma.policiesTerm.update({
       where: {
         id,
@@ -52,13 +52,13 @@ export class PolicyService {
         status: 'DISABLE',
       },
     });
-    return `Disable Policy`;
+    return `Disable Term`;
   }
 
-  async checkIdPolicy(id: string) {
-    const checkIdPolicy = await this.prisma.policiesTerm.findFirst({
+  async checkIdTerm(id: string) {
+    const checkIdTerm = await this.prisma.policiesTerm.findFirst({
       where: { id },
     });
-    if (!checkIdPolicy) throw new BadRequestException('Not found policyID');
+    if (!checkIdTerm) throw new BadRequestException('Not found termId');
   }
 }

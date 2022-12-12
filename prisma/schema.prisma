@@ -314,9 +314,15 @@ model FAQs {
   status   Status @default(ENABLE)
 }
 
-model Policies {
-  id       String @id @default(uuid())
+model PoliciesTerm {
+  id       String         @id @default(uuid())
+  type     TypePolicyTerm
   question String
   answer   String
-  status   Status @default(ENABLE)
+  status   Status         @default(ENABLE)
+}
+
+enum TypePolicyTerm {
+  POLICY
+  TERM
 }

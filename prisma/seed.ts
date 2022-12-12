@@ -1,6 +1,6 @@
 import { wrap } from './db/wrap';
 import { users } from './db/user';
-import { faq, policies } from './db/policy';
+import { faq, policies, terms } from './db/policy';
 
 import { campaignOpen, campaignRunning } from './db/campaign';
 
@@ -32,13 +32,25 @@ async function main() {
     }
 
     for (let i = 0; i < policies.length; i++) {
-      await prisma.policies.create({
+      await prisma.policiesTerm.create({
         data: {
+          type: 'POLICY',
           answer: policies[i].answer,
           question: policies[i].question,
         },
       });
     }
+
+    for (let i = 0; i < terms.length; i++) {
+      await prisma.policiesTerm.create({
+        data: {
+          type: 'TERM',
+          answer: policies[i].answer,
+          question: policies[i].question,
+        },
+      });
+    }
+
     for (let i = 0; i < faq.length; i++) {
       await prisma.fAQs.create({
         data: {

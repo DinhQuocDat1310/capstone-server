@@ -23,6 +23,7 @@ import { ConfigJsonModule } from './config-json/module';
 import { PaymentModule } from './payment/module';
 import { ReporterModule } from './reporter/module';
 import { DemoModule } from './demo/module';
+import { TermModule } from './term/module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { DemoModule } from './demo/module';
     PaymentModule,
     ConfigJsonModule,
     ReporterModule,
+    TermModule,
   ],
   providers: [AppConfigService, UsersService, PrismaService],
   controllers: [],
