@@ -367,6 +367,24 @@ export class CampaignService {
           moment(brandOwnCampaign.startRunningDate, 'MM/DD/YYYY'),
           'days',
         );
+      case 'FINISH':
+        isWaiting =
+          moment(globalDate, 'MM/DD/YYYY') <
+          moment(
+            brandOwnCampaign.paymentDebit.find(
+              (payment) => payment.type === 'POSTPAID',
+            ).createDate,
+            'MM/DD/YYYY',
+          );
+        days = moment(globalDate, 'MM/DD/YYYY').diff(
+          moment(
+            brandOwnCampaign.paymentDebit.find(
+              (payment) => payment.type === 'POSTPAID',
+            ).createDate,
+            'MM/DD/YYYY',
+          ),
+          'days',
+        );
         break;
     }
     if (isWaiting) {
