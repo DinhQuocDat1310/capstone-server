@@ -47,8 +47,8 @@ async function main() {
         },
       });
     }
-    await campaignRunning();
-    await campaignOpen();
+    await campaignRunning(prisma);
+    await campaignOpen(prisma);
   } catch (error) {
     logger.error(error);
     process.exit(1);

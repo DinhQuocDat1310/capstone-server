@@ -4,8 +4,7 @@ import { FAKE_IMAGE_CAR, FAKE_LOGO } from './../../src/constants/fake-data';
 import * as moment from 'moment';
 import { VerifyCampaignStatus } from '@prisma/client';
 
-export const campaignRunning = async () => {
-  const prisma = new PrismaService();
+export const campaignRunning = async (prisma: PrismaService) => {
   const brand = await prisma.brand.findFirst({
     where: {
       brandName: 'Brand 1',
@@ -278,8 +277,7 @@ export const campaignRunning = async () => {
   }
 };
 
-export const campaignOpen = async () => {
-  const prisma = new PrismaService();
+export const campaignOpen = async (prisma: PrismaService) => {
   const manager = await prisma.manager.findFirst({
     where: {
       user: {

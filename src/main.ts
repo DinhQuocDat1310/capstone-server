@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { AppConfigService } from './config/appConfigService';
+import { PrismaService } from './prisma/service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -21,6 +22,8 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({}));
   app.enableCors();
   const appConfigService = app.get<AppConfigService>(AppConfigService);
+  const prismaService = app.get(PrismaService);
+  await prismaService.enableShutdownHooks(app);
   await app.listen(appConfigService.port);
 }
 bootstrap();
