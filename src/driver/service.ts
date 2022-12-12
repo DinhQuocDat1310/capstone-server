@@ -149,18 +149,21 @@ export class DriversService {
           'This Campaign is full now, Please join the other campaigns',
         );
 
-      const latestCampaign = await this.prisma.driverJoinCampaign.findFirst({
+      const campaigns = await this.prisma.driverJoinCampaign.findMany({
         where: {
           driverId: driver.id,
           status: StatusDriverJoin.APPROVE,
-        },
-        orderBy: {
-          createDate: 'desc',
         },
         include: {
           campaign: true,
         },
       });
+      campaigns.sort(
+        (a, b) =>
+          moment(b.createDate, 'MM/DD/YYYY').valueOf() -
+          moment(a.createDate, 'MM/DD/YYYY').valueOf(),
+      );
+      const latestCampaign = campaigns[0];
       if (latestCampaign) {
         if (
           ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING'].includes(
