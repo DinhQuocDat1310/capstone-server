@@ -1022,8 +1022,21 @@ export class CampaignService {
       return [];
     }
     const totalKmPerDay = Number(campaign.totalKm) / Number(campaign.duration);
+
+    const momentGlobal =
+      moment(globalDate, 'MM/DD/YYYY') >
+      moment(campaign.startRunningDate, 'MM/DD/YYYY').add(
+        Number(campaign.duration) - 1,
+        'days',
+      )
+        ? moment(campaign.startRunningDate, 'MM/DD/YYYY').add(
+            Number(campaign.duration) - 1,
+            'days',
+          )
+        : moment(globalDate, 'MM/DD/YYYY');
+
     const totalLength = Math.abs(
-      moment(globalDate, 'MM/DD/YYYY').diff(
+      momentGlobal.diff(
         moment(campaign.startRunningDate, 'MM/DD/YYYY'),
         'days',
       ),

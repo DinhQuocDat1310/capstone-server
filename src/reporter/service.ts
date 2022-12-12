@@ -387,6 +387,9 @@ export class ReporterService {
             .toLocaleDateString('vn-VN'),
         },
       });
+      this.logger.debug(
+        moment(globalDate, 'MM/DD/YYYY').toDate().toLocaleDateString('vn-VN'),
+      );
       this.logger.debug(reports.length);
       if (
         reports.length ===
