@@ -319,7 +319,6 @@ export class ReporterService {
         'Odo image is not required. Please remove field Odo',
       );
     }
-    this.logger.debug('run');
     if (!requiredOdo.isRequiredOdo) {
       await this.prisma.reporterDriverCampaign.create({
         data: {
@@ -391,7 +390,6 @@ export class ReporterService {
         },
       });
 
-      this.logger.debug(reports.length);
       if (
         reports.length ===
         campaignDriverJoin.campaign.driverJoinCampaign.filter(
