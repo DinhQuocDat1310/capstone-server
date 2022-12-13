@@ -151,6 +151,7 @@ export class TasksService {
       }
 
       for (let i = 0; i < campaigns.length; i++) {
+        console.log(campaigns[i].campaignName);
         const listDriverJoinCampaign = campaigns[i].driverJoinCampaign.filter(
           (driver) => driver.status === 'APPROVE',
         );
