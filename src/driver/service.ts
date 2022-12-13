@@ -598,7 +598,9 @@ export class DriversService {
         },
         status: 'FINISH',
         campaign: {
-          statusCampaign: 'CLOSED',
+          statusCampaign: {
+            in: ['FINISH', 'CLOSED'],
+          },
         },
       },
       select: {

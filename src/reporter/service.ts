@@ -373,7 +373,7 @@ export class ReporterService {
     if (
       moment(globalDate, 'MM/DD/YYYY').diff(
         moment(campaignDriverJoin.campaign.startRunningDate, 'MM/DD/YYYY').add(
-          Number(campaignDriverJoin.campaign.duration),
+          Number(campaignDriverJoin.campaign.duration) - 1,
           'days',
         ),
         'days',
@@ -389,6 +389,7 @@ export class ReporterService {
             .toLocaleDateString('vn-VN'),
         },
       });
+      this.logger.debug(reports.length);
 
       if (
         reports.length ===

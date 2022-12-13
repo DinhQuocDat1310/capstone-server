@@ -367,6 +367,7 @@ export class CampaignService {
           moment(brandOwnCampaign.startRunningDate, 'MM/DD/YYYY'),
           'days',
         );
+        break;
       case 'FINISH':
         isWaiting =
           moment(globalDate, 'MM/DD/YYYY') <
@@ -890,7 +891,7 @@ export class CampaignService {
         (c) =>
           moment(globalDate, 'MM/DD/YYYY') >=
           moment(c.startRunningDate, 'MM/DD/YYYY').add(
-            Number(c.duration),
+            Number(c.duration) - 1,
             'days',
           ),
       );
