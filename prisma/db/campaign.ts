@@ -209,14 +209,14 @@ export const campaignRunning = async (prisma: PrismaService) => {
           verifyCampaign.campaign.startRunningDate,
           'MM/DD/YYYY',
         )
-          .add(Number(verifyCampaign.campaign.duration) + 1, 'days')
+          .add(Number(verifyCampaign.campaign.duration), 'days')
           .toDate()
           .toLocaleDateString('vn-VN'),
         expiredDate: moment(
           verifyCampaign.campaign.startRunningDate,
           'MM/DD/YYYY',
         )
-          .add(Number(verifyCampaign.campaign.duration) + 6, 'days')
+          .add(Number(verifyCampaign.campaign.duration) + 4, 'days')
           .toDate()
           .toLocaleDateString('vn-VN'),
         isValid: true,
@@ -310,7 +310,7 @@ export const campaignOpen = async (prisma: PrismaService) => {
     duration: '2',
     totalKm: '4',
     quantityDriver: `2`,
-    description: 'Campaign is Open from seeding prisma',
+    description: 'Campaign is open from seeding prisma',
     minimumKmDrive: '1',
     poster: FAKE_LOGO[4],
   };
@@ -445,14 +445,14 @@ export const campaignOpen = async (prisma: PrismaService) => {
           verifyCampaign.campaign.startRunningDate,
           'MM/DD/YYYY',
         )
-          .add(Number(verifyCampaign.campaign.duration) + 1, 'days')
+          .add(Number(verifyCampaign.campaign.duration), 'days')
           .toDate()
           .toLocaleDateString('vn-VN'),
         expiredDate: moment(
           verifyCampaign.campaign.startRunningDate,
           'MM/DD/YYYY',
         )
-          .add(Number(verifyCampaign.campaign.duration) + 5, 'days')
+          .add(Number(verifyCampaign.campaign.duration) + 4, 'days')
           .toDate()
           .toLocaleDateString('vn-VN'),
         isValid: false,

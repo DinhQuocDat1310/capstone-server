@@ -78,7 +78,7 @@ export class ReporterService {
         resultCampaign[i].startRunningDate,
         'MM/DD/YYYY',
       )
-        .add(Number(resultCampaign[i].duration), 'days')
+        .add(Number(resultCampaign[i].duration) - 1, 'days')
         .toDate()
         .toLocaleDateString('vn-VN');
 

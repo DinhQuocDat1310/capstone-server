@@ -315,7 +315,7 @@ export class DriversService {
         campaigns[i].startRunningDate,
         'MM/DD/YYYY',
       )
-        .add(Number(campaigns[i].duration) + 1, 'days')
+        .add(Number(campaigns[i].duration) - 1, 'days')
         .toDate()
         .toLocaleDateString('vn-VN');
       campaigns[i]['isJoined'] = isJoined ? true : false;
@@ -421,7 +421,7 @@ export class DriversService {
         campaignApprove.campaign.startRunningDate,
         'MM/DD/YYYY',
       )
-        .add(Number(campaignApprove.campaign.duration) + 1, 'days')
+        .add(Number(campaignApprove.campaign.duration) - 1, 'days')
         .toDate()
         .toLocaleDateString('vn-VN');
 
@@ -444,7 +444,7 @@ export class DriversService {
         c.campaign.startRunningDate,
         'MM/DD/YYYY',
       )
-        .add(Number(c.campaign.duration) + 1, 'days')
+        .add(Number(c.campaign.duration) - 1, 'days')
         .toDate()
         .toLocaleDateString('vn-VN');
       delete c.campaign.driverJoinCampaign;
@@ -666,7 +666,7 @@ export class DriversService {
         driver.campaign.startRunningDate,
         'MM/DD/YYYY',
       )
-        .add(Number(driver.campaign.duration) + 1, 'days')
+        .add(Number(driver.campaign.duration) - 1, 'days')
         .toDate()
         .toLocaleDateString('vn-VN');
       const totalMoneyEarned =

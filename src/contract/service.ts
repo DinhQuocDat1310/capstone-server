@@ -190,7 +190,7 @@ export class ContractService {
               verifyCampaign.campaign.startRunningDate,
               'MM/DD/YYYY',
             )
-              .add(Number(verifyCampaign.campaign.duration) + 1, 'days')
+              .add(Number(verifyCampaign.campaign.duration), 'days')
               .toDate()
               .toLocaleDateString('vn-VN'),
             expiredDate: moment(
@@ -199,7 +199,8 @@ export class ContractService {
             )
               .add(
                 Number(verifyCampaign.campaign.duration) +
-                  parseInt(objDataConfig.gapPaymentDeposit),
+                  parseInt(objDataConfig.gapPaymentDeposit) -
+                  1,
                 'days',
               )
               .toDate()

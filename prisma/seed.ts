@@ -1,35 +1,61 @@
-import { wrap } from './db/wrap';
-import { users } from './db/user';
 import { faq, policies, terms } from './db/policy';
-
+import { users } from './db/user';
 import { campaignOpen, campaignRunning } from './db/campaign';
-
-import { PrismaService } from '../src/prisma/service';
 import { Logger } from '@nestjs/common';
-import { location } from './db/location';
+import { PositionWrap, Status } from '@prisma/client';
+import * as moment from 'moment';
+import { PrismaService } from '../src/prisma/service';
 
 async function main() {
   const prisma = new PrismaService();
   const logger = new Logger();
   const data = await users();
-  const locations = await location();
-  const wraps = await wrap();
+
   try {
     for (const dto of data) {
       await prisma.user.create({
         data: dto,
       });
     }
-    for (const dto of locations) {
-      await prisma.locationCampaignPerKm.create({
-        data: dto,
-      });
-    }
-    for (const dto of wraps) {
-      await prisma.wrap.create({
-        data: dto,
-      });
-    }
+    await prisma.wrap.createMany({
+      data: [
+        {
+          positionWrap: PositionWrap.LEFT_SIDE,
+          price: '300000',
+          status: Status.ENABLE,
+        },
+        {
+          positionWrap: PositionWrap.BOTH_SIDE,
+          price: '600000',
+          status: Status.ENABLE,
+        },
+        {
+          positionWrap: PositionWrap.RIGHT_SIDE,
+          price: '300000',
+          status: Status.ENABLE,
+        },
+      ],
+    });
+    await prisma.locationCampaignPerKm.createMany({
+      data: [
+        {
+          locationName: 'TP Hồ Chí Minh',
+          price: '15000',
+          status: Status.ENABLE,
+          addressPoint:
+            '37 Đ. Vạn Tượng, Phường 13, Quận 5, Thành phố Hồ Chí Minh, Vietnam',
+          createDate: moment().toDate().toLocaleDateString('vn-VN'),
+        },
+        {
+          locationName: 'Hà Nội',
+          price: '15000',
+          status: Status.ENABLE,
+          addressPoint:
+            '9 P. Trịnh Hoài Đức, Cát Linh, Đống Đa, Hà Nội, Vietnam',
+          createDate: moment().toDate().toLocaleDateString('vn-VN'),
+        },
+      ],
+    });
 
     for (let i = 0; i < policies.length; i++) {
       await prisma.policiesTerm.create({

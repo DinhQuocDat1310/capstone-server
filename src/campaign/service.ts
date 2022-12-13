@@ -428,7 +428,6 @@ export class CampaignService {
                 data: {
                   campaignName: dto.campaignName,
                   startRunningDate: moment(dto.startRunningDate, 'MM/DD/YYYY')
-                    .add(1, 'days')
                     .toDate()
                     .toLocaleDateString('vn-VN'),
                   totalKm: dto.totalKm,
@@ -900,7 +899,7 @@ export class CampaignService {
       (c) =>
         moment() >=
         moment(c.startRunningDate, 'MM/DD/YYYY').add(
-          Number(c.duration),
+          Number(c.duration) - 1,
           'days',
         ),
     );
