@@ -18,7 +18,7 @@ export class TermService {
   }
 
   async viewListTermAdmin() {
-    return await this.prisma.fAQs.findMany({});
+    return await this.prisma.policiesTerm.findMany({});
   }
 
   async viewListTermUser() {
