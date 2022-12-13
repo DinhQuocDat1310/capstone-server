@@ -18,12 +18,17 @@ export class TermService {
   }
 
   async viewListTermAdmin() {
-    return await this.prisma.policiesTerm.findMany({});
+    return await this.prisma.policiesTerm.findMany({
+      where: {
+        type: 'TERM',
+      },
+    });
   }
 
   async viewListTermUser() {
     return await this.prisma.policiesTerm.findMany({
       where: {
+        type: 'TERM',
         status: 'ENABLE',
       },
     });

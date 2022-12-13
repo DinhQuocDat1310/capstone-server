@@ -20,13 +20,18 @@ export class PolicyService {
   async viewListPolicyUser() {
     return await this.prisma.policiesTerm.findMany({
       where: {
+        type: 'POLICY',
         status: 'ENABLE',
       },
     });
   }
 
   async viewListPolicyAdmin() {
-    return await this.prisma.policiesTerm.findMany({});
+    return await this.prisma.policiesTerm.findMany({
+      where: {
+        type: 'POLICY',
+      },
+    });
   }
 
   async enablePolicy(id: string) {
