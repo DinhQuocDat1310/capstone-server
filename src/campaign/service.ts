@@ -891,7 +891,7 @@ export class CampaignService {
         (c) =>
           moment(globalDate, 'MM/DD/YYYY') >=
           moment(c.startRunningDate, 'MM/DD/YYYY').add(
-            Number(c.duration),
+            Number(c.duration) - 1,
             'days',
           ),
       );
