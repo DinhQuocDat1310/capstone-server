@@ -236,6 +236,20 @@ export class ReporterService {
     userId: string,
   ) {
     const globalDate = await this.cacheManager.get(GLOBAL_DATE);
+    const campaign = await this.prisma.driverJoinCampaign.findFirst({
+      where: {
+        id: dto.driverJoinCampaignId,
+        campaign: {
+          statusCampaign: 'RUNNING',
+        },
+      },
+    });
+
+    if (!campaign)
+      throw new BadRequestException(
+        'this campaign is finished already or not exist!',
+      );
+
     const reporter = await this.prisma.reporter.findFirst({
       where: {
         userId,

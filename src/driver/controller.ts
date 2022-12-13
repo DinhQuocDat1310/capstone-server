@@ -133,8 +133,14 @@ export class DriverController {
   @Status(UserStatus.VERIFIED)
   @Post('/location/tracking')
   @Roles(Role.DRIVER)
-  async saveCurrentLocationDriverByDate(@Body() dto: DriverTrackingLocation) {
-    return await this.driverService.saveCurrentLocationDriverByDate(dto);
+  async saveCurrentLocationDriverByDate(
+    @Request() req: RequestUser,
+    @Body() dto: DriverTrackingLocation,
+  ) {
+    return await this.driverService.saveCurrentLocationDriverByDate(
+      req.user.id,
+      dto,
+    );
   }
 
   @ApiOperation({

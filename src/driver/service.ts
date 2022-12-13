@@ -454,11 +454,15 @@ export class DriversService {
     });
   }
 
-  async saveCurrentLocationDriverByDate(dto: DriverTrackingLocation) {
+  async saveCurrentLocationDriverByDate(
+    driverId: string,
+    dto: DriverTrackingLocation,
+  ) {
     const globalDate = await this.cacheManager.get(GLOBAL_DATE);
     const driverJoinCampaign = await this.prisma.driverJoinCampaign.findFirst({
       where: {
         id: dto.idDriverJoinCampaign,
+        driverId,
         campaign: {
           statusCampaign: CampaignStatus.RUNNING,
         },
@@ -466,7 +470,7 @@ export class DriversService {
     });
     if (!driverJoinCampaign)
       throw new BadRequestException(
-        'This campaign id is already closed, please contact to admin to get more details.',
+        'This campaign id is already closed or you are not running this campaign, please contact to admin to get more details.',
       );
 
     const listDriverTrackingLocation =
