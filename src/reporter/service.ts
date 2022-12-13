@@ -389,6 +389,7 @@ export class ReporterService {
             .toLocaleDateString('vn-VN'),
         },
       });
+      this.logger.debug(reports.length);
 
       if (
         reports.length ===
