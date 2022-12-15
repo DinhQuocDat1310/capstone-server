@@ -122,6 +122,7 @@ export class ReporterService {
         driver: {
           idCar: carId,
         },
+        status: 'APPROVE',
         campaign: {
           locationCampaign: {
             locationName: getLocationReporter.user.address,
