@@ -455,14 +455,17 @@ export class DriversService {
   }
 
   async saveCurrentLocationDriverByDate(
-    driverId: string,
+    userId: string,
     dto: DriverTrackingLocation,
   ) {
     const globalDate = await this.cacheManager.get(GLOBAL_DATE);
+
     const driverJoinCampaign = await this.prisma.driverJoinCampaign.findFirst({
       where: {
         id: dto.idDriverJoinCampaign,
-        driverId,
+        driver: {
+          userId,
+        },
         campaign: {
           statusCampaign: CampaignStatus.RUNNING,
         },
