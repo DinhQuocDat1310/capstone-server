@@ -464,6 +464,8 @@ export class DriversService {
         userId,
       },
     });
+    this.logger.debug(dto.idDriverJoinCampaign);
+    this.logger.debug(driver.idCar);
 
     const driverJoinCampaignWithDriverId =
       await this.prisma.driverJoinCampaign.findFirst({
@@ -477,7 +479,7 @@ export class DriversService {
       });
     this.logger.debug(
       driverJoinCampaignWithDriverId?.campaignId,
-      driverJoinCampaignWithDriverId.status,
+      driverJoinCampaignWithDriverId?.status,
     );
     const driverJoinCampaign = await this.prisma.driverJoinCampaign.findFirst({
       where: {
