@@ -151,7 +151,8 @@ export class ContractService {
       const extraWrapMoney = isBothSide ? 400000 : 200000;
       const priceWrap = parseFloat(verifyCampaign.campaign.wrapPrice);
       const numDriver = parseInt(verifyCampaign.campaign.quantityDriver);
-      const time = parseInt(verifyCampaign.campaign.duration) / 30 - 1;
+      const time =
+        Math.ceil(parseInt(verifyCampaign.campaign.duration) / 30) - 1;
       const totalWrapMoney = (priceWrap + time * extraWrapMoney) * numDriver;
 
       const totalDriverMoney =
@@ -159,6 +160,7 @@ export class ContractService {
         parseFloat(verifyCampaign.campaign.locationPricePerKm) *
         parseFloat(verifyCampaign.campaign.quantityDriver) *
         parseFloat(verifyCampaign.campaign.duration);
+
       const totalSystemMoney = totalDriverMoney * 0.1;
 
       await this.prisma.contractCampaign.create({
