@@ -176,7 +176,7 @@ export class TasksService {
             campaigns[i].id,
             StatusDriverJoin.FINISH,
           );
-          return;
+          continue;
         }
         const prePay = campaigns[i].paymentDebit.find(
           (pay) => pay.type === 'PREPAY',
@@ -212,7 +212,7 @@ export class TasksService {
             StatusDriverJoin.FINISH,
           );
 
-          return;
+          continue;
         }
 
         const isBothSide = campaigns[i].wrap.positionWrap === 'BOTH_SIDE';

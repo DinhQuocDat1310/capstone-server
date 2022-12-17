@@ -459,28 +459,7 @@ export class DriversService {
     dto: DriverTrackingLocation,
   ) {
     const globalDate = await this.cacheManager.get(GLOBAL_DATE);
-    const driver = await this.prisma.driver.findFirst({
-      where: {
-        userId,
-      },
-    });
-    this.logger.debug(dto.idDriverJoinCampaign);
-    this.logger.debug(driver.idCar);
 
-    const driverJoinCampaignWithDriverId =
-      await this.prisma.driverJoinCampaign.findFirst({
-        where: {
-          id: dto.idDriverJoinCampaign,
-          driverId: driver.id,
-          campaign: {
-            statusCampaign: CampaignStatus.RUNNING,
-          },
-        },
-      });
-    this.logger.debug(
-      driverJoinCampaignWithDriverId?.campaignId,
-      driverJoinCampaignWithDriverId?.status,
-    );
     const driverJoinCampaign = await this.prisma.driverJoinCampaign.findFirst({
       where: {
         id: dto.idDriverJoinCampaign,
@@ -492,10 +471,6 @@ export class DriversService {
         },
       },
     });
-    this.logger.debug(
-      driverJoinCampaign?.campaignId,
-      driverJoinCampaign.status,
-    );
     if (!driverJoinCampaign)
       throw new BadRequestException(
         'This campaign id is already closed or you are not running this campaign, please contact to admin to get more details.',
