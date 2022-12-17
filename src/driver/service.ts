@@ -459,7 +459,7 @@ export class DriversService {
     dto: DriverTrackingLocation,
   ) {
     const globalDate = await this.cacheManager.get(GLOBAL_DATE);
-
+    this.logger.debug(globalDate);
     const driverJoinCampaign = await this.prisma.driverJoinCampaign.findFirst({
       where: {
         id: dto.idDriverJoinCampaign,
