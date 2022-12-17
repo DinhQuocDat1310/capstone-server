@@ -885,6 +885,7 @@ export class CampaignService {
         paymentDebit: true,
       },
     });
+    this.logger.debug(campaigns);
     if (globalDate) {
       return campaigns.filter(
         (c) =>
