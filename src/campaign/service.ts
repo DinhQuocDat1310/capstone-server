@@ -795,11 +795,11 @@ export class CampaignService {
       case 'PAYMENT':
       case 'WRAPPING':
       case 'RUNNING':
-      case 'FINISH':
         status = {
           in: ['APPROVE'],
         };
         break;
+      case 'FINISH':
       case 'CLOSED':
         status = {
           in: ['FINISH'],

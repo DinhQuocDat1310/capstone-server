@@ -340,6 +340,40 @@ export class DriversService {
     });
   }
 
+  async updateAllStatusDriverJoinToStatus(
+    campaignId: string,
+    status: StatusDriverJoin,
+    description?: string,
+  ) {
+    await this.prisma.driverJoinCampaign.updateMany({
+      where: {
+        campaignId,
+        status: 'JOIN',
+      },
+      data: {
+        description,
+        status,
+      },
+    });
+  }
+
+  async updateAllStatusDriverApproveToStatus(
+    campaignId: string,
+    status: StatusDriverJoin,
+    description?: string,
+  ) {
+    await this.prisma.driverJoinCampaign.updateMany({
+      where: {
+        campaignId,
+        status: 'APPROVE',
+      },
+      data: {
+        description,
+        status,
+      },
+    });
+  }
+
   async getCampaignJoiningAndJoined(userId: string) {
     const globalDate = await this.cacheManager.get(GLOBAL_DATE);
     const campaigns = await this.prisma.driverJoinCampaign.findMany({

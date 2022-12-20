@@ -40,7 +40,8 @@ export class TasksService {
           campaigns[i].id,
           CampaignStatus.PAYMENT,
         );
-        await this.driverService.updateAllStatusDriverJoinCampaign(
+
+        await this.driverService.updateAllStatusDriverJoinToStatus(
           campaigns[i].id,
           StatusDriverJoin.APPROVE,
         );
@@ -54,7 +55,7 @@ export class TasksService {
           CampaignStatus.CANCELED,
           messageDesc,
         );
-        await this.driverService.updateAllStatusDriverJoinCampaign(
+        await this.driverService.updateAllStatusDriverJoinToStatus(
           campaigns[i].id,
           StatusDriverJoin.CANCEL,
           messageDesc,
@@ -89,6 +90,10 @@ export class TasksService {
           CampaignStatus.CANCELED,
           `PAYMENT: This campaign is canceled because you dont purchase 20%!`,
         );
+        await this.driverService.updateAllStatusDriverApproveToStatus(
+          campaigns[i].id,
+          StatusDriverJoin.CANCEL,
+        );
       }
     }
   }
@@ -118,6 +123,10 @@ export class TasksService {
           campaigns[i].id,
           CampaignStatus.CANCELED,
           'FINISH: This campaign is canceled because you are not purchase 80%!!',
+        );
+        await this.driverService.updateAllStatusDriverApproveToStatus(
+          campaigns[i].id,
+          StatusDriverJoin.CANCEL,
         );
       }
     }
@@ -171,7 +180,7 @@ export class TasksService {
             CampaignStatus.CANCELED,
             'RUNNING: Your campaign will be completely free as we do not meet the minimum kilometers for the entire campaign, you will get your refund ASAP. We sincerely apologize, thank you for using the service.',
           );
-          await this.driverService.updateAllStatusDriverJoinCampaign(
+          await this.driverService.updateAllStatusDriverApproveToStatus(
             campaigns[i].id,
             StatusDriverJoin.CANCEL,
           );
@@ -218,7 +227,7 @@ export class TasksService {
               'Your campaign was finished. please check out 80%',
             );
 
-            await this.driverService.updateAllStatusDriverJoinCampaign(
+            await this.driverService.updateAllStatusDriverApproveToStatus(
               campaigns[i].id,
               StatusDriverJoin.FINISH,
             );
@@ -244,7 +253,7 @@ export class TasksService {
               CampaignStatus.FINISH,
             );
 
-            await this.driverService.updateAllStatusDriverJoinCampaign(
+            await this.driverService.updateAllStatusDriverApproveToStatus(
               campaigns[i].id,
               StatusDriverJoin.FINISH,
             );
