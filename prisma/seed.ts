@@ -73,8 +73,8 @@ async function main() {
       await prisma.policiesTerm.create({
         data: {
           type: 'TERM',
-          answer: policies[i].answer,
-          question: policies[i].question,
+          answer: terms[i].answer,
+          question: terms[i].question,
         },
       });
     }

@@ -12,7 +12,6 @@ import { DriversService } from 'src/driver/service';
 import { UsersService } from 'src/user/service';
 import { TaskController } from './controller';
 import { LocationService } from 'src/location/service';
-import { EmailsService } from 'src/email/service';
 
 @Module({
   controllers: [TaskController],
@@ -29,7 +28,6 @@ import { EmailsService } from 'src/email/service';
     DriversService,
     UsersService,
     LocationService,
-    EmailsService,
   ],
 })
 export class TasksModule {}

@@ -8,7 +8,6 @@ import { CampaignService } from 'src/campaign/service';
 import { CampaignStatus, StatusDriverJoin } from '@prisma/client';
 import { PaymentService } from 'src/payment/service';
 import { DriversService } from 'src/driver/service';
-import { EmailsService } from 'src/email/service';
 
 @Injectable()
 export class TasksService {
@@ -20,8 +19,6 @@ export class TasksService {
     private readonly campaignsService: CampaignService,
     private readonly paymentService: PaymentService,
     private readonly driverService: DriversService,
-    private readonly emailService: EmailsService,
-
     private readonly prisma: PrismaService,
   ) {}
 
@@ -34,7 +31,6 @@ export class TasksService {
       return;
     }
     for (let i = 0; i < campaigns.length; i++) {
-      let content = ``;
       const amountDriverJoin =
         await this.campaignsService.getAmountDriverJoinCampaignTask(
           campaigns[i].id,
@@ -51,24 +47,6 @@ export class TasksService {
         await this.paymentService.updatePaymentPrePayForCampaign(
           campaigns[i].id,
         );
-        content = `<p>Your campaign <b>${campaigns[i].campaignName}</b> is open for register successful. Your current campaign status is <b>PAYMENT</b>.</p></br>`;
-
-        const listDriverJoin = campaigns[i].driverJoinCampaign.filter(
-          (d) => d.status === 'APPROVE',
-        );
-        for (let j = 0; j < listDriverJoin.length; j++) {
-          await this.emailService.sendNotificationViaEmail(
-            listDriverJoin[j].driver.user.email,
-            'Status campaign approved',
-            `
-            <h1 style="color: green">Dear ${listDriverJoin[j].driver.user.fullname}</h1></br>
-            <p>Thanks for becoming Brandvertise's partner!</p>
-            <p>This campaign: ${campaigns[i].campaignName}  you joined is open successful!. Brandvertise will respond for you as soon as possible</p>
-            <p>Regards,</p>
-            <p style="color: green">Brandvertise</p>
-            `,
-          );
-        }
       } else {
         const messageDesc = 'OPEN: Lack of quantity driver';
         await this.campaignsService.updateStatusCampaign(
@@ -81,36 +59,7 @@ export class TasksService {
           StatusDriverJoin.CANCEL,
           messageDesc,
         );
-        content = `<p>Your campaign <b>${campaigns[i].campaignName}</b> is open for register failure. Your current campaign status is <b>CANCEL</b>.</p></br>`;
-        const listDriverJoin = campaigns[i].driverJoinCampaign.filter(
-          (d) => d.status === 'APPROVE',
-        );
-        for (let j = 0; j < listDriverJoin.length; j++) {
-          await this.emailService.sendNotificationViaEmail(
-            listDriverJoin[j].driver.user.email,
-            'Status campaign cancelled',
-            `
-            <h1 style="color: green">Dear ${listDriverJoin[j].driver.user.fullname}</h1></br>
-            <p>Thanks for becoming Brandvertise's partner!</p>
-            <p>This campaign: ${campaigns[i].campaignName} you joined is open failure!.</p> 
-            <p>Regards,</p>
-            <p style="color: green">Brandvertise</p>
-            `,
-          );
-        }
       }
-      const html = `
-        <h1 style="color: green">Dear ${campaigns[i].brand.brandName}</h1></br>
-        <p>Thanks for becoming Brandvertise's partner!</p>
-        ${content}
-        <p>Regards,</p>
-        <p style="color: green">Brandvertise</p>
-        `;
-      await this.emailService.sendNotificationViaEmail(
-        campaigns[i].brand.user.email,
-        'Your status campaign changed!',
-        html,
-      );
     }
   }
 
@@ -125,7 +74,6 @@ export class TasksService {
       this.logger.debug('No campaigns is end prepay Payment phase today');
       return;
     }
-    let content = '';
     for (let i = 0; i < campaigns.length; i++) {
       const payment = campaigns[i].paymentDebit.find(
         (pay) => pay.type === 'PREPAY',
@@ -135,59 +83,13 @@ export class TasksService {
           campaigns[i].id,
           CampaignStatus.WRAPPING,
         );
-        content = `<p>Your campaign <b>${campaigns[i].campaignName}</b> is checkout 20% successful. Your current campaign status is <b>WRAPPING</b>.</p></br>`;
-        const listDriverJoin = campaigns[i].driverJoinCampaign.filter(
-          (d) => d.status === 'APPROVE',
-        );
-        for (let j = 0; j < listDriverJoin.length; j++) {
-          await this.emailService.sendNotificationViaEmail(
-            listDriverJoin[j].driver.user.email,
-            'Wrapping Phase',
-            `
-            <h1 style="color: green">Dear ${listDriverJoin[j].driver.user.fullname}</h1></br>
-            <p>Thanks for becoming Brandvertise's partner!</p>
-            <p>Please arrange your time from ${campaigns[i].startWrapDate} to ${campaigns[i].endWrapDate} at location ${campaigns[i].locationCampaign.addressPoint} to do the car stickers. Your campaign will be started running at ${campaigns[i].startRunningDate}.</p>
-            <p>Regards,</p>
-            <p style="color: green">Brandvertise</p>
-            `,
-          );
-        }
       } else {
         await this.campaignsService.updateStatusCampaign(
           campaigns[i].id,
           CampaignStatus.CANCELED,
           `PAYMENT: This campaign is canceled because you dont purchase 20%!`,
         );
-        content = `<p>Your campaign <b>${campaigns[i].campaignName}</b> is checkout 20% failure. Your current campaign status is <b>CANCELED</b>.</p></br>`;
-        const listDriverJoin = campaigns[i].driverJoinCampaign.filter(
-          (d) => d.status === 'APPROVE',
-        );
-        for (let j = 0; j < listDriverJoin.length; j++) {
-          await this.emailService.sendNotificationViaEmail(
-            listDriverJoin[j].driver.user.email,
-            'Wrapping Phase',
-            `
-            <h1 style="color: green">Dear ${listDriverJoin[j].driver.user.fullname}</h1></br>
-            <p>Thanks for becoming Brandvertise's partner!</p>
-            <p>We sincerely apologize, the campaign you are participating in has been suspended. Sorry for any convenience</p>
-            <p>Regards,</p>
-            <p style="color: green">Brandvertise</p>
-            `,
-          );
-        }
       }
-      const html = `
-        <h1 style="color: green">Dear ${campaigns[i].brand.brandName}</h1></br>
-        <p>Thanks for becoming Brandvertise's partner!</p>
-        ${content}
-        <p>Regards,</p>
-        <p style="color: green">Brandvertise</p>
-        `;
-      await this.emailService.sendNotificationViaEmail(
-        campaigns[i].brand.user.email,
-        'Your status campaign changed!',
-        html,
-      );
     }
   }
 
@@ -273,35 +175,6 @@ export class TasksService {
             campaigns[i].id,
             StatusDriverJoin.FINISH,
           );
-
-          await this.emailService.sendNotificationViaEmail(
-            campaigns[i].brand.user.email,
-            'Your status campaign changed!',
-            `
-          <h1 style="color: green">Dear ${campaigns[i].brand.brandName}</h1></br>
-          <p>Thanks for becoming Brandvertise's partner!</p>
-          <p>Your campaign ${campaigns[i].campaignName} will be completely free as we do not meet the minimum kilometers for the entire campaign, you will get your refund ASAP. We sincerely apologize, thank you for using the service.</p>
-          <p>Regards,</p>
-          <p style="color: green">Brandvertise</p>
-          `,
-          );
-
-          const listDriverJoin = campaigns[i].driverJoinCampaign.filter(
-            (d) => d.status === 'APPROVE',
-          );
-          for (let j = 0; j < listDriverJoin.length; j++) {
-            await this.emailService.sendNotificationViaEmail(
-              listDriverJoin[j].driver.user.email,
-              'Status campaign approved',
-              `
-              <h1 style="color: green">Dear ${listDriverJoin[j].driver.user.fullname}</h1></br>
-              <p>Thanks for becoming Brandvertise's partner!</p>
-              <p>This campaign: ${campaigns[i].campaignName}  you joined is closed!. Brandvertise will respond for you as soon as possible</p>
-              <p>Regards,</p>
-              <p style="color: green">Brandvertise</p>
-              `,
-            );
-          }
           continue;
         }
         const prePay = campaigns[i].paymentDebit.find(
@@ -351,34 +224,6 @@ export class TasksService {
             StatusDriverJoin.FINISH,
           );
 
-          await this.emailService.sendNotificationViaEmail(
-            campaigns[i].brand.user.email,
-            'Your status campaign changed!',
-            `
-          <h1 style="color: green">Dear ${campaigns[i].brand.brandName}</h1></br>
-          <p>Thanks for becoming Brandvertise's partner!</p>
-          <p>Your campaign ${campaigns[i].campaignName} is finished running phase. Please visit brandvertise's website to to view campaign report as well as finish the campaign run</p>
-          <p>Regards,</p>
-          <p style="color: green">Brandvertise</p>
-          `,
-          );
-
-          const listDriverJoin = campaigns[i].driverJoinCampaign.filter(
-            (d) => d.status === 'APPROVE',
-          );
-          for (let j = 0; j < listDriverJoin.length; j++) {
-            await this.emailService.sendNotificationViaEmail(
-              listDriverJoin[j].driver.user.email,
-              'Status campaign approved',
-              `
-              <h1 style="color: green">Dear ${listDriverJoin[j].driver.user.fullname}</h1></br>
-              <p>Thanks for becoming Brandvertise's partner!</p>
-              <p>This campaign: ${campaigns[i].campaignName}  you joined is closed!. Brandvertise will respond for you as soon as possible</p>
-              <p>Regards,</p>
-              <p style="color: green">Brandvertise</p>
-              `,
-            );
-          }
           continue;
         }
 
@@ -408,35 +253,6 @@ export class TasksService {
           campaigns[i].id,
           StatusDriverJoin.FINISH,
         );
-
-        await this.emailService.sendNotificationViaEmail(
-          campaigns[i].brand.user.email,
-          'Your status campaign changed!',
-          `
-        <h1 style="color: green">Dear ${campaigns[i].brand.brandName}</h1></br>
-        <p>Thanks for becoming Brandvertise's partner!</p>
-        <p>Your campaign ${campaigns[i].campaignName} is finished running phase. Please visit brandvertise's website to to view campaign report as well as finish the campaign run</p>
-        <p>Regards,</p>
-        <p style="color: green">Brandvertise</p>
-        `,
-        );
-
-        const listDriverJoin = campaigns[i].driverJoinCampaign.filter(
-          (d) => d.status === 'APPROVE',
-        );
-        for (let j = 0; j < listDriverJoin.length; j++) {
-          await this.emailService.sendNotificationViaEmail(
-            listDriverJoin[j].driver.user.email,
-            'Status campaign approved',
-            `
-            <h1 style="color: green">Dear ${listDriverJoin[j].driver.user.fullname}</h1></br>
-            <p>Thanks for becoming Brandvertise's partner!</p>
-            <p>This campaign: ${campaigns[i].campaignName}  you joined is closed!. Brandvertise will respond for you as soon as possible</p>
-            <p>Regards,</p>
-            <p style="color: green">Brandvertise</p>
-            `,
-          );
-        }
       }
     } catch (error) {
       throw new Error(error);

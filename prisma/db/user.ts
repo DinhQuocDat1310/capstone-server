@@ -91,8 +91,8 @@ export const users = async (): Promise<any[]> => {
     address: 'TP Hồ Chí Minh',
     brand: {
       create: {
-        brandName: `Pepsi`,
-        logo: FAKE_LOGO[1],
+        brandName: 'Pepsi',
+        logo: 'https://www.designyourway.net/blog/wp-content/uploads/2018/07/maxresdefault-1.jpg',
         typeBusiness: FAKE_TYPE_BUSINESS[1],
         idLicenseBusiness: '123123123123',
         ownerLicenseBusiness: FAKE_OWNER_BUSINESS[1],
@@ -215,7 +215,7 @@ export const users = async (): Promise<any[]> => {
     reporter.push({
       email:
         FAKE_ADDRESS[i] === 'TP Hồ Chí Minh'
-          ? 'minhnqse140536@fpt.edu.vn'
+          ? 'minh@gmail.com'
           : `reporter${i + 1}@gmail.com`,
       phoneNumber: `+84${920000000 + i}`,
       password,

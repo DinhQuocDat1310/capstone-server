@@ -770,16 +770,51 @@ export class CampaignService {
           },
         ],
         statusCampaign: {
-          in: ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING', 'FINISH', 'CLOSED'],
+          in: [
+            'OPEN',
+            'PAYMENT',
+            'WRAPPING',
+            'RUNNING',
+            'FINISH',
+            'CLOSED',
+            'CANCELED',
+          ],
         },
       },
     });
     if (!isOwnCampaign)
       throw new BadRequestException('You are not the owner this campaign!');
 
+    let status = {};
+    switch (isOwnCampaign.statusCampaign) {
+      case 'OPEN':
+        status = {
+          in: ['APPROVE', 'JOIN'],
+        };
+        break;
+      case 'PAYMENT':
+      case 'WRAPPING':
+      case 'RUNNING':
+      case 'FINISH':
+        status = {
+          in: ['APPROVE'],
+        };
+        break;
+      case 'CLOSED':
+        status = {
+          in: ['FINISH'],
+        };
+        break;
+      case 'CANCELED':
+        status = {
+          in: ['CANCEL'],
+        };
+        break;
+    }
     const count = await this.prisma.driverJoinCampaign.count({
       where: {
         campaignId,
+        status,
       },
     });
     return {
@@ -980,7 +1015,15 @@ export class CampaignService {
           { verifyCampaign: { every: { manager: { userId } } } },
         ],
         statusCampaign: {
-          in: ['OPEN', 'PAYMENT', 'WRAPPING', 'FINISH', 'RUNNING', 'CLOSED'],
+          in: [
+            'OPEN',
+            'PAYMENT',
+            'WRAPPING',
+            'FINISH',
+            'RUNNING',
+            'CLOSED',
+            'CANCELED',
+          ],
         },
       },
       select: {
@@ -1036,6 +1079,7 @@ export class CampaignService {
           CampaignStatus.RUNNING,
           CampaignStatus.CLOSED,
           CampaignStatus.FINISH,
+          CampaignStatus.CANCELED,
         ],
       },
     };
