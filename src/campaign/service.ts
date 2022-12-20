@@ -803,6 +803,22 @@ export class CampaignService {
       where: {
         statusCampaign: 'OPEN',
       },
+      include: {
+        brand: {
+          include: {
+            user: true,
+          },
+        },
+        driverJoinCampaign: {
+          include: {
+            driver: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
+      },
     });
     if (globalDate) {
       return campaigns.filter(
@@ -841,7 +857,22 @@ export class CampaignService {
         statusCampaign,
       },
       include: {
+        locationCampaign: true,
         paymentDebit: true,
+        brand: {
+          include: {
+            user: true,
+          },
+        },
+        driverJoinCampaign: {
+          include: {
+            driver: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
       },
     });
     const type = isPrePay ? 'PREPAY' : 'POSTPAID';
@@ -880,9 +911,19 @@ export class CampaignService {
                 tracking: true,
               },
             },
+            driver: {
+              include: {
+                user: true,
+              },
+            },
           },
         },
         paymentDebit: true,
+        brand: {
+          include: {
+            user: true,
+          },
+        },
       },
     });
     if (globalDate) {
@@ -1200,7 +1241,7 @@ export class CampaignService {
         moment(campaign.endRegisterDate, 'MM/DD/YYYY')
     ) {
       throw new BadRequestException(
-        'This campaign is not open for register, can you re-check the date!',
+        'This campaign is not open for register. Please check register date.',
       );
     }
     const totalJoined = campaign.driverJoinCampaign.filter((c) => {

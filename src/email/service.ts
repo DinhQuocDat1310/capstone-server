@@ -145,7 +145,7 @@ export class EmailsService {
     };
   }
 
-  async sendNotificationVerifyAccountToBrandEmail(
+  async sendNotificationViaEmail(
     email: string,
     subject: string,
     content: string,
@@ -156,8 +156,6 @@ export class EmailsService {
       subject,
       html: content,
     });
-    this.logger.debug(
-      `Send notification verify account to ${email} successful!`,
-    );
+    this.logger.debug(`Send notification via email to ${email} successful!`);
   }
 }

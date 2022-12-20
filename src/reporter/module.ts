@@ -11,6 +11,7 @@ import { CampaignService } from 'src/campaign/service';
 import { PaymentService } from 'src/payment/service';
 import { DriversService } from 'src/driver/service';
 import { AppConfigService } from 'src/config/appConfigService';
+import { EmailsService } from 'src/email/service';
 
 @Module({
   controllers: [ReporterController],
@@ -26,6 +27,7 @@ import { AppConfigService } from 'src/config/appConfigService';
     PaymentService,
     DriversService,
     AppConfigService,
+    EmailsService,
   ],
 })
 export class ReporterModule {}

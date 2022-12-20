@@ -1,6 +1,7 @@
 import { faq, policies, terms } from './db/policy';
 import { users } from './db/user';
-import { campaignOpen, campaignRunning } from './db/campaign';
+// import { campaignOpen, campaignRunning } from './db/campaign';
+import { campaignOpen } from './db/campaign';
 import { Logger } from '@nestjs/common';
 import { PositionWrap, Status } from '@prisma/client';
 import * as moment from 'moment';
@@ -36,6 +37,7 @@ async function main() {
         },
       ],
     });
+
     await prisma.locationCampaignPerKm.createMany({
       data: [
         {
@@ -85,7 +87,7 @@ async function main() {
         },
       });
     }
-    await campaignRunning(prisma);
+    // await campaignRunning(prisma);
     await campaignOpen(prisma);
   } catch (error) {
     logger.error(error);

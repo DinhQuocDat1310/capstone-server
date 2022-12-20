@@ -115,61 +115,16 @@ export const FAKE_TYPE_BUSINESS = [
   'Other',
 ];
 
-export const FAKE_ADDRESS = [
-  'Bà Rịa - Vũng Tàu',
-  'Bình Định',
-  'Đà Nẵng',
-  'Hà Nội',
-  'Lâm Đồng',
-  'Tây Ninh',
-  'Bình Dương',
-  'TP Hồ Chí Minh',
-];
+export const FAKE_ADDRESS = ['Hà Nội', 'TP Hồ Chí Minh'];
 
 export const FAKE_ADDRESS_POINT = [
-  'G6FC+42H, ĐT52, Hoà Long, Bà Rịa, Bà Rịa - Vũng Tàu, Vietnam',
-  '215 Hùng Vương, TT. Tăng Bạt Hổ, Hoài Ân, Bình Định, Vietnam',
-  '26X9+F2G, Duy Tân, Hoà Cường Bắc, Hải Châu, Đà Nẵng 550000, Vietnam',
   '9 P. Trịnh Hoài Đức, Cát Linh, Đống Đa, Hà Nội, Vietnam',
-  'QC9Q+2QV, Đạ Ròn, Đơn Dương, Lâm Đồng, Vietnam',
-  '94VQ+P6P, Lộ 12A, Tân Trung, Tây Ninh, Vietnam',
-  '4J7F+J62, Đường NE3, Thới Hoà, Bến Cát, Bình Dương, Vietnam',
-  '37 Đ. Vạn Tượng, Phường 13, Quận 5, Thành phố Hồ Chí Minh 749000, Vietnam',
+  '37 Đ. Vạn Tượng, Phường 13, Quận 5, Thành phoos Hồ Chí Minh, Vietnam',
 ];
 
-export const FAKE_ADDRESS_ACCOUNT = [
-  'Bà Rịa - Vũng Tàu',
-  'Bình Định',
-  'Đà Nẵng',
-  'Hà Nội',
-  'Lâm Đồng',
-  'Tây Ninh',
-  'Bình Dương',
-  'TP Hồ Chí Minh',
-  'Bà Rịa - Vũng Tàu',
-  'Bình Định',
-  'Đà Nẵng',
-  'Hà Nội',
-  'Lâm Đồng',
-  'Tây Ninh',
-  'Bình Dương',
-  'TP Hồ Chí Minh',
-  'Bà Rịa - Vũng Tàu',
-  'Bình Định',
-  'Đà Nẵng',
-  'Hà Nội',
-];
+export const FAKE_ADDRESS_ACCOUNT = ['TP Hồ Chí Minh', 'Hà Nội'];
 
-export const FAKE_PRICE_PER_KM = [
-  '10000',
-  '10000',
-  '15000',
-  '15000',
-  '10000',
-  '10000',
-  '10000',
-  '15000',
-];
+export const FAKE_PRICE_PER_KM = ['15000', '15000'];
 
 export const FAKE_OWNER_BUSINESS = [
   'Nguyen Van A',

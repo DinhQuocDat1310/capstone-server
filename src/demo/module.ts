@@ -13,6 +13,7 @@ import { PaymentService } from 'src/payment/service';
 import { DriversService } from 'src/driver/service';
 import { UsersService } from 'src/user/service';
 import { LocationService } from 'src/location/service';
+import { EmailsService } from 'src/email/service';
 
 @Module({
   controllers: [DemoController],
@@ -32,6 +33,7 @@ import { LocationService } from 'src/location/service';
     DriversService,
     UsersService,
     LocationService,
+    EmailsService,
   ],
 })
 export class DemoModule {}

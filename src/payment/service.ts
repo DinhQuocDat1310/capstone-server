@@ -198,32 +198,34 @@ export class PaymentService {
     const numberJoinCampaign = await this.prisma.driverJoinCampaign.count({
       where: {
         campaignId,
+        status: 'APPROVE',
       },
     });
 
     const isBothSide = contract.campaign.wrap.positionWrap === 'BOTH_SIDE';
     const extraWrapMoney = isBothSide ? 400000 : 200000;
     const priceWrap = parseFloat(contract.campaign.wrapPrice);
-    const time = parseInt(contract.campaign.duration) / 30 - 1;
+    const time = Math.ceil(Number(contract.campaign.duration) / 30) - 1;
+
     const totalWrapMoney =
       (priceWrap + time * extraWrapMoney) * numberJoinCampaign;
-
     const totalDriverMoney =
       parseFloat(contract.campaign.minimumKmDrive) *
       parseFloat(contract.campaign.locationPricePerKm) *
       numberJoinCampaign *
       parseFloat(contract.campaign.duration);
 
-    const totalMoney =
-      totalDriverMoney + totalWrapMoney + totalDriverMoney * 0.1;
-    const totalDeposit = totalMoney * 0.2;
+    const totalSystemMoney = totalDriverMoney * 0.1;
 
+    const totalMoney = totalDriverMoney + totalWrapMoney + totalSystemMoney;
+
+    // PREPAY
     await this.prisma.paymentDebit.update({
       where: {
         id: contract.campaign.paymentDebit[0].id,
       },
       data: {
-        price: totalDeposit.toString(),
+        price: `${Math.ceil(totalMoney * 0.2)}`,
       },
     });
   }

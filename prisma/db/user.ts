@@ -25,7 +25,18 @@ export const users = async (): Promise<any[]> => {
     status: UserStatus.VERIFIED,
   };
 
-  for (let i = 0; i < 5; i++) {
+  managers.push({
+    email: 'nguyenlase141102@fpt.edu.vn',
+    password,
+    role: Role.MANAGER,
+    fullname: 'Lê Anh Nguyên',
+    status: UserStatus.VERIFIED,
+    manager: {
+      create: {},
+    },
+  });
+
+  for (let i = 0; i < 4; i++) {
     managers.push({
       email: `manager${i + 1}@gmail.com`,
       password,
@@ -69,8 +80,28 @@ export const users = async (): Promise<any[]> => {
       },
     });
   }
+  brands.push({
+    email: 'datdqse140552@fpt.edu.vn',
+    password,
+    role: Role.BRAND,
+    status: 'VERIFIED',
+    imageCitizenFront: FAKE_FRONT_CARDLICENSE[2],
+    imageCitizenBack: FAKE_BACK_CARDLICENSE[2],
+    idCitizen: '065099999999',
+    address: 'TP Hồ Chí Minh',
+    brand: {
+      create: {
+        brandName: `Pepsi`,
+        logo: FAKE_LOGO[1],
+        typeBusiness: FAKE_TYPE_BUSINESS[1],
+        idLicenseBusiness: '123123123123',
+        ownerLicenseBusiness: FAKE_OWNER_BUSINESS[1],
+        imageLicenseBusiness: FAKE_LICENSE[1],
+      },
+    },
+  });
 
-  for (let i = 0; i < 1000; i++) {
+  for (let i = 0; i < 200; i++) {
     const random = Math.floor(Math.random() * 20);
 
     const randomIdCitizen = Math.floor(
@@ -79,14 +110,12 @@ export const users = async (): Promise<any[]> => {
     );
     const randomIdCar = 10000;
     const randomAccountNumber = 100000;
-    const randomPhone =
-      Math.floor(Math.random() * (999999999 - 100000000)) + 100000000;
 
     drivers.push({
       imageCitizenFront: FAKE_FRONT_CARDLICENSE[random],
       imageCitizenBack: FAKE_BACK_CARDLICENSE[random],
       idCitizen: randomIdCitizen.toString(),
-      address: i < 800 ? 'TP Hồ Chí Minh' : 'Hà Nội',
+      address: i < 150 ? 'TP Hồ Chí Minh' : 'Hà Nội',
       email: `driver${i + 1}@gmail.com`,
       fullname: `Driver ${i + 1}`,
       role: Role.DRIVER,
@@ -100,7 +129,7 @@ export const users = async (): Promise<any[]> => {
           imageCarLeft: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
           imageCarRight: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
           idCar: `51F-${randomIdCar + i}`,
-          bankName: i < 600 ? 'TP BANK' : 'AGRIBANK',
+          bankName: i < 150 ? 'TP BANK' : 'AGRIBANK',
           bankAccountNumber: `${randomAccountNumber + i}`,
           bankAccountOwner: FAKE_OWNER_BUSINESS[random],
         },
@@ -108,13 +137,93 @@ export const users = async (): Promise<any[]> => {
     });
   }
 
+  // account fake
+  drivers.push({
+    imageCitizenFront: FAKE_FRONT_CARDLICENSE[1],
+    imageCitizenBack: FAKE_BACK_CARDLICENSE[1],
+    idCitizen: '075099999999',
+    address: 'TP Hồ Chí Minh',
+    email: 'dattxse140665@fpt.edu.vn',
+    fullname: 'Trần Xuân Đạt',
+    role: Role.DRIVER,
+    password,
+    status: 'VERIFIED',
+    phoneNumber: `+84999999999`,
+    driver: {
+      create: {
+        imageCarBack: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
+        imageCarFront: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
+        imageCarLeft: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
+        imageCarRight: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
+        idCar: `51F-99999`,
+        bankName: 'TP BANK',
+        bankAccountNumber: '999999',
+        bankAccountOwner: 'Trần Xuân Đạt',
+      },
+    },
+  });
+  drivers.push({
+    imageCitizenFront: FAKE_FRONT_CARDLICENSE[2],
+    imageCitizenBack: FAKE_BACK_CARDLICENSE[2],
+    idCitizen: '075088888888',
+    address: 'TP Hồ Chí Minh',
+    email: 'mylike236@gmail.com',
+    fullname: 'Trần Đạt',
+    role: Role.DRIVER,
+    password,
+    status: 'VERIFIED',
+    phoneNumber: `+84888888888`,
+    driver: {
+      create: {
+        imageCarBack: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
+        imageCarFront: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
+        imageCarLeft: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
+        imageCarRight: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
+        idCar: `51F-888888`,
+        bankName: 'TP BANK',
+        bankAccountNumber: '888888',
+        bankAccountOwner: 'Trần Đạt',
+      },
+    },
+  });
+  drivers.push({
+    imageCitizenFront: FAKE_FRONT_CARDLICENSE[3],
+    imageCitizenBack: FAKE_BACK_CARDLICENSE[3],
+    idCitizen: '075077777777',
+    address: 'TP Hồ Chí Minh',
+    email: 'dattranxuan0509@gmail.com',
+    fullname: 'Đạt',
+    role: Role.DRIVER,
+    password,
+    status: 'VERIFIED',
+    phoneNumber: `+84777777777`,
+    driver: {
+      create: {
+        imageCarBack: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
+        imageCarFront: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
+        imageCarLeft: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
+        imageCarRight: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
+        idCar: `51F-77777`,
+        bankName: 'TP BANK',
+        bankAccountNumber: '777777',
+        bankAccountOwner: 'Trần Đạt',
+      },
+    },
+  });
+
   for (let i = 0; i < FAKE_ADDRESS.length; i++) {
     reporter.push({
-      email: `reporter${i + 1}@gmail.com`,
+      email:
+        FAKE_ADDRESS[i] === 'TP Hồ Chí Minh'
+          ? 'minhnqse140536@fpt.edu.vn'
+          : `reporter${i + 1}@gmail.com`,
       phoneNumber: `+84${920000000 + i}`,
       password,
       role: Role.REPORTER,
-      fullname: `Reporter ${i + 1}`,
+      fullname:
+        FAKE_ADDRESS[i] === 'TP Hồ Chí Minh'
+          ? 'Nguyễn Quang Minh'
+          : `Reporter ${i + 1}`,
       status: UserStatus.VERIFIED,
       address: FAKE_ADDRESS[i],
       reporter: {

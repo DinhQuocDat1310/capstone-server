@@ -132,7 +132,7 @@ export class DriversService {
           moment(campaign.endRegisterDate, 'MM/DD/YYYY')
       ) {
         throw new BadRequestException(
-          'This campaign is not open for register, can you re-check the date!',
+          'This campaign is not open for register. Please check register date.',
         );
       }
       const listDriversJoinCampaign =
@@ -681,6 +681,7 @@ export class DriversService {
         Number(driver.campaign.minimumKmDrive) *
           Number(driver.campaign.duration) *
           Number(driver.campaign.locationPricePerKm);
+
       const campaign = driver.campaign;
       const locationName = driver.campaign.locationCampaign.locationName;
       const positionWrap = driver.campaign.wrap.positionWrap;

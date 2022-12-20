@@ -26,27 +26,27 @@ export class AutoAssignController {
     private readonly verifyCampaignService: VerifyCampaignService,
   ) {}
 
-  @ApiOperation({ summary: 'Automation create request for brand/driver' })
-  @ApiForbiddenResponse({
-    description: "Account don't have permission to use this feature",
-  })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Roles(Role.ADMIN)
-  @Get('fake/account/autoCreateNewRequest')
-  async addFakeData() {
-    return this.verifyAccountService.fakeAutoCreateVerifyRequest();
-  }
+  // @ApiOperation({ summary: 'Automation create request for brand/driver' })
+  // @ApiForbiddenResponse({
+  //   description: "Account don't have permission to use this feature",
+  // })
+  // @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  // @Roles(Role.ADMIN)
+  // @Get('fake/account/autoCreateNewRequest')
+  // async addFakeData() {
+  //   return this.verifyAccountService.fakeAutoCreateVerifyRequest();
+  // }
 
-  @ApiOperation({ summary: 'Automation create request for campaign' })
-  @ApiForbiddenResponse({
-    description: "Account don't have permission to use this feature",
-  })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Roles(Role.ADMIN)
-  @Get('fake/campaign/autoCreateNewRequest')
-  async addFakeDataCampaign() {
-    return this.verifyCampaignService.fakeAutoCreateVerifyCampaignRequest();
-  }
+  // @ApiOperation({ summary: 'Automation create request for campaign' })
+  // @ApiForbiddenResponse({
+  //   description: "Account don't have permission to use this feature",
+  // })
+  // @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  // @Roles(Role.ADMIN)
+  // @Get('fake/campaign/autoCreateNewRequest')
+  // async addFakeDataCampaign() {
+  //   return this.verifyCampaignService.fakeAutoCreateVerifyCampaignRequest();
+  // }
 
   @ApiOperation({ summary: 'Automation ACCEPT verified Brand/Driver' })
   @ApiForbiddenResponse({

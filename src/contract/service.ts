@@ -149,19 +149,23 @@ export class ContractService {
       const isBothSide =
         verifyCampaign.campaign.wrap.positionWrap === 'BOTH_SIDE';
       const extraWrapMoney = isBothSide ? 400000 : 200000;
-      const priceWrap = parseFloat(verifyCampaign.campaign.wrapPrice);
-      const numDriver = parseInt(verifyCampaign.campaign.quantityDriver);
+      const priceWrap = Number(verifyCampaign.campaign.wrapPrice);
       const time =
         Math.ceil(parseInt(verifyCampaign.campaign.duration) / 30) - 1;
-      const totalWrapMoney = (priceWrap + time * extraWrapMoney) * numDriver;
+
+      const totalWrapMoney =
+        (priceWrap + time * extraWrapMoney) *
+        Number(verifyCampaign.campaign.quantityDriver);
 
       const totalDriverMoney =
-        parseFloat(verifyCampaign.campaign.minimumKmDrive) *
-        parseFloat(verifyCampaign.campaign.locationPricePerKm) *
-        parseFloat(verifyCampaign.campaign.quantityDriver) *
-        parseFloat(verifyCampaign.campaign.duration);
+        Number(verifyCampaign.campaign.minimumKmDrive) *
+        Number(verifyCampaign.campaign.locationPricePerKm) *
+        Number(verifyCampaign.campaign.quantityDriver) *
+        Number(verifyCampaign.campaign.duration);
 
       const totalSystemMoney = totalDriverMoney * 0.1;
+
+      const totalMoney = totalWrapMoney + totalDriverMoney + totalSystemMoney;
 
       await this.prisma.contractCampaign.create({
         data: {
@@ -177,11 +181,13 @@ export class ContractService {
           isAccept: false,
         },
       });
+
       await this.prisma.paymentDebit.createMany({
         data: [
           {
             campaignId: verifyCampaign.campaignId,
             type: 'PREPAY',
+            price: `${Math.ceil(totalMoney * 0.2)}`,
             createDate: datePaymentDepose,
             expiredDate: dateEndPaymentDeposit,
           },
@@ -217,7 +223,7 @@ export class ContractService {
         from: this.appConfigService.getConfig('MAILER'),
         subject: `Result verification Campaign ${verifyCampaign.campaign.campaignName}`,
         html: `
-             <p>Dear ${verifyCampaign.campaign.brand.brandName},</p></br>
+             <h1>Dear ${verifyCampaign.campaign.brand.brandName},</h1></br>
              <p>Thanks for becoming Brandvertise's partner!</p>
               ${message}
              <p>Regards,</p>
