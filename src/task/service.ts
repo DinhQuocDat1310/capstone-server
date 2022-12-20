@@ -315,7 +315,7 @@ export class TasksService {
         const extraWrapMoney = isBothSide ? 400000 : 200000;
         const priceWrap = Number(campaigns[i].wrapPrice);
 
-        const time = parseInt(campaigns[i].duration) / 30 - 1;
+        const time = Math.ceil(parseInt(campaigns[i].duration) / 30) - 1;
 
         const totalWrapMoney =
           (priceWrap + time * extraWrapMoney) * listDriverJoinCampaign.length;
