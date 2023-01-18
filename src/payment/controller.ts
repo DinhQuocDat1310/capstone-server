@@ -63,4 +63,18 @@ export class PaymentController {
   async viewAllTransaction(@Request() req: RequestUser) {
     return await this.paymentService.viewAllTransaction(req.user);
   }
+
+  @ApiOperation({ summary: 'Checkout campaign ID' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
+  @Roles(Role.BRAND)
+  @Status(UserStatus.VERIFIED)
+  @Get('/checkout/:campaignId')
+  @ApiBearerAuth('access-token')
+  async checkoutCampaign(
+    @Request() req: RequestUser,
+    @Param('campaignId') campaignId: string,
+  ) {
+    return await this.paymentService.checkoutCampaign(req.user.id, campaignId);
+  }
 }

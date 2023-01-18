@@ -4,6 +4,7 @@ import {
   CACHE_MANAGER,
   Inject,
   Injectable,
+  InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
 import { Cache } from 'cache-manager';
@@ -12,6 +13,7 @@ import fetch, { Response } from 'node-fetch';
 import { GLOBAL_DATE } from 'src/constants/cache-code';
 import { PrismaService } from 'src/prisma/service';
 import { TransactionDTO } from './dto';
+import { CampaignStatus } from '@prisma/client';
 
 @Injectable()
 export class PaymentService {
@@ -49,8 +51,10 @@ export class PaymentService {
           userId: dto.userId,
         },
       });
+      const result = await this.handleResponse(response);
       await this.prisma.orderTransaction.create({
         data: {
+          id: result.id,
           amount: dto.amount,
           createDate: moment(new Date(), 'MM/DD/YYYY')
             .toDate()
@@ -65,7 +69,7 @@ export class PaymentService {
           },
         },
       });
-      return await this.handleResponse(response);
+      return result;
     } catch (error) {
       this.logger.error(error);
     }
@@ -89,22 +93,24 @@ export class PaymentService {
     });
     this.logger.debug(response.status);
     this.logger.debug('wallet:', walletUser.id);
-    const transactionUser = await this.prisma.orderTransaction.findMany({
+    const transactionUser = await this.prisma.orderTransaction.findFirst({
       where: {
-        iWalletId: walletUser.id,
+        id: orderId,
       },
     });
-    transactionUser.sort(
-      (a, b) =>
-        moment(b.createDate, 'MM/DD/YYYY').valueOf() -
-        moment(a.createDate, 'MM/DD/YYYY').valueOf(),
-    );
+
     if (response.status === 200 || response.status === 201) {
       try {
-        let parseNumTotalAmount = Number(walletUser.totalAmount);
-        const totalAmount = (parseNumTotalAmount += Number(
-          transactionUser[0].amount,
-        ));
+        const totalAmount =
+          Number(walletUser.totalAmount) - Number(transactionUser.amount);
+        await this.prisma.orderTransaction.update({
+          where: {
+            id: transactionUser.id,
+          },
+          data: {
+            statusOrder: 'SUCCESS',
+          },
+        });
         await this.prisma.iWallet.update({
           where: {
             id: walletUser.id,
@@ -113,16 +119,9 @@ export class PaymentService {
             totalAmount: totalAmount.toString(),
           },
         });
-        await this.prisma.orderTransaction.update({
-          where: {
-            id: walletUser.id,
-          },
-          data: {
-            statusOrder: 'SUCCESS',
-          },
-        });
         return response.json();
       } catch (error) {
+        this.logger.error(error.message);
         throw new BadRequestException(error.message);
       }
     } else {
@@ -246,5 +245,67 @@ export class PaymentService {
         },
       },
     });
+  }
+
+  async checkoutCampaign(userId: string, campaignId: string) {
+    try {
+      const campaign = await this.prisma.campaign.findFirst({
+        where: {
+          id: campaignId,
+        },
+        include: {
+          contractCampaign: true,
+        },
+      });
+      const totalPay =
+        Number(campaign.contractCampaign.totalDriverMoney) +
+        Number(campaign.contractCampaign.totalSystemMoney) +
+        Number(campaign.contractCampaign.totalWrapMoney);
+
+      const walletUser = await this.prisma.iWallet.findFirst({
+        where: {
+          userId,
+        },
+      });
+
+      await this.prisma.orderTransaction.create({
+        data: {
+          amount: totalPay.toString(),
+          createDate: moment(new Date(), 'MM/DD/YYYY')
+            .toDate()
+            .toLocaleDateString('vn-VN'),
+          name: `Checkout campaign ${campaign.campaignName}`,
+          statusOrder: 'SUCCESS',
+          descriptionType: 'WIDTHDRAW_AMOUNT',
+          iWallet: {
+            connect: {
+              id: walletUser.id,
+            },
+          },
+        },
+      });
+
+      const balance = Number(walletUser.totalAmount) - totalPay;
+      await this.prisma.iWallet.update({
+        where: {
+          id: walletUser.id,
+        },
+        data: {
+          totalAmount: balance.toString(),
+        },
+      });
+
+      await this.prisma.campaign.update({
+        where: {
+          id: campaign.id,
+        },
+        data: {
+          statusCampaign: CampaignStatus.WRAPPING,
+        },
+      });
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
   }
 }
