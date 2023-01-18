@@ -99,8 +99,10 @@ export class PaymentService {
     );
     if (response.status === 200 || response.status === 201) {
       try {
-        const totalAmount = +(walletUser.totalAmount +=
-          transactionUser[0].amount);
+        let parseNumTotalAmount = Number(walletUser.totalAmount);
+        const totalAmount = (parseNumTotalAmount += Number(
+          transactionUser[0].amount,
+        ));
         await this.prisma.iWallet.update({
           where: {
             id: walletUser.id,
