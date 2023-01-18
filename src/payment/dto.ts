@@ -1,9 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class TransactionCampaignDTO {
+export class TransactionDTO {
   @ApiProperty({
-    description: 'campaign id',
+    description: 'User Id',
     default: 'uuid',
   })
-  campaignId: string;
+  userId: string;
+
+  @ApiProperty({
+    description: 'Amount request',
+  })
+  amount: string;
 }

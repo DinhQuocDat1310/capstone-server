@@ -30,6 +30,38 @@ model User {
   driver   Driver?
   manager  Manager?
   reporter Reporter?
+  iWallet  IWallet?
+}
+
+model IWallet {
+  id               String             @id @default(uuid())
+  totalAmount      String?
+  updateDate       String
+  user             User               @relation(fields: [userId], references: [id])
+  userId           String             @unique
+  orderTransaction OrderTransaction[]
+}
+
+model OrderTransaction {
+  id              String          @id @default(uuid())
+  name            String
+  createDate      String
+  amount          String
+  statusOrder     StatusOrder
+  descriptionType DescriptionType
+  iWallet         IWallet?        @relation(fields: [iWalletId], references: [id])
+  iWalletId       String?
+}
+
+enum StatusOrder {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum DescriptionType {
+  ADD_AMOUNT
+  WIDTHDRAW_AMOUNT
 }
 
 enum Role {
