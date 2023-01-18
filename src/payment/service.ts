@@ -87,7 +87,7 @@ export class PaymentService {
         userId,
       },
     });
-    this.logger.debug(response);
+    this.logger.debug(response.status);
     this.logger.debug('wallet:', walletUser.id);
     const transactionUser = await this.prisma.orderTransaction.findMany({
       where: {
