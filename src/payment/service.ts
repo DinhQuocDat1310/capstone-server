@@ -91,8 +91,6 @@ export class PaymentService {
         userId,
       },
     });
-    this.logger.debug(response.status);
-    this.logger.debug('wallet:', walletUser.id);
     const transactionUser = await this.prisma.orderTransaction.findFirst({
       where: {
         id: orderId,
@@ -102,7 +100,7 @@ export class PaymentService {
     if (response.status === 200 || response.status === 201) {
       try {
         const totalAmount =
-          Number(walletUser.totalAmount) - Number(transactionUser.amount);
+          Number(walletUser.totalAmount) + Number(transactionUser.amount);
         await this.prisma.orderTransaction.update({
           where: {
             id: transactionUser.id,
