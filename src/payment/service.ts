@@ -122,7 +122,9 @@ export class PaymentService {
           },
         });
         return response.json();
-      } catch (error) {}
+      } catch (error) {
+        throw new BadRequestException(error.message);
+      }
     } else {
       await this.prisma.orderTransaction.update({
         where: {
