@@ -10,7 +10,7 @@ import * as moment from 'moment';
 import fetch, { Response } from 'node-fetch';
 import { GLOBAL_DATE } from 'src/constants/cache-code';
 import { PrismaService } from 'src/prisma/service';
-import { TransactionCampaignDTO } from './dto';
+import { TransactionDTO } from './dto';
 
 @Injectable()
 export class PaymentService {
@@ -21,40 +21,8 @@ export class PaymentService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async createOrder(dto: TransactionCampaignDTO) {
-    const campaign = await this.prisma.campaign.findFirst({
-      where: {
-        id: dto.campaignId,
-      },
-      include: {
-        contractCampaign: true,
-        paymentDebit: true,
-      },
-    });
-    if (!campaign)
-      throw new BadRequestException('Please input correct campaign ID');
-
-    if (!campaign.contractCampaign)
-      throw new BadRequestException('Your campaign is not create contract yet');
-
-    if (
-      campaign.statusCampaign !== 'PAYMENT' &&
-      campaign.statusCampaign !== 'FINISH'
-    ) {
-      throw new BadRequestException('You cannot create payment this campaign');
-    }
-
+  async createOrder(dto: TransactionDTO) {
     try {
-      const totalMoney =
-        campaign.statusCampaign === 'PAYMENT'
-          ? Number(
-              campaign.paymentDebit.find((pay) => pay.type === 'PREPAY')?.price,
-            )
-          : Number(
-              campaign.paymentDebit.find((pay) => pay.type === 'POSTPAID')
-                ?.price,
-            );
-
       const accessToken = await this.generateAccessToken();
       const url = `${process.env.BASE}/v2/checkout/orders`;
       const response = await fetch(url, {
@@ -69,41 +37,40 @@ export class PaymentService {
             {
               amount: {
                 currency_code: 'USD',
-                value: (totalMoney / 24500).toFixed(0),
+                value: (+dto.amount / 24500).toFixed(0),
               },
             },
           ],
         }),
       });
-
+      await this.prisma.iWallet.create({
+        data: {
+          userId: dto.userId,
+          updateDate: moment(new Date(), 'MM/DD/YYYY')
+            .toDate()
+            .toLocaleDateString('vn-VN'),
+          orderTransaction: {
+            create: {
+              amount: dto.amount,
+              createDate: moment(new Date(), 'MM/DD/YYYY')
+                .toDate()
+                .toLocaleDateString('vn-VN'),
+              name: 'PAYPAL Service',
+              statusOrder: 'PENDING',
+              descriptionType: 'ADD_AMOUNT',
+            },
+          },
+        },
+      });
       return await this.handleResponse(response);
     } catch (error) {
       this.logger.error(error);
     }
   }
 
-  async captureTransaction(orderId: string, campaignId: string) {
-    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
+  async captureTransaction(orderId: string, userId: string) {
+    // const globalDate = await this.cacheManager.get(GLOBAL_DATE);
     const accessToken = await this.generateAccessToken();
-    const campaign = await this.prisma.campaign.findFirst({
-      where: {
-        id: campaignId,
-      },
-      include: {
-        contractCampaign: true,
-        paymentDebit: true,
-      },
-    });
-    if (!campaign)
-      throw new BadRequestException('Please input correct campaign ID');
-
-    if (
-      campaign.statusCampaign !== 'PAYMENT' &&
-      campaign.statusCampaign !== 'FINISH'
-    ) {
-      throw new BadRequestException('You cannot checkout this campaign');
-    }
-
     const url = `${process.env.BASE}/v2/checkout/orders/${orderId}/capture`;
     const response = await fetch(url, {
       method: 'post',
@@ -112,36 +79,52 @@ export class PaymentService {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-
+    const walletUser = await this.prisma.iWallet.findMany({
+      where: {
+        userId,
+      },
+    });
+    walletUser.sort(
+      (a, b) =>
+        moment(b.updateDate, 'MM/DD/YYYY').valueOf() -
+        moment(a.updateDate, 'MM/DD/YYYY').valueOf(),
+    );
+    const transactionUser = await this.prisma.orderTransaction.findFirst({
+      where: {
+        iWalletId: walletUser[0].id,
+      },
+    });
     if (response.status === 200 || response.status === 201) {
       try {
-        const isPaymentCampaignStatus = campaign.statusCampaign === 'PAYMENT';
-        const typePayment = campaign.paymentDebit.find(
-          (payment) =>
-            payment.type === (isPaymentCampaignStatus ? 'PREPAY' : 'POSTPAID'),
-        );
-
-        await this.prisma.paymentDebit.update({
+        const totalAmount = (walletUser[0].totalAmount +=
+          transactionUser.amount);
+        await this.prisma.iWallet.update({
           where: {
-            id: typePayment.id,
+            id: walletUser[0].id,
           },
           data: {
-            paidDate: moment(globalDate, 'MM/DD/YYYY')
-              .toDate()
-              .toLocaleDateString('vn-VN'),
+            totalAmount,
           },
         });
-
-        await this.prisma.campaign.update({
+        await this.prisma.orderTransaction.update({
           where: {
-            id: campaignId,
+            id: walletUser[0].id,
           },
           data: {
-            statusCampaign: isPaymentCampaignStatus ? 'WRAPPING' : 'CLOSED',
+            statusOrder: 'SUCCESS',
           },
         });
         return response.json();
       } catch (error) {}
+    } else {
+      await this.prisma.orderTransaction.update({
+        where: {
+          id: walletUser[0].id,
+        },
+        data: {
+          statusOrder: 'FAILED',
+        },
+      });
     }
 
     const errorMessage = await response.text();

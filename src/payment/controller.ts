@@ -6,7 +6,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { TransactionCampaignDTO } from './dto';
+import { TransactionDTO } from './dto';
 import { PaymentService } from './service';
 
 @Controller('payment')
@@ -15,21 +15,21 @@ export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
   @ApiOperation({ summary: 'Create Transaction Paypal' })
-  @ApiBody({ type: TransactionCampaignDTO })
+  @ApiBody({ type: TransactionDTO })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiCreatedResponse({ description: 'Created' })
   @Post('/orders')
-  async createTransaction(@Body() dto: TransactionCampaignDTO) {
+  async createTransaction(@Body() dto: TransactionDTO) {
     return await this.paymentService.createOrder(dto);
   }
 
   @ApiOperation({ summary: 'Checkout transaction' })
-  @Post('/orders/:orderId/capture/:campaignId')
+  @Post('/orders/:orderId/capture/:userId')
   async captureTransaction(
     @Param('orderId') orderId: string,
-    @Param('campaignId') campaignId: string,
+    @Param('userId') userId: string,
   ) {
-    return await this.paymentService.captureTransaction(orderId, campaignId);
+    return await this.paymentService.captureTransaction(orderId, userId);
   }
 
   @All('/webhook')
