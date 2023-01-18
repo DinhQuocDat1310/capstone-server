@@ -1,4 +1,14 @@
-import { All, Body, Controller, Param, Post } from '@nestjs/common';
+import { StatusGuard } from 'src/guard/userStatus.guard';
+import {
+  All,
+  Body,
+  Controller,
+  Param,
+  Post,
+  Get,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -6,8 +16,13 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { RequestUser } from 'src/auth/dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/guard/roles.guard';
 import { TransactionDTO } from './dto';
 import { PaymentService } from './service';
+import { Roles } from 'src/guard/decorators';
+import { Role } from '@prisma/client';
 
 @Controller('payment')
 @ApiTags('Payment')
@@ -35,5 +50,14 @@ export class PaymentController {
   @All('/webhook')
   async handleCallback(@Body() dto: any) {
     return await this.paymentService.handleAllWebhook(dto);
+  }
+
+  @ApiOperation({ summary: 'View all transaction' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
+  @Roles(Role.BRAND)
+  @Get('/transactions')
+  async viewAllTransaction(@Request() req: RequestUser) {
+    return await this.paymentService.viewAllTransaction(req.user);
   }
 }

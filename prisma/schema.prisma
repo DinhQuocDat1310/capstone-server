@@ -49,8 +49,8 @@ model OrderTransaction {
   amount          String
   statusOrder     StatusOrder
   descriptionType DescriptionType
-  iWallet         IWallet?        @relation(fields: [iWalletId], references: [id])
-  iWalletId       String?
+  iWallet         IWallet         @relation(fields: [iWalletId], references: [id])
+  iWalletId       String
 }
 
 enum StatusOrder {
