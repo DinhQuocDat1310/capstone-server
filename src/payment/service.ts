@@ -1,3 +1,4 @@
+import { UserSignIn } from './../auth/dto/index';
 import {
   BadRequestException,
   CACHE_MANAGER,
@@ -43,21 +44,23 @@ export class PaymentService {
           ],
         }),
       });
-      await this.prisma.iWallet.create({
-        data: {
+      const walletUser = await this.prisma.iWallet.findFirst({
+        where: {
           userId: dto.userId,
-          updateDate: moment(new Date(), 'MM/DD/YYYY')
+        },
+      });
+      await this.prisma.orderTransaction.create({
+        data: {
+          amount: dto.amount,
+          createDate: moment(new Date(), 'MM/DD/YYYY')
             .toDate()
             .toLocaleDateString('vn-VN'),
-          orderTransaction: {
-            create: {
-              amount: dto.amount,
-              createDate: moment(new Date(), 'MM/DD/YYYY')
-                .toDate()
-                .toLocaleDateString('vn-VN'),
-              name: 'PAYPAL Service',
-              statusOrder: 'PENDING',
-              descriptionType: 'ADD_AMOUNT',
+          name: 'PAYPAL Service',
+          statusOrder: 'PENDING',
+          descriptionType: 'ADD_AMOUNT',
+          iWallet: {
+            connect: {
+              id: walletUser.id,
             },
           },
         },
@@ -79,28 +82,28 @@ export class PaymentService {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    const walletUser = await this.prisma.iWallet.findMany({
+    const walletUser = await this.prisma.iWallet.findFirst({
       where: {
         userId,
       },
     });
-    walletUser.sort(
-      (a, b) =>
-        moment(b.updateDate, 'MM/DD/YYYY').valueOf() -
-        moment(a.updateDate, 'MM/DD/YYYY').valueOf(),
-    );
-    const transactionUser = await this.prisma.orderTransaction.findFirst({
+    const transactionUser = await this.prisma.orderTransaction.findMany({
       where: {
-        iWalletId: walletUser[0].id,
+        iWalletId: walletUser.id,
       },
     });
+    transactionUser.sort(
+      (a, b) =>
+        moment(b.createDate, 'MM/DD/YYYY').valueOf() -
+        moment(a.createDate, 'MM/DD/YYYY').valueOf(),
+    );
     if (response.status === 200 || response.status === 201) {
       try {
-        const totalAmount = (walletUser[0].totalAmount +=
-          transactionUser.amount);
+        const totalAmount = (walletUser.totalAmount +=
+          transactionUser[0].amount);
         await this.prisma.iWallet.update({
           where: {
-            id: walletUser[0].id,
+            id: walletUser.id,
           },
           data: {
             totalAmount,
@@ -108,7 +111,7 @@ export class PaymentService {
         });
         await this.prisma.orderTransaction.update({
           where: {
-            id: walletUser[0].id,
+            id: walletUser.id,
           },
           data: {
             statusOrder: 'SUCCESS',
@@ -119,7 +122,7 @@ export class PaymentService {
     } else {
       await this.prisma.orderTransaction.update({
         where: {
-          id: walletUser[0].id,
+          id: walletUser.id,
         },
         data: {
           statusOrder: 'FAILED',
@@ -215,5 +218,27 @@ export class PaymentService {
 
   async handleAllWebhook(dto: any) {
     this.logger.debug('Test Something webhook', dto);
+  }
+
+  async viewAllTransaction(userReq: UserSignIn) {
+    return await this.prisma.iWallet.findMany({
+      where: {
+        userId: userReq.id,
+      },
+      select: {
+        id: true,
+        totalAmount: true,
+        updateDate: true,
+        orderTransaction: {
+          select: {
+            name: true,
+            amount: true,
+            createDate: true,
+            descriptionType: true,
+            statusOrder: true,
+          },
+        },
+      },
+    });
   }
 }

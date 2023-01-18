@@ -1,7 +1,5 @@
 import { faq, policies, terms } from './db/policy';
 import { users } from './db/user';
-// import { campaignOpen, campaignRunning } from './db/campaign';
-// import { campaignOpen } from './db/campaign';
 import { Logger } from '@nestjs/common';
 import { PositionWrap, Status } from '@prisma/client';
 import * as moment from 'moment';
@@ -87,8 +85,22 @@ async function main() {
         },
       });
     }
-    // await campaignRunning(prisma);
-    // await campaignOpen(prisma);
+
+    const brands = await prisma.brand.findMany({
+      select: {
+        userId: true,
+      },
+    });
+
+    for (let i = 0; i < brands.length; i++) {
+      await prisma.iWallet.create({
+        data: {
+          userId: brands[i].userId,
+          updateDate: moment().toDate().toLocaleDateString('vn-VN'),
+          totalAmount: '0',
+        },
+      });
+    }
   } catch (error) {
     logger.error(error);
     process.exit(1);

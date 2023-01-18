@@ -22,7 +22,7 @@ CREATE TABLE "OrderTransaction" (
     "amount" TEXT NOT NULL,
     "statusOrder" "StatusOrder" NOT NULL,
     "descriptionType" "DescriptionType" NOT NULL,
-    "iWalletId" TEXT,
+    "iWalletId" TEXT NOT NULL,
 
     CONSTRAINT "OrderTransaction_pkey" PRIMARY KEY ("id")
 );
@@ -34,4 +34,4 @@ CREATE UNIQUE INDEX "IWallet_userId_key" ON "IWallet"("userId");
 ALTER TABLE "IWallet" ADD CONSTRAINT "IWallet_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "OrderTransaction" ADD CONSTRAINT "OrderTransaction_iWalletId_fkey" FOREIGN KEY ("iWalletId") REFERENCES "IWallet"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "OrderTransaction" ADD CONSTRAINT "OrderTransaction_iWalletId_fkey" FOREIGN KEY ("iWalletId") REFERENCES "IWallet"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
