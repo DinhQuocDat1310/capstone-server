@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
   ApiOperation,
@@ -21,8 +22,8 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/guard/roles.guard';
 import { TransactionDTO } from './dto';
 import { PaymentService } from './service';
-import { Roles } from 'src/guard/decorators';
-import { Role } from '@prisma/client';
+import { Roles, Status } from 'src/guard/decorators';
+import { Role, UserStatus } from '@prisma/client';
 
 @Controller('payment')
 @ApiTags('Payment')
@@ -56,7 +57,9 @@ export class PaymentController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
   @Roles(Role.BRAND)
+  @Status(UserStatus.VERIFIED)
   @Get('/transactions')
+  @ApiBearerAuth('access-token')
   async viewAllTransaction(@Request() req: RequestUser) {
     return await this.paymentService.viewAllTransaction(req.user);
   }
