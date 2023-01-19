@@ -640,7 +640,7 @@ export class DriversService {
         status: 'FINISH',
         campaign: {
           statusCampaign: {
-            in: ['FINISH', 'CLOSED'],
+            in: ['CLOSED'],
           },
         },
       },

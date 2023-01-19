@@ -10,7 +10,7 @@ import {
 import { Cache } from 'cache-manager';
 import * as moment from 'moment';
 import fetch, { Response } from 'node-fetch';
-import { GLOBAL_DATE } from 'src/constants/cache-code';
+// import { GLOBAL_DATE } from 'src/constants/cache-code';
 import { PrismaService } from 'src/prisma/service';
 import { TransactionDTO } from './dto';
 import { CampaignStatus } from '@prisma/client';
@@ -161,7 +161,7 @@ export class PaymentService {
     throw new Error(errorMessage);
   }
 
-  async updatePaymentPrePayForCampaign(campaignId: string) {
+  async updatePaymentForCampaign(campaignId: string) {
     const contract = await this.prisma.contractCampaign.findFirst({
       where: {
         campaignId,
@@ -170,9 +170,6 @@ export class PaymentService {
         campaign: {
           include: {
             paymentDebit: {
-              where: {
-                type: 'PREPAY',
-              },
               select: {
                 id: true,
               },
@@ -208,10 +205,9 @@ export class PaymentService {
 
     const totalMoney = totalDriverMoney + totalWrapMoney + totalSystemMoney;
 
-    // PREPAY
     await this.prisma.paymentDebit.update({
       where: {
-        id: contract.campaign.paymentDebit[0].id,
+        id: contract.campaign.paymentDebit.id,
       },
       data: {
         price: `${Math.ceil(totalMoney * 0.2)}`,
@@ -250,11 +246,15 @@ export class PaymentService {
       const campaign = await this.prisma.campaign.findFirst({
         where: {
           id: campaignId,
+          brand: {
+            userId,
+          },
         },
         include: {
           contractCampaign: true,
         },
       });
+      if (!campaign) throw new BadRequestException('Not found campaign');
       const totalPay =
         Number(campaign.contractCampaign.totalDriverMoney) +
         Number(campaign.contractCampaign.totalSystemMoney) +
@@ -274,7 +274,7 @@ export class PaymentService {
             .toLocaleDateString('vn-VN'),
           name: `Checkout campaign ${campaign.campaignName}`,
           statusOrder: 'SUCCESS',
-          descriptionType: 'WIDTHDRAW_AMOUNT',
+          descriptionType: 'WITHDRAW_AMOUNT',
           iWallet: {
             connect: {
               id: walletUser.id,

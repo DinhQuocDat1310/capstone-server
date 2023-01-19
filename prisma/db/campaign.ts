@@ -1,6 +1,6 @@
 import { CampaignVerifyInformationDTO } from 'src/campaign/dto';
 import { PrismaService } from '../../src/prisma/service';
-import { FAKE_IMAGE_CAR, FAKE_LOGO } from './../../src/constants/fake-data';
+import { FAKE_LOGO } from './../../src/constants/fake-data';
 import * as moment from 'moment';
 import { VerifyCampaignStatus } from '@prisma/client';
 
@@ -418,47 +418,19 @@ export const campaignOpen = async (prisma: PrismaService) => {
       isAccept: true,
     },
   });
-  await prisma.paymentDebit.createMany({
-    data: [
-      {
-        campaignId: verifyCampaign.campaignId,
-        type: 'PREPAY',
-        createDate: moment(
-          verifyCampaign.campaign.endRegisterDate,
-          'MM/DD/YYYY',
-        )
-          .add(1, 'days')
-          .toDate()
-          .toLocaleDateString('vn-VN'),
-        expiredDate: moment(
-          verifyCampaign.campaign.endRegisterDate,
-          'MM/DD/YYYY',
-        )
-          .add(5, 'days')
-          .toDate()
-          .toLocaleDateString('vn-VN'),
-        price: `${Math.ceil(totalMoney * 0.2)}`,
-        isValid: true,
-      },
-      {
-        campaignId: verifyCampaign.campaignId,
-        type: 'POSTPAID',
-        createDate: moment(
-          verifyCampaign.campaign.startRunningDate,
-          'MM/DD/YYYY',
-        )
-          .add(Number(verifyCampaign.campaign.duration), 'days')
-          .toDate()
-          .toLocaleDateString('vn-VN'),
-        expiredDate: moment(
-          verifyCampaign.campaign.startRunningDate,
-          'MM/DD/YYYY',
-        )
-          .add(Number(verifyCampaign.campaign.duration) + 4, 'days')
-          .toDate()
-          .toLocaleDateString('vn-VN'),
-        isValid: false,
-      },
-    ],
+  await prisma.paymentDebit.create({
+    data: {
+      campaignId: verifyCampaign.campaignId,
+      createDate: moment(verifyCampaign.campaign.endRegisterDate, 'MM/DD/YYYY')
+        .add(1, 'days')
+        .toDate()
+        .toLocaleDateString('vn-VN'),
+      expiredDate: moment(verifyCampaign.campaign.endRegisterDate, 'MM/DD/YYYY')
+        .add(5, 'days')
+        .toDate()
+        .toLocaleDateString('vn-VN'),
+      price: `${Math.ceil(totalMoney * 0.2)}`,
+      isValid: true,
+    },
   });
 };

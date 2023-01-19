@@ -1,10 +1,4 @@
-import {
-  BadRequestException,
-  CACHE_MANAGER,
-  Inject,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { CACHE_MANAGER, Inject, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/service';
 import { Cache } from 'cache-manager';
 import {
@@ -56,14 +50,8 @@ export class DemoService {
           ),
         );
       }
-      const prepay = campaign.paymentDebit.find((pay) => pay.type === 'PREPAY');
-      const postpaid = campaign.paymentDebit.find(
-        (pay) => pay.type === 'POSTPAID',
-      );
       return {
         ...campaign,
-        prepay,
-        postpaid,
         numberOfDriversRequired: campaign?.quantityDriver,
         numberOfDriversJoined: campaign.driverJoinCampaign.filter(
           (driver) => driver.status === 'JOIN' || driver.status === 'APPROVE',
@@ -111,10 +99,10 @@ export class DemoService {
     });
 
     await this.taskService.handleCompleteRegisterCampaignPhase(newGlobalDate);
-    await this.taskService.handleCompletePrePaymentCampaignPhase(newGlobalDate);
+    await this.taskService.handleCompletePaymentCampaignPhase(newGlobalDate);
     await this.taskService.handleCompleteWrappingCampaignPhase(newGlobalDate);
-    await this.taskService.handleCompletePostPaymentCampaignPhase(
-      newGlobalDate,
-    );
+    // await this.taskService.handleCompletePostPaymentCampaignPhase(
+    //   newGlobalDate,
+    // );
   }
 }
