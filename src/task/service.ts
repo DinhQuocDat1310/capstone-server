@@ -45,9 +45,7 @@ export class TasksService {
           campaigns[i].id,
           StatusDriverJoin.APPROVE,
         );
-        await this.paymentService.updatePaymentPrePayForCampaign(
-          campaigns[i].id,
-        );
+        await this.paymentService.updatePaymentForCampaign(campaigns[i].id);
       } else {
         const messageDesc = 'OPEN: Lack of quantity driver';
         await this.campaignsService.updateStatusCampaign(
@@ -65,21 +63,15 @@ export class TasksService {
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_11PM)
-  async handleCompletePrePaymentCampaignPhase(globalDate?: string) {
+  async handleCompletePaymentCampaignPhase(globalDate?: string) {
     const campaigns =
-      await this.campaignsService.getAllCampaignPaymentIsExpired(
-        true,
-        globalDate,
-      );
+      await this.campaignsService.getAllCampaignPaymentIsExpired(globalDate);
     if (campaigns.length === 0) {
       this.logger.debug('No campaigns is end prepay Payment phase today');
       return;
     }
     for (let i = 0; i < campaigns.length; i++) {
-      const payment = campaigns[i].paymentDebit.find(
-        (pay) => pay.type === 'PREPAY',
-      );
-      if (payment.paidDate) {
+      if (campaigns[i].paymentDebit.paidDate) {
         await this.campaignsService.updateStatusCampaign(
           campaigns[i].id,
           CampaignStatus.WRAPPING,
@@ -88,41 +80,7 @@ export class TasksService {
         await this.campaignsService.updateStatusCampaign(
           campaigns[i].id,
           CampaignStatus.CANCELED,
-          `PAYMENT: This campaign is canceled because you dont purchase 20%!`,
-        );
-        await this.driverService.updateAllStatusDriverApproveToStatus(
-          campaigns[i].id,
-          StatusDriverJoin.CANCEL,
-        );
-      }
-    }
-  }
-
-  @Cron(CronExpression.EVERY_DAY_AT_11PM)
-  async handleCompletePostPaymentCampaignPhase(globalDate?: string) {
-    const campaigns =
-      await this.campaignsService.getAllCampaignPaymentIsExpired(
-        false,
-        globalDate,
-      );
-    if (campaigns.length === 0) {
-      this.logger.debug('No campaigns is end postpaid Payment phase today');
-      return;
-    }
-    for (let i = 0; i < campaigns.length; i++) {
-      const payment = campaigns[i].paymentDebit.find(
-        (pay) => pay.type === 'POSTPAID',
-      );
-      if (payment.paidDate) {
-        await this.campaignsService.updateStatusCampaign(
-          campaigns[i].id,
-          CampaignStatus.CLOSED,
-        );
-      } else {
-        await this.campaignsService.updateStatusCampaign(
-          campaigns[i].id,
-          CampaignStatus.CANCELED,
-          'FINISH: This campaign is canceled because you are not purchase 80%!!',
+          `PAYMENT: This campaign is canceled because you don't purchase total amount of campaign!`,
         );
         await this.driverService.updateAllStatusDriverApproveToStatus(
           campaigns[i].id,
@@ -185,46 +143,34 @@ export class TasksService {
             StatusDriverJoin.CANCEL,
           );
         } else {
-          const prePay = campaigns[i].paymentDebit.find(
-            (pay) => pay.type === 'PREPAY',
-          );
-          const postPaid = campaigns[i].paymentDebit.find(
-            (pay) => pay.type === 'POSTPAID',
-          );
+          // const prePay = campaigns[i].paymentDebit.find(
+          //   (pay) => pay.type === 'PREPAY',
+          // );
+          // const postPaid = campaigns[i].paymentDebit.find(
+          //   (pay) => pay.type === 'POSTPAID',
+          // );
 
-          const isBothSide = campaigns[i].wrap.positionWrap === 'BOTH_SIDE';
-          const extraWrapMoney = isBothSide ? 400000 : 200000;
-          const priceWrap = Number(campaigns[i].wrapPrice);
+          // const isBothSide = campaigns[i].wrap.positionWrap === 'BOTH_SIDE';
+          // const extraWrapMoney = isBothSide ? 400000 : 200000;
+          // const priceWrap = Number(campaigns[i].wrapPrice);
 
-          const time = Math.ceil(parseInt(campaigns[i].duration) / 30) - 1;
+          // const time = Math.ceil(parseInt(campaigns[i].duration) / 30) - 1;
 
-          const totalWrapMoney =
-            (priceWrap + time * extraWrapMoney) * listDriverJoinCampaign.length;
+          // const totalWrapMoney =
+          //   (priceWrap + time * extraWrapMoney) * listDriverJoinCampaign.length;
 
-          const totalDriverMoney =
-            Number(campaigns[i].minimumKmDrive) *
-            Number(campaigns[i].locationPricePerKm) *
-            listDriverJoinCampaign.length *
-            Number(campaigns[i].duration);
+          // const totalDriverMoney =
+          //   Number(campaigns[i].minimumKmDrive) *
+          //   Number(campaigns[i].locationPricePerKm) *
+          //   listDriverJoinCampaign.length *
+          //   Number(campaigns[i].duration);
 
           //TODO: 100%
           if (totalMeterFinalReport / 1000 >= Number(campaigns[i].totalKm)) {
-            const totalMoney =
-              totalDriverMoney + totalWrapMoney + totalDriverMoney * 0.1;
-
-            await this.prisma.paymentDebit.update({
-              data: {
-                price: `${Math.ceil(totalMoney - Number(prePay.price))}`,
-              },
-              where: {
-                id: postPaid.id,
-              },
-            });
-
             await this.campaignsService.updateStatusCampaign(
               campaigns[i].id,
-              CampaignStatus.FINISH,
-              'Your campaign was finished. please check out 80%',
+              CampaignStatus.CLOSED,
+              'Your campaign was is completed successful!',
             );
 
             await this.driverService.updateAllStatusDriverApproveToStatus(
@@ -233,24 +179,25 @@ export class TasksService {
             );
           } else {
             // TODO:  >=80%
-            const percentTotalKilometer =
-              totalMeterFinalReport / 1000 / Number(campaigns[i].totalKm);
-            const totalMoney =
-              totalDriverMoney * percentTotalKilometer +
-              totalWrapMoney +
-              totalDriverMoney * 0.1 * percentTotalKilometer;
+            // const percentTotalKilometer =
+            //   totalMeterFinalReport / 1000 / Number(campaigns[i].totalKm);
+            // const totalMoney =
+            //   totalDriverMoney * percentTotalKilometer +
+            //   totalWrapMoney +
+            //   totalDriverMoney * 0.1 * percentTotalKilometer;
 
-            await this.prisma.paymentDebit.update({
-              data: {
-                price: `${Math.ceil(totalMoney - Number(prePay.price))}`,
-              },
-              where: {
-                id: postPaid.id,
-              },
-            });
+            // await this.prisma.paymentDebit.update({
+            //   data: {
+            //     price: `${Math.ceil(totalMoney - Number(prePay.price))}`,
+            //   },
+            //   where: {
+            //     id: postPaid.id,
+            //   },
+            // });
             await this.campaignsService.updateStatusCampaign(
               campaigns[i].id,
-              CampaignStatus.FINISH,
+              CampaignStatus.CLOSED,
+              'Your campaign was is completed successful!',
             );
 
             await this.driverService.updateAllStatusDriverApproveToStatus(

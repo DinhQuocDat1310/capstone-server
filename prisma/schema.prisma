@@ -61,7 +61,7 @@ enum StatusOrder {
 
 enum DescriptionType {
   ADD_AMOUNT
-  WIDTHDRAW_AMOUNT
+  WITHDRAW_AMOUNT
 }
 
 enum Role {
@@ -247,7 +247,7 @@ model Campaign {
   contractCampaign ContractCampaign?
 
   driverJoinCampaign DriverJoinCampaign[]
-  paymentDebit       PaymentDebit[]
+  paymentDebit       PaymentDebit?
 }
 
 enum CampaignStatus {
@@ -256,7 +256,6 @@ enum CampaignStatus {
   PAYMENT
   WRAPPING
   RUNNING
-  FINISH
   CLOSED
   CANCELED
 }
@@ -311,20 +310,14 @@ enum VerifyCampaignStatus {
 }
 
 model PaymentDebit {
-  id          String      @id @default(uuid())
+  id          String    @id @default(uuid())
   price       String?
-  type        TypePayment
   createDate  String
   paidDate    String?
   expiredDate String
-  campaign    Campaign?   @relation(fields: [campaignId], references: [id])
-  campaignId  String
-  isValid     Boolean     @default(false)
-}
-
-enum TypePayment {
-  POSTPAID
-  PREPAY
+  campaign    Campaign? @relation(fields: [campaignId], references: [id])
+  campaignId  String    @unique
+  isValid     Boolean   @default(false)
 }
 
 model ContractCampaign {

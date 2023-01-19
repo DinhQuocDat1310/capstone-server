@@ -182,39 +182,13 @@ export class ContractService {
         },
       });
 
-      await this.prisma.paymentDebit.createMany({
-        data: [
-          {
-            campaignId: verifyCampaign.campaignId,
-            type: 'PREPAY',
-            price: `${Math.ceil(totalMoney * 0.2)}`,
-            createDate: datePaymentDepose,
-            expiredDate: dateEndPaymentDeposit,
-          },
-          {
-            campaignId: verifyCampaign.campaignId,
-            type: 'POSTPAID',
-            createDate: moment(
-              verifyCampaign.campaign.startRunningDate,
-              'MM/DD/YYYY',
-            )
-              .add(Number(verifyCampaign.campaign.duration), 'days')
-              .toDate()
-              .toLocaleDateString('vn-VN'),
-            expiredDate: moment(
-              verifyCampaign.campaign.startRunningDate,
-              'MM/DD/YYYY',
-            )
-              .add(
-                Number(verifyCampaign.campaign.duration) +
-                  parseInt(objDataConfig.gapPaymentDeposit) -
-                  1,
-                'days',
-              )
-              .toDate()
-              .toLocaleDateString('vn-VN'),
-          },
-        ],
+      await this.prisma.paymentDebit.create({
+        data: {
+          campaignId: verifyCampaign.campaignId,
+          price: `${Math.ceil(totalMoney * 0.2)}`,
+          createDate: datePaymentDepose,
+          expiredDate: dateEndPaymentDeposit,
+        },
       });
       const message = `<p>Congratulations!. Your campaign information has been accepted</p>
            <p>Please login at the website for more details</p>`;
@@ -288,23 +262,12 @@ export class ContractService {
             wrapPrice: true,
             detailMessage: true,
             paymentDebit: {
-              where: {
-                campaign: {
-                  contractCampaign: {
-                    id: contractId,
-                  },
-                },
-                type: {
-                  in: ['PREPAY', 'POSTPAID'],
-                },
-              },
               select: {
                 id: true,
                 paidDate: true,
                 expiredDate: true,
                 createDate: true,
                 price: true,
-                type: true,
                 isValid: true,
               },
             },
@@ -401,9 +364,6 @@ export class ContractService {
           campaign: {
             select: {
               paymentDebit: {
-                where: {
-                  type: 'PREPAY',
-                },
                 select: {
                   id: true,
                 },
@@ -414,7 +374,7 @@ export class ContractService {
       });
       await this.prisma.paymentDebit.update({
         where: {
-          id: contract.campaign.paymentDebit[0].id,
+          id: contract.campaign.paymentDebit.id,
         },
         data: {
           isValid: true,

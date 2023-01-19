@@ -36,7 +36,6 @@ export class CampaignService {
                 'PAYMENT',
                 'RUNNING',
                 'WRAPPING',
-                'FINISH',
               ],
             },
           },
@@ -94,7 +93,7 @@ export class CampaignService {
         AND: [
           {
             statusCampaign: {
-              in: ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING', 'FINISH'],
+              in: ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING'],
             },
           },
           {
@@ -288,20 +287,11 @@ export class CampaignService {
           },
         },
         paymentDebit: {
-          where: {
-            campaign: {
-              id: campaignId,
-            },
-            type: {
-              in: ['PREPAY', 'POSTPAID'],
-            },
-          },
           select: {
             id: true,
             createDate: true,
             expiredDate: true,
             paidDate: true,
-            type: true,
             price: true,
             isValid: true,
           },
@@ -314,11 +304,6 @@ export class CampaignService {
     let isWaiting = false;
     let days = 0;
     let messageWaiting = '';
-    const sortDatePayment = brandOwnCampaign.paymentDebit.sort(
-      (a, b) =>
-        moment(a.createDate, 'MM/DD/YYYY').valueOf() -
-        moment(b.createDate, 'MM/DD/YYYY').valueOf(),
-    );
 
     switch (brandOwnCampaign.statusCampaign) {
       case 'OPEN':
@@ -333,19 +318,9 @@ export class CampaignService {
       case 'PAYMENT':
         isWaiting =
           moment(globalDate, 'MM/DD/YYYY') <
-          moment(
-            brandOwnCampaign.paymentDebit.find(
-              (payment) => payment.type === 'PREPAY',
-            ).createDate,
-            'MM/DD/YYYY',
-          );
+          moment(brandOwnCampaign.paymentDebit.createDate, 'MM/DD/YYYY');
         days = moment(globalDate, 'MM/DD/YYYY').diff(
-          moment(
-            brandOwnCampaign.paymentDebit.find(
-              (payment) => payment.type === 'PREPAY',
-            ).createDate,
-            'MM/DD/YYYY',
-          ),
+          moment(brandOwnCampaign.paymentDebit.createDate, 'MM/DD/YYYY'),
           'days',
         );
         break;
@@ -358,7 +333,6 @@ export class CampaignService {
           'days',
         );
         break;
-        break;
       case 'RUNNING':
         isWaiting =
           moment(globalDate, 'MM/DD/YYYY') <
@@ -368,32 +342,12 @@ export class CampaignService {
           'days',
         );
         break;
-      case 'FINISH':
-        isWaiting =
-          moment(globalDate, 'MM/DD/YYYY') <
-          moment(
-            brandOwnCampaign.paymentDebit.find(
-              (payment) => payment.type === 'POSTPAID',
-            ).createDate,
-            'MM/DD/YYYY',
-          );
-        days = moment(globalDate, 'MM/DD/YYYY').diff(
-          moment(
-            brandOwnCampaign.paymentDebit.find(
-              (payment) => payment.type === 'POSTPAID',
-            ).createDate,
-            'MM/DD/YYYY',
-          ),
-          'days',
-        );
-        break;
     }
     if (isWaiting) {
       messageWaiting = `Our system is processing, please wait ${Math.abs(
         days,
       )} days to ${brandOwnCampaign.statusCampaign}`;
     }
-    brandOwnCampaign.paymentDebit = sortDatePayment;
     return { ...brandOwnCampaign, isWaiting: `${isWaiting}`, messageWaiting };
   }
 
@@ -770,15 +724,7 @@ export class CampaignService {
           },
         ],
         statusCampaign: {
-          in: [
-            'OPEN',
-            'PAYMENT',
-            'WRAPPING',
-            'RUNNING',
-            'FINISH',
-            'CLOSED',
-            'CANCELED',
-          ],
+          in: ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING', 'CLOSED', 'CANCELED'],
         },
       },
     });
@@ -799,7 +745,6 @@ export class CampaignService {
           in: ['APPROVE'],
         };
         break;
-      case 'FINISH':
       case 'CLOSED':
         status = {
           in: ['FINISH'],
@@ -885,12 +830,8 @@ export class CampaignService {
     );
   }
 
-  async getAllCampaignPaymentIsExpired(isPrePay: boolean, globalDate?: string) {
-    const statusCampaign = isPrePay ? 'PAYMENT' : 'FINISH';
+  async getAllCampaignPaymentIsExpired(globalDate?: string) {
     const campaigns = await this.prisma.campaign.findMany({
-      where: {
-        statusCampaign,
-      },
       include: {
         locationCampaign: true,
         paymentDebit: true,
@@ -910,24 +851,15 @@ export class CampaignService {
         },
       },
     });
-    const type = isPrePay ? 'PREPAY' : 'POSTPAID';
     if (globalDate) {
       return campaigns.filter(
         (c) =>
           moment(globalDate, 'MM/DD/YYYY') >=
-          moment(
-            c.paymentDebit.find((pay) => pay.type === type).expiredDate,
-            'MM/DD/YYYY',
-          ),
+          moment(c.paymentDebit.expiredDate, 'MM/DD/YYYY'),
       );
     }
     return campaigns.filter(
-      (c) =>
-        moment() >=
-        moment(
-          c.paymentDebit.find((pay) => pay.type === type).expiredDate,
-          'MM/DD/YYYY',
-        ),
+      (c) => moment() >= moment(c.paymentDebit.expiredDate, 'MM/DD/YYYY'),
     );
   }
 
@@ -1015,15 +947,7 @@ export class CampaignService {
           { verifyCampaign: { every: { manager: { userId } } } },
         ],
         statusCampaign: {
-          in: [
-            'OPEN',
-            'PAYMENT',
-            'WRAPPING',
-            'FINISH',
-            'RUNNING',
-            'CLOSED',
-            'CANCELED',
-          ],
+          in: ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING', 'CLOSED', 'CANCELED'],
         },
       },
       select: {
@@ -1078,7 +1002,6 @@ export class CampaignService {
           CampaignStatus.WRAPPING,
           CampaignStatus.RUNNING,
           CampaignStatus.CLOSED,
-          CampaignStatus.FINISH,
           CampaignStatus.CANCELED,
         ],
       },
@@ -1218,7 +1141,7 @@ export class CampaignService {
           { verifyCampaign: { every: { manager: { userId } } } },
         ],
         statusCampaign: {
-          in: ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING', 'FINISH', 'CLOSED'],
+          in: ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING', 'CLOSED'],
         },
       },
       include: {
