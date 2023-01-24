@@ -41,25 +41,7 @@ export class DriverVerifyInformationDTO {
     description: 'id license plate',
   })
   @IsString()
-  idCar: string;
-
-  @ApiProperty({
-    description: 'Bank account number',
-  })
-  @IsNumberString()
-  bankAccountNumber: string;
-
-  @ApiProperty({
-    description: 'Owner account bank',
-  })
-  @IsString()
-  bankAccountOwner: string;
-
-  @ApiProperty({
-    description: 'Bank Name',
-  })
-  @IsString()
-  bankName: string;
+  licensePlates: string;
 
   @ApiProperty({
     description: 'URL image of the back of an identity card',

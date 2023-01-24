@@ -12,7 +12,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { Role, UserStatus } from '@prisma/client';
+import { Role, StatusUser } from '@prisma/client';
 import { Roles } from 'src/guard/decorators';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/guard/roles.guard';
@@ -31,7 +31,7 @@ export class PolicyController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiCreatedResponse({ description: 'Created' })
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Roles(Role.ADMIN)
   @Post('/create')
   async createPolicy(@Body() dto: PolicyDto) {
@@ -54,7 +54,7 @@ export class PolicyController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.ADMIN)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Get('/list/admin')
   async viewListPolicyAdmin() {
     return await this.policyService.viewListPolicyAdmin();
@@ -66,7 +66,7 @@ export class PolicyController {
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Roles(Role.ADMIN)
   @Get('/enable/:id')
   async enablePolicy(@Param('id') id: string) {
@@ -79,7 +79,7 @@ export class PolicyController {
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Roles(Role.ADMIN)
   @Get('/disable/:id')
   async disablePolicy(@Param('id') id: string) {

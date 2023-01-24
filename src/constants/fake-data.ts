@@ -172,11 +172,11 @@ export const FAKE_IMAGE_CAR = [
   'https://images.unsplash.com/photo-1615836494670-706aa6af4974?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8NzB8fGZyb250JTIwY2FyfGVufDB8fDB8fA%3D%3D&auto=format&fit=crop&w=500&q=60',
 ];
 
-export const FAKE_DURATION = ['30', '60', '90', '30', '60'];
+export const FAKE_DURATION = [30, 60, 90, 2, 1];
 
 export const FAKE_TOTALKM = ['27000', '36000', '42000', '48000', '54000'];
 
-export const FAKE_QUANTITY_DRIVER = ['45', '30', '35', '80', '45'];
+export const FAKE_QUANTITY_DRIVER = [45, 30, 35, 80, 45];
 
 export const FAKE_CAMPAIGN_NAME = [
   'Campaign A',
@@ -200,12 +200,8 @@ export const POSITION_WRAP = [
   PositionWrap.RIGHT_SIDE,
 ];
 
-export const PRICE_POSITION_WRAP = ['300000', '600000', '300000'];
+export const PRICE_POSITION_WRAP = [300000, 600000, 300000];
 
 export const FAKE_PRICE_POSITION_WRAP = [
-  '300000',
-  '600000',
-  '300000',
-  '300000',
-  '600000',
+  300000, 600000, 300000, 300000, 600000,
 ];

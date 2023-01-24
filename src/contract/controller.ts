@@ -18,7 +18,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { UserStatus, Role } from '@prisma/client';
+import { StatusUser, Role } from '@prisma/client';
 import { RequestUser } from 'src/auth/dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { Roles, Status } from 'src/guard/decorators';
@@ -40,21 +40,18 @@ export class ContractController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiCreatedResponse({ description: 'Created' })
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Roles(Role.MANAGER)
   @Post('/create')
-  async updateCampaignInformation(
-    @Request() req: RequestUser,
-    @Body() dto: CampaignContractDTO,
-  ) {
-    return await this.contractService.createCampaignContract(req.user.id, dto);
+  async updateCampaignInformation(@Body() dto: CampaignContractDTO) {
+    return await this.contractService.createCampaignContract(dto);
   }
 
   @ApiOperation({ summary: 'Get contract by Contract ID' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Roles(Role.BRAND, Role.MANAGER)
   @Get('/:id')
   async getContractByContractId(@Param('id') contractId: string) {
@@ -65,7 +62,7 @@ export class ContractController {
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Roles(Role.BRAND)
   @Get('/accept/:id')
   async acceptContract(
@@ -80,7 +77,7 @@ export class ContractController {
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Roles(Role.BRAND)
   @Post('/cancel')
   async cancelContract(

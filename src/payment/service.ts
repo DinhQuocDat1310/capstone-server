@@ -8,12 +8,11 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Cache } from 'cache-manager';
-import * as moment from 'moment';
 import fetch, { Response } from 'node-fetch';
 // import { GLOBAL_DATE } from 'src/constants/cache-code';
 import { PrismaService } from 'src/prisma/service';
 import { TransactionDTO } from './dto';
-import { CampaignStatus } from '@prisma/client';
+import { StatusCampaign } from '@prisma/client';
 
 @Injectable()
 export class PaymentService {
@@ -46,23 +45,21 @@ export class PaymentService {
           ],
         }),
       });
-      const walletUser = await this.prisma.iWallet.findFirst({
+      const walletUser = await this.prisma.eWallet.findFirst({
         where: {
           userId: dto.userId,
         },
       });
       const result = await this.handleResponse(response);
-      await this.prisma.orderTransaction.create({
+      await this.prisma.transactions.create({
         data: {
           id: result.id,
-          amount: dto.amount,
-          createDate: moment(new Date(), 'MM/DD/YYYY')
-            .toDate()
-            .toLocaleDateString('vn-VN'),
+          amount: +dto.amount,
+          createDate: new Date(),
           name: 'PAYPAL Service',
-          statusOrder: 'PENDING',
-          descriptionType: 'ADD_AMOUNT',
-          iWallet: {
+          status: 'PENDING',
+          type: 'DEPOSIT',
+          eWallet: {
             connect: {
               id: walletUser.id,
             },
@@ -86,12 +83,12 @@ export class PaymentService {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    const walletUser = await this.prisma.iWallet.findFirst({
+    const walletUser = await this.prisma.eWallet.findFirst({
       where: {
         userId,
       },
     });
-    const transactionUser = await this.prisma.orderTransaction.findFirst({
+    const transactionUser = await this.prisma.transactions.findFirst({
       where: {
         id: orderId,
       },
@@ -99,22 +96,22 @@ export class PaymentService {
 
     if (response.status === 200 || response.status === 201) {
       try {
-        const totalAmount =
-          Number(walletUser.totalAmount) + Number(transactionUser.amount);
-        await this.prisma.orderTransaction.update({
+        const totalBalance =
+          Number(walletUser.totalBalance) + Number(transactionUser.amount);
+        await this.prisma.transactions.update({
           where: {
             id: transactionUser.id,
           },
           data: {
-            statusOrder: 'SUCCESS',
+            status: 'SUCCESS',
           },
         });
-        await this.prisma.iWallet.update({
+        await this.prisma.eWallet.update({
           where: {
             id: walletUser.id,
           },
           data: {
-            totalAmount: totalAmount.toString(),
+            totalBalance: totalBalance,
           },
         });
         return response.json();
@@ -123,12 +120,12 @@ export class PaymentService {
         throw new BadRequestException(error.message);
       }
     } else {
-      await this.prisma.orderTransaction.update({
+      await this.prisma.transactions.update({
         where: {
           id: walletUser.id,
         },
         data: {
-          statusOrder: 'FAILED',
+          status: 'FAILED',
         },
       });
     }
@@ -161,80 +158,26 @@ export class PaymentService {
     throw new Error(errorMessage);
   }
 
-  async updatePaymentForCampaign(campaignId: string) {
-    const contract = await this.prisma.contractCampaign.findFirst({
-      where: {
-        campaignId,
-      },
-      select: {
-        campaign: {
-          include: {
-            paymentDebit: {
-              select: {
-                id: true,
-              },
-            },
-            wrap: true,
-            locationCampaign: true,
-          },
-        },
-      },
-    });
-
-    const numberJoinCampaign = await this.prisma.driverJoinCampaign.count({
-      where: {
-        campaignId,
-        status: 'APPROVE',
-      },
-    });
-
-    const isBothSide = contract.campaign.wrap.positionWrap === 'BOTH_SIDE';
-    const extraWrapMoney = isBothSide ? 400000 : 200000;
-    const priceWrap = parseFloat(contract.campaign.wrapPrice);
-    const time = Math.ceil(Number(contract.campaign.duration) / 30) - 1;
-
-    const totalWrapMoney =
-      (priceWrap + time * extraWrapMoney) * numberJoinCampaign;
-    const totalDriverMoney =
-      parseFloat(contract.campaign.minimumKmDrive) *
-      parseFloat(contract.campaign.locationPricePerKm) *
-      numberJoinCampaign *
-      parseFloat(contract.campaign.duration);
-
-    const totalSystemMoney = totalDriverMoney * 0.1;
-
-    const totalMoney = totalDriverMoney + totalWrapMoney + totalSystemMoney;
-
-    await this.prisma.paymentDebit.update({
-      where: {
-        id: contract.campaign.paymentDebit.id,
-      },
-      data: {
-        price: `${Math.ceil(totalMoney * 0.2)}`,
-      },
-    });
-  }
-
   async handleAllWebhook(dto: any) {
     this.logger.debug('Test Something webhook', dto);
   }
 
   async viewAllTransaction(userReq: UserSignIn) {
-    return await this.prisma.iWallet.findMany({
+    return await this.prisma.eWallet.findMany({
       where: {
         userId: userReq.id,
       },
       select: {
         id: true,
-        totalAmount: true,
+        totalBalance: true,
         updateDate: true,
-        orderTransaction: {
+        transactions: {
           select: {
             name: true,
             amount: true,
             createDate: true,
-            descriptionType: true,
-            statusOrder: true,
+            type: true,
+            status: true,
           },
         },
       },
@@ -260,22 +203,20 @@ export class PaymentService {
         Number(campaign.contractCampaign.totalSystemMoney) +
         Number(campaign.contractCampaign.totalWrapMoney);
 
-      const walletUser = await this.prisma.iWallet.findFirst({
+      const walletUser = await this.prisma.eWallet.findFirst({
         where: {
           userId,
         },
       });
 
-      await this.prisma.orderTransaction.create({
+      await this.prisma.transactions.create({
         data: {
-          amount: totalPay.toString(),
-          createDate: moment(new Date(), 'MM/DD/YYYY')
-            .toDate()
-            .toLocaleDateString('vn-VN'),
+          amount: totalPay,
+          createDate: new Date(),
           name: `Checkout campaign ${campaign.campaignName}`,
-          statusOrder: 'SUCCESS',
-          descriptionType: 'WITHDRAW_AMOUNT',
-          iWallet: {
+          status: 'SUCCESS',
+          type: 'WITHDRAW',
+          eWallet: {
             connect: {
               id: walletUser.id,
             },
@@ -283,13 +224,13 @@ export class PaymentService {
         },
       });
 
-      const balance = Number(walletUser.totalAmount) - totalPay;
-      await this.prisma.iWallet.update({
+      const balance = Number(walletUser.totalBalance) - totalPay;
+      await this.prisma.eWallet.update({
         where: {
           id: walletUser.id,
         },
         data: {
-          totalAmount: balance.toString(),
+          totalBalance: balance,
         },
       });
 
@@ -298,7 +239,7 @@ export class PaymentService {
           id: campaign.id,
         },
         data: {
-          statusCampaign: CampaignStatus.WRAPPING,
+          statusCampaign: StatusCampaign.WRAPPING,
         },
       });
     } catch (error) {

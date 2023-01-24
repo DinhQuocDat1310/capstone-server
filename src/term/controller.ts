@@ -1,4 +1,4 @@
-import { UserStatus, Role } from '@prisma/client';
+import { StatusUser, Role } from '@prisma/client';
 import { TermDto } from './dto';
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import {
@@ -30,7 +30,7 @@ export class TermController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiCreatedResponse({ description: 'Created' })
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Roles(Role.ADMIN)
   @Post('/create')
   async createFAQ(@Body() dto: TermDto) {
@@ -51,7 +51,7 @@ export class TermController {
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @Roles(Role.ADMIN)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Get('/list/admin')
   async viewListTermAdmin() {
     return await this.termService.viewListTermAdmin();
@@ -63,7 +63,7 @@ export class TermController {
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Roles(Role.ADMIN)
   @Get('/enable/:id')
   async enableTerm(@Param('id') id: string) {
@@ -76,7 +76,7 @@ export class TermController {
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Roles(Role.ADMIN)
   @Get('/disable/:id')
   async disableTerm(@Param('id') id: string) {

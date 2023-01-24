@@ -5,7 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { UserStatus } from '@prisma/client';
+import { StatusUser } from '@prisma/client';
 import { STATUS_KEY } from './decorators';
 import { RequestUser } from 'src/auth/dto';
 
@@ -14,7 +14,7 @@ export class StatusGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const requireStatus = this.reflector.get<UserStatus[]>(
+    const requireStatus = this.reflector.get<StatusUser[]>(
       STATUS_KEY,
       context.getHandler(),
     );

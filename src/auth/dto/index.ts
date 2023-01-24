@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Role, UserStatus } from '@prisma/client';
+import { Role, StatusUser } from '@prisma/client';
 
 export class SignInDto {
   @ApiProperty({ type: String, description: 'email or phoneNumber' })
@@ -15,8 +15,7 @@ export class RequestUser {
 export class UserSignIn {
   id: string;
   email: string;
-  phoneNumber: string;
   role: Role;
-  status: UserStatus;
+  status: StatusUser;
   address: string;
 }

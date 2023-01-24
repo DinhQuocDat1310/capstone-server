@@ -23,7 +23,7 @@ import { RolesGuard } from 'src/guard/roles.guard';
 import { TransactionDTO } from './dto';
 import { PaymentService } from './service';
 import { Roles, Status } from 'src/guard/decorators';
-import { Role, UserStatus } from '@prisma/client';
+import { Role, StatusUser } from '@prisma/client';
 
 @Controller('payment')
 @ApiTags('Payment')
@@ -57,7 +57,7 @@ export class PaymentController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
   @Roles(Role.BRAND)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Get('/transactions')
   @ApiBearerAuth('access-token')
   async viewAllTransaction(@Request() req: RequestUser) {
@@ -68,7 +68,7 @@ export class PaymentController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
   @Roles(Role.BRAND)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Get('/checkout/:campaignId')
   @ApiBearerAuth('access-token')
   async checkoutCampaign(

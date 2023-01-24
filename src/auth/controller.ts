@@ -14,7 +14,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { UserStatus } from '@prisma/client';
+import { StatusUser } from '@prisma/client';
 import { Status } from 'src/guard/decorators';
 import { StatusGuard } from 'src/guard/userStatus.guard';
 import { RequestUser } from './dto';
@@ -39,11 +39,11 @@ export class AuthController {
   @ApiOkResponse({ description: 'Login successful' })
   @HttpCode(HttpStatus.OK)
   @Status(
-    UserStatus.INIT,
-    UserStatus.NEW,
-    UserStatus.PENDING,
-    UserStatus.UPDATE,
-    UserStatus.VERIFIED,
+    StatusUser.INIT,
+    StatusUser.NEW,
+    StatusUser.PENDING,
+    StatusUser.UPDATE,
+    StatusUser.VERIFIED,
   )
   @Post('/login')
   async login(@Request() req: RequestUser) {

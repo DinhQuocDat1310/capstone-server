@@ -5,7 +5,6 @@ import {
   EXPIRED_GLOBAL_DATE_ONE_DAY,
   GLOBAL_DATE,
 } from 'src/constants/cache-code';
-import * as moment from 'moment';
 import { TasksService } from 'src/task/service';
 
 @Injectable()
@@ -25,39 +24,22 @@ export class DemoService {
         },
       },
       include: {
-        paymentDebit: true,
         driverJoinCampaign: {
           include: {
-            driverTrackingLocation: {
-              include: {
-                tracking: true,
-              },
-            },
+            driverScanQRCode: true,
+            drivingPhotoReport: true,
           },
         },
       },
     });
 
     return campaigns.map((campaign) => {
-      let totalMeterFinalReport = 0;
-      if (campaign.statusCampaign === 'RUNNING') {
-        campaign.driverJoinCampaign.forEach((driver) =>
-          driver.driverTrackingLocation.forEach((track) =>
-            track.tracking.forEach(
-              (total) =>
-                (totalMeterFinalReport += Number(total.totalMeterDriven)),
-            ),
-          ),
-        );
-      }
       return {
         ...campaign,
         numberOfDriversRequired: campaign?.quantityDriver,
         numberOfDriversJoined: campaign.driverJoinCampaign.filter(
           (driver) => driver.status === 'JOIN' || driver.status === 'APPROVE',
         ).length,
-        totalKilometerRequired: campaign.totalKm,
-        totalKilometerDriverRun: `${(totalMeterFinalReport / 1000).toFixed(2)}`,
       };
     });
   }
@@ -65,42 +47,35 @@ export class DemoService {
   async getGlobalDate() {
     let date = await this.cacheManager.get(GLOBAL_DATE);
     if (!date) {
-      date = await this.cacheManager.set(
-        GLOBAL_DATE,
-        moment().toDate().toLocaleDateString('vn-VN'),
-        {
-          ttl: EXPIRED_GLOBAL_DATE_ONE_DAY,
-        },
-      );
+      date = await this.cacheManager.set(GLOBAL_DATE, new Date(), {
+        ttl: EXPIRED_GLOBAL_DATE_ONE_DAY,
+      });
     }
     return date;
   }
 
   async resetGlobalDate() {
-    const today = moment().toDate().toLocaleDateString('vn-VN');
+    const today = new Date();
     await this.cacheManager.set(GLOBAL_DATE, today, {
       ttl: EXPIRED_GLOBAL_DATE_ONE_DAY,
     });
     return today;
   }
 
-  async setGlobalDate(newDate: string) {
-    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
-    if (moment(globalDate, 'MM/DD/YYYY') > moment(newDate, 'MM/DD/YYYY')) {
+  async setGlobalDate(newDate: Date) {
+    const globalDate: Date = await this.cacheManager.get(GLOBAL_DATE);
+    if (globalDate > newDate) {
       this.logger.error('New date must be greater than current global date');
       return;
     }
 
-    const newGlobalDate = moment(newDate, 'MM/DD/YYYY')
-      .toDate()
-      .toLocaleDateString('vn-VN');
-    await this.cacheManager.set(GLOBAL_DATE, newGlobalDate, {
+    await this.cacheManager.set(GLOBAL_DATE, newDate, {
       ttl: EXPIRED_GLOBAL_DATE_ONE_DAY,
     });
 
-    await this.taskService.handleCompleteRegisterCampaignPhase(newGlobalDate);
-    await this.taskService.handleCompletePaymentCampaignPhase(newGlobalDate);
-    await this.taskService.handleCompleteWrappingCampaignPhase(newGlobalDate);
+    await this.taskService.handleCompleteRegisterCampaignPhase(newDate);
+    // await this.taskService.handleCompletePaymentCampaignPhase(newDate);
+    await this.taskService.handleCompleteWrappingCampaignPhase(newDate);
     // await this.taskService.handleCompletePostPaymentCampaignPhase(
     //   newGlobalDate,
     // );

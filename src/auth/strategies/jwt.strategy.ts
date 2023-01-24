@@ -26,10 +26,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     sub: string;
     username: string;
   }): Promise<UserSignIn> {
-    const user = await this.userService.findUserByEmailOrPhoneNumber(
-      payload.username,
-      payload.username,
-    );
+    const user = await this.userService.findUserByEmail(payload.username);
     if (!user) throw new UnauthorizedException();
     if (!user.isActive)
       throw new ForbiddenException(
@@ -40,7 +37,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     return {
       id: user.id,
       email: user.email,
-      phoneNumber: user.phoneNumber,
       role: user.role,
       status: user.status,
       address: user.address,

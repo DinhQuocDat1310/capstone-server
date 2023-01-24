@@ -20,18 +20,13 @@ import { TasksService } from './service';
 import { RolesGuard } from 'src/guard/roles.guard';
 import { Roles } from 'src/guard/decorators';
 import { Role } from '@prisma/client';
-import { LocationCoordinateDTO } from 'src/location/dto';
-import { LocationService } from 'src/location/service';
 
 @Controller('manual')
 @ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiTags('Cron-job manually')
 export class TaskController {
-  constructor(
-    private readonly taskService: TasksService,
-    private readonly locationService: LocationService,
-  ) {}
+  constructor(private readonly taskService: TasksService) {}
 
   @ApiOperation({ summary: 'Add manager to verify account manually' })
   @ApiForbiddenResponse({
@@ -86,23 +81,5 @@ export class TaskController {
   @Get('/complete/run-phase')
   async CompleteRunningCampaignPhase() {
     return await this.taskService.handleCompleteRunningCampaignPhase();
-  }
-
-  @ApiBody({ type: LocationCoordinateDTO })
-  @ApiOperation({ summary: 'Haversine distance formular' })
-  @ApiForbiddenResponse({
-    description: "Account don't have permission to use this feature",
-  })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Roles(Role.ADMIN)
-  @Post('/calculate/long-lat')
-  async CalCulateLongLatDistance(
-    @Request() req: RequestUser,
-    @Body() dto: LocationCoordinateDTO,
-  ) {
-    return await this.locationService.CalculateLatLongToMetersDistance(
-      dto.pointA,
-      dto.pointB,
-    );
   }
 }

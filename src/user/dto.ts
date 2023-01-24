@@ -86,3 +86,25 @@ export class ChangePasswordDTO {
   )
   newPassword: string;
 }
+
+export class CreateReporterDTO {
+  @ApiProperty({
+    description: 'Email Reporter',
+  })
+  email: string;
+
+  @ApiProperty({
+    description: 'password',
+  })
+  password: string;
+
+  @ApiProperty({
+    description: 'Full name',
+  })
+  fullname: string;
+
+  @ApiProperty({
+    description: 'Address',
+  })
+  address: string;
+}

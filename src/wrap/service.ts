@@ -20,8 +20,8 @@ export class WrapService {
         id: dto.wrapId,
       },
       data: {
-        price: dto.price,
-        status: dto.status,
+        price: +dto.price,
+        positionWrap: dto.status,
       },
     });
   }
@@ -31,7 +31,7 @@ export class WrapService {
       ? await this.prisma.wrap.findMany({})
       : await this.prisma.wrap.findMany({
           where: {
-            status: 'ENABLE',
+            isActive: true,
           },
         });
   }

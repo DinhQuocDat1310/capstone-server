@@ -11,7 +11,6 @@ import { PaymentService } from 'src/payment/service';
 import { DriversService } from 'src/driver/service';
 import { UsersService } from 'src/user/service';
 import { TaskController } from './controller';
-import { LocationService } from 'src/location/service';
 
 @Module({
   controllers: [TaskController],
@@ -27,7 +26,6 @@ import { LocationService } from 'src/location/service';
     PaymentService,
     DriversService,
     UsersService,
-    LocationService,
   ],
 })
 export class TasksModule {}

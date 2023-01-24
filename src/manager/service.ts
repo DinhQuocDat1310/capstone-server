@@ -1,6 +1,6 @@
 import { PrismaService } from './../prisma/service';
 import { Injectable } from '@nestjs/common';
-import { VerifyAccountStatus } from '@prisma/client';
+import { StatusVerifyAccount } from '@prisma/client';
 
 @Injectable()
 export class ManagerService {
@@ -45,7 +45,6 @@ export class ManagerService {
             },
             data: {
               status: 'PENDING',
-              assignBy: 'SYSTEM',
             },
           },
         },
@@ -53,7 +52,7 @@ export class ManagerService {
     });
   }
 
-  async listManagerHandleTask(status: VerifyAccountStatus) {
+  async listManagerHandleTask(status: StatusVerifyAccount) {
     const list = await this.prisma.manager.findMany({
       select: {
         user: {

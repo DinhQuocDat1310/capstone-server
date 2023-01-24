@@ -21,7 +21,7 @@ export class PolicyService {
     return await this.prisma.policiesTerm.findMany({
       where: {
         type: 'POLICY',
-        status: 'ENABLE',
+        isActive: true,
       },
     });
   }
@@ -41,7 +41,7 @@ export class PolicyService {
         id,
       },
       data: {
-        status: 'ENABLE',
+        isActive: true,
       },
     });
     return `Enable Policy`;
@@ -54,7 +54,7 @@ export class PolicyService {
         id,
       },
       data: {
-        status: 'DISABLE',
+        isActive: false,
       },
     });
     return `Disable Policy`;

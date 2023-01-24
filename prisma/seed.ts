@@ -1,8 +1,7 @@
 import { faq, policies, terms } from './db/policy';
 import { users } from './db/user';
 import { Logger } from '@nestjs/common';
-import { PositionWrap, Status } from '@prisma/client';
-import * as moment from 'moment';
+import { PositionWrap } from '@prisma/client';
 import { PrismaService } from '../src/prisma/service';
 
 async function main() {
@@ -20,39 +19,15 @@ async function main() {
       data: [
         {
           positionWrap: PositionWrap.LEFT_SIDE,
-          price: '300000',
-          status: Status.ENABLE,
+          price: 300000,
         },
         {
           positionWrap: PositionWrap.BOTH_SIDE,
-          price: '600000',
-          status: Status.ENABLE,
+          price: 600000,
         },
         {
           positionWrap: PositionWrap.RIGHT_SIDE,
-          price: '300000',
-          status: Status.ENABLE,
-        },
-      ],
-    });
-
-    await prisma.locationCampaignPerKm.createMany({
-      data: [
-        {
-          locationName: 'TP Hồ Chí Minh',
-          price: '15000',
-          status: Status.ENABLE,
-          addressPoint:
-            '37 Đ. Vạn Tượng, Phường 13, Quận 5, Thành phố Hồ Chí Minh, Vietnam',
-          createDate: moment().toDate().toLocaleDateString('vn-VN'),
-        },
-        {
-          locationName: 'Hà Nội',
-          price: '15000',
-          status: Status.ENABLE,
-          addressPoint:
-            '9 P. Trịnh Hoài Đức, Cát Linh, Đống Đa, Hà Nội, Vietnam',
-          createDate: moment().toDate().toLocaleDateString('vn-VN'),
+          price: 300000,
         },
       ],
     });
@@ -93,11 +68,11 @@ async function main() {
     });
 
     for (let i = 0; i < brands.length; i++) {
-      await prisma.iWallet.create({
+      await prisma.eWallet.create({
         data: {
           userId: brands[i].userId,
-          updateDate: moment().toDate().toLocaleDateString('vn-VN'),
-          totalAmount: '0',
+          updateDate: new Date(),
+          totalBalance: 0,
         },
       });
     }

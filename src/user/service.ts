@@ -5,15 +5,14 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { Role, UserStatus } from '@prisma/client';
+import { Role, StatusUser } from '@prisma/client';
 import { hash, compare } from 'bcrypt';
 import { PrismaService } from 'src/prisma/service';
-import { ChangePasswordDTO, CreateUserDTO } from './dto';
-import { convertPhoneNumberFormat } from 'src/utilities';
+import { ChangePasswordDTO, CreateUserDTO, CreateReporterDTO } from './dto';
 import { UserSignIn } from 'src/auth/dto';
 import { DriverVerifyInformationDTO } from 'src/driver/dto';
 import { BrandVerifyInformationDTO, UpdateBrandLogoDto } from 'src/brand/dto';
-import * as moment from 'moment';
+
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
@@ -33,9 +32,8 @@ export class UsersService {
           : {},
     };
     try {
-      await this.checkEmailOrPhoneNumberIsExist(
+      await this.checkEmailIsExist(
         email ?? '',
-        '',
         'Your account is already exist',
       );
       if (role === 'BRAND') {
@@ -115,7 +113,7 @@ export class UsersService {
     return user;
   }
 
-  async updateStatusUserByUserId(id: string, status: UserStatus) {
+  async updateStatusUserByUserId(id: string, status: StatusUser) {
     return await this.prisma.user.update({
       where: {
         id,
@@ -133,10 +131,9 @@ export class UsersService {
       },
       data: {
         idCitizen: dto.idCitizen,
-        status: UserStatus.PENDING,
+        status: StatusUser.PENDING,
         imageCitizenBack: dto.imageCitizenBack,
         imageCitizenFront: dto.imageCitizenFront,
-        phoneNumber: convertPhoneNumberFormat(dto.phoneNumber),
         address: dto.address,
         brand: {
           update: {
@@ -182,22 +179,18 @@ export class UsersService {
       },
       data: {
         idCitizen: dto.idCitizen,
-        status: UserStatus.PENDING,
+        status: StatusUser.PENDING,
         imageCitizenBack: dto.imageCitizenBack,
         imageCitizenFront: dto.imageCitizenFront,
         email: dto.email,
         address: dto.address,
-        phoneNumber: dto.phoneNumber,
         driver: {
           update: {
-            idCar: dto.idCar,
+            licensePlates: dto.licensePlates,
             imageCarBack: dto.imageCarBack,
             imageCarFront: dto.imageCarFront,
             imageCarLeft: dto.imageCarLeft,
             imageCarRight: dto.imageCarRight,
-            bankAccountNumber: dto.bankAccountNumber,
-            bankName: dto.bankName,
-            bankAccountOwner: dto.bankAccountOwner,
           },
         },
       },
@@ -207,17 +200,10 @@ export class UsersService {
     });
   }
 
-  async findUserByEmailOrPhoneNumber(email: string, phoneNumber: string) {
+  async findUserByEmail(email: string) {
     return await this.prisma.user.findFirst({
       where: {
-        OR: [
-          {
-            email,
-          },
-          {
-            phoneNumber: convertPhoneNumberFormat(phoneNumber),
-          },
-        ],
+        email,
       },
     });
   }
@@ -234,12 +220,8 @@ export class UsersService {
       throw new BadRequestException('This brand name is already exist!');
   }
 
-  async checkEmailOrPhoneNumberIsExist(
-    email: string,
-    phoneNumber: string,
-    message: string,
-  ) {
-    const user = await this.findUserByEmailOrPhoneNumber(email, phoneNumber);
+  async checkEmailIsExist(email: string, message: string) {
+    const user = await this.findUserByEmail(email);
     if (user) throw new BadRequestException(message);
   }
 
@@ -295,13 +277,11 @@ export class UsersService {
 
   async checkIdIsExist({
     idCitizen = '',
-    bankAccountNumber = '',
-    idCar = '',
+    licensePlates = '',
     message = '',
   }: {
     idCitizen?: string;
-    bankAccountNumber?: string;
-    idCar?: string;
+    licensePlates?: string;
     message: string;
   }) {
     const isExist = await this.prisma.user.findFirst({
@@ -312,14 +292,7 @@ export class UsersService {
           },
           {
             driver: {
-              OR: [
-                {
-                  bankAccountNumber,
-                },
-                {
-                  idCar,
-                },
-              ],
+              licensePlates,
             },
           },
         ],
@@ -351,7 +324,6 @@ export class UsersService {
         },
         fullname: true,
         email: true,
-        phoneNumber: true,
         status: true,
         isActive: true,
       },
@@ -381,7 +353,6 @@ export class UsersService {
         },
         fullname: true,
         email: true,
-        phoneNumber: true,
         status: true,
         isActive: true,
         address: true,
@@ -416,10 +387,9 @@ export class UsersService {
       data: {
         fullname,
         email,
-        phoneNumber: convertPhoneNumberFormat(phoneNumber),
         role: Role.MANAGER,
         password: hashPassword,
-        status: UserStatus.VERIFIED,
+        status: StatusUser.VERIFIED,
       },
       select: {
         id: true,
@@ -427,11 +397,31 @@ export class UsersService {
     });
   }
 
-  async test() {
-    return {
-      date: moment().isAfter(moment('11/26/2022', 'MM/DD/YYYY')),
-      test: 'test',
+  async createNewReporter(dto: CreateReporterDTO) {
+    const { address, fullname, email, password } = dto;
+    const hashPassword = await hash(password, 10);
+    const data = {
+      role: Role.REPORTER,
+      password: hashPassword,
+      address,
+      fullname,
+      email,
+      status: StatusUser.VERIFIED,
     };
-    // return moment().toDate().toLocaleDateString('vn-VN');
+
+    try {
+      await this.checkEmailIsExist(
+        email ?? '',
+        'Your account is already exist',
+      );
+      await this.prisma.user.create({
+        data,
+      });
+      return { message: 'success' };
+    } catch (error) {
+      throw new BadRequestException({
+        message: error.message,
+      });
+    }
   }
 }

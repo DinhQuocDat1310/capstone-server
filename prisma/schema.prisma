@@ -12,56 +12,23 @@ datasource db {
 }
 
 model User {
-  id          String     @id @default(uuid())
-  password    String
-  email       String?    @unique
-  phoneNumber String?    @unique
-  fullname    String?
-  address     String?
-  isActive    Boolean    @default(true)
-  role        Role
-  status      UserStatus @default(INIT)
-
-  idCitizen         String? @unique
+  id                String     @id @default(uuid())
+  email             String?    @unique
+  password          String
+  fullname          String?
+  address           String?
+  idCitizen         String?    @unique
   imageCitizenFront String?
   imageCitizenBack  String?
+  role              Role
+  status            StatusUser @default(INIT)
+  isActive          Boolean    @default(true)
 
   brand    Brand?
   driver   Driver?
   manager  Manager?
   reporter Reporter?
-  iWallet  IWallet?
-}
-
-model IWallet {
-  id               String             @id @default(uuid())
-  totalAmount      String?
-  updateDate       String
-  user             User               @relation(fields: [userId], references: [id])
-  userId           String             @unique
-  orderTransaction OrderTransaction[]
-}
-
-model OrderTransaction {
-  id              String          @id @default(uuid())
-  name            String
-  createDate      String
-  amount          String
-  statusOrder     StatusOrder
-  descriptionType DescriptionType
-  iWallet         IWallet         @relation(fields: [iWalletId], references: [id])
-  iWalletId       String
-}
-
-enum StatusOrder {
-  PENDING
-  SUCCESS
-  FAILED
-}
-
-enum DescriptionType {
-  ADD_AMOUNT
-  WITHDRAW_AMOUNT
+  eWallet  EWallet?
 }
 
 enum Role {
@@ -72,7 +39,7 @@ enum Role {
   REPORTER
 }
 
-enum UserStatus {
+enum StatusUser {
   INIT
   NEW
   PENDING
@@ -81,73 +48,83 @@ enum UserStatus {
   VERIFIED
 }
 
-model Brand {
-  id        String  @id @default(uuid())
-  brandName String  @unique
-  logo      String?
+model EWallet {
+  id           String   @id @default(uuid())
+  totalBalance Float    @default(0)
+  updateDate   DateTime @db.Timestamptz
 
+  user         User           @relation(fields: [userId], references: [id])
+  userId       String         @unique
+  transactions Transactions[]
+}
+
+model Transactions {
+  id         String            @id @default(uuid())
+  name       String
+  createDate DateTime          @db.Timestamptz
+  amount     Float
+  status     StatusTransaction
+  type       TypeTransaction
+
+  campaignId String?
+  campaign   Campaign? @relation(fields: [campaignId], references: [id])
+
+  eWallet   EWallet @relation(fields: [eWalletId], references: [id])
+  eWalletId String
+}
+
+enum StatusTransaction {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum TypeTransaction {
+  DEPOSIT
+  WITHDRAW
+}
+
+model Brand {
+  id                   String  @id @default(uuid())
+  brandName            String  @unique
+  logo                 String?
   idLicenseBusiness    String? @unique
   ownerLicenseBusiness String?
-  typeBusiness         String?
   imageLicenseBusiness String?
+  typeBusiness         String?
 
-  verify VerifyAccount[]
-  user   User            @relation(fields: [userId], references: [id])
-  userId String          @unique
-
+  user     User            @relation(fields: [userId], references: [id])
+  userId   String          @unique
   campaign Campaign[]
+  verify   VerifyAccount[]
 }
 
 model Driver {
-  id String @id @default(uuid())
-
-  idCar         String? @unique
+  id            String  @id @default(uuid())
+  licensePlates String? @unique
   imageCarFront String?
   imageCarBack  String?
   imageCarLeft  String?
   imageCarRight String?
 
-  bankAccountNumber String? @unique
-  bankAccountOwner  String?
-  bankName          String?
-
+  user      User                 @relation(fields: [userId], references: [id])
+  userId    String               @unique
   campaigns DriverJoinCampaign[]
-
-  verify VerifyAccount[]
-  user   User            @relation(fields: [userId], references: [id])
-  userId String          @unique
+  verify    VerifyAccount[]
 }
 
 model DriverJoinCampaign {
   id          String           @id @default(uuid())
   status      StatusDriverJoin @default(JOIN)
-  createDate  String
+  createDate  DateTime         @db.Timestamptz
   description String?
 
-  driverId      String
-  driver        Driver   @relation(fields: [driverId], references: [id])
-  campaignId    String
-  campaign      Campaign @relation(fields: [campaignId], references: [id])
-  isRequiredOdo Boolean  @default(true)
-
-  reporterDriverCampaign ReporterDriverCampaign[]
-  driverTrackingLocation DriverTrackingLocation[]
-}
-
-model DriverTrackingLocation {
-  id                   String              @id @default(uuid())
-  createDate           String
-  driverJoinCampaign   DriverJoinCampaign? @relation(fields: [driverJoinCampaignId], references: [id])
-  driverJoinCampaignId String?
-  tracking             Tracking[]
-}
-
-model Tracking {
-  id                       String                  @id @default(uuid())
-  totalMeterDriven         String
-  timeSubmit               String
-  driverTrackingLocation   DriverTrackingLocation? @relation(fields: [driverTrackingLocationId], references: [id])
-  driverTrackingLocationId String?
+  driverId           String
+  driver             Driver               @relation(fields: [driverId], references: [id])
+  campaignId         String
+  campaign           Campaign             @relation(fields: [campaignId], references: [id])
+  drivingPhotoReport DrivingPhotoReport[]
+  driverScanQRCode   DriverScanQRCode[]
 }
 
 enum StatusDriverJoin {
@@ -157,30 +134,41 @@ enum StatusDriverJoin {
   CANCEL
 }
 
+model DriverScanQRCode {
+  id         String   @id @default(uuid())
+  submitTime DateTime @db.Timestamptz
+
+  driverJoinCampaignId String
+  driverJoinCampaign   DriverJoinCampaign @relation(fields: [driverJoinCampaignId], references: [id])
+  checkpointId         String
+  Checkpoint           Checkpoint         @relation(fields: [checkpointId], references: [id])
+}
+
 model Reporter {
   id String @id @default(uuid())
 
-  user                   User                     @relation(fields: [userId], references: [id])
-  userId                 String                   @unique
-  reporterDriverCampaign ReporterDriverCampaign[]
+  Checkpoint         Checkpoint?
+  userId             String               @unique
+  user               User                 @relation(fields: [userId], references: [id])
+  drivingPhotoReport DrivingPhotoReport[]
 }
 
-model ReporterDriverCampaign {
-  id                   String             @id @default(uuid())
-  imageCarBack         String
-  imageCarLeft         String?
-  imageCarRight        String?
-  imageCarOdo          String?
-  createDate           String
-  isChecked            Boolean            @default(false)
-  reporter             Reporter           @relation(fields: [reporterId], references: [id])
+model DrivingPhotoReport {
+  id            String   @id @default(uuid())
+  createDate    DateTime @db.Timestamptz
+  imageCarBack  String
+  imageCarLeft  String?
+  imageCarRight String?
+
   reporterId           String
-  driverJoinCampaign   DriverJoinCampaign @relation(fields: [driverJoinCampaignId], references: [id])
+  reporter             Reporter           @relation(fields: [reporterId], references: [id])
   driverJoinCampaignId String
+  driverJoinCampaign   DriverJoinCampaign @relation(fields: [driverJoinCampaignId], references: [id])
 }
 
 model Manager {
-  id             String           @id @default(uuid())
+  id String @id @default(uuid())
+
   user           User             @relation(fields: [userId], references: [id])
   userId         String           @unique
   verify         VerifyAccount[]
@@ -189,24 +177,19 @@ model Manager {
 
 model VerifyAccount {
   id         String              @id @default(uuid())
-  status     VerifyAccountStatus @default(NEW)
+  status     StatusVerifyAccount @default(NEW)
   detail     String?
-  createDate String
-  assignBy   AssignBy?
-  brand      Brand?              @relation(fields: [brandId], references: [id])
-  brandId    String?
-  driver     Driver?             @relation(fields: [driverId], references: [id])
-  driverId   String?
-  manager    Manager?            @relation(fields: [managerId], references: [id])
-  managerId  String?
+  createDate DateTime            @db.Timestamptz
+
+  brandId   String?
+  brand     Brand?   @relation(fields: [brandId], references: [id])
+  driverId  String?
+  driver    Driver?  @relation(fields: [driverId], references: [id])
+  managerId String?
+  manager   Manager? @relation(fields: [managerId], references: [id])
 }
 
-enum AssignBy {
-  ADMIN
-  SYSTEM
-}
-
-enum VerifyAccountStatus {
+enum StatusVerifyAccount {
   NEW
   ACCEPT
   BANNED
@@ -217,40 +200,34 @@ enum VerifyAccountStatus {
 model Campaign {
   id                String         @id @default(uuid())
   campaignName      String         @unique
-  startRegisterDate String?
-  endRegisterDate   String?
-  startRunningDate  String
-  statusCampaign    CampaignStatus @default(NEW)
+  statusCampaign    StatusCampaign @default(NEW)
+  startRegisterDate DateTime?      @db.Timestamptz
+  endRegisterDate   DateTime?      @db.Timestamptz
+  startWrapDate     DateTime?      @db.Timestamptz
+  endWrapDate       DateTime?      @db.Timestamptz
+  startPaymentDate  DateTime?      @db.Timestamptz
+  endPaymentDate    DateTime?      @db.Timestamptz
+  startRunningDate  DateTime       @db.Timestamptz
+  duration          Int
+  quantityDriver    Int
+  wrapPrice         Float
+  poster            String
   detailMessage     String?
-  duration          String
-  totalKm           String
-  quantityDriver    String
   description       String?
-  minimumKmDrive    String         @default("20")
 
-  startWrapDate String?
-  endWrapDate   String?
-  wrapPrice     String
-  poster        String
-
-  brand   Brand?  @relation(fields: [brandId], references: [id])
-  brandId String?
-
-  locationPricePerKm String?
-
-  locationCampaign   LocationCampaignPerKm? @relation(fields: [locationCampaignId], references: [id])
-  locationCampaignId String
-
-  wrap             Wrap?             @relation(fields: [wrapId], references: [id])
-  wrapId           String?
-  verifyCampaign   VerifyCampaign[]
-  contractCampaign ContractCampaign?
-
+  contractCampaign   ContractCampaign?
+  brandId            String?
+  brand              Brand?               @relation(fields: [brandId], references: [id])
+  wrapId             String?
+  wrap               Wrap?                @relation(fields: [wrapId], references: [id])
+  routeId            String?
+  route              Route?               @relation(fields: [routeId], references: [id])
+  verifyCampaign     VerifyCampaign[]
   driverJoinCampaign DriverJoinCampaign[]
-  paymentDebit       PaymentDebit?
+  transaction        Transactions[]
 }
 
-enum CampaignStatus {
+enum StatusCampaign {
   NEW
   OPEN
   PAYMENT
@@ -260,27 +237,13 @@ enum CampaignStatus {
   CANCELED
 }
 
-model LocationCampaignPerKm {
-  id           String     @id @default(uuid())
-  createDate   String
-  locationName String
-  addressPoint String
-  price        String
-  status       Status
-  campaign     Campaign[]
-}
-
-enum Status {
-  ENABLE
-  DISABLE
-}
-
 model Wrap {
   id           String       @id @default(uuid())
   positionWrap PositionWrap
-  price        String
-  status       Status
-  campaign     Campaign[]
+  price        Float
+  isActive     Boolean      @default(true)
+
+  campaign Campaign[]
 }
 
 enum PositionWrap {
@@ -291,17 +254,17 @@ enum PositionWrap {
 
 model VerifyCampaign {
   id         String               @id @default(uuid())
-  status     VerifyCampaignStatus @default(NEW)
+  status     StatusVerifyCampaign @default(NEW)
+  createDate DateTime             @db.Timestamptz
   detail     String?
-  createDate String
-  assignBy   AssignBy?
-  manager    Manager?             @relation(fields: [managerId], references: [id])
+
   managerId  String?
-  campaign   Campaign?            @relation(fields: [campaignId], references: [id])
+  manager    Manager?  @relation(fields: [managerId], references: [id])
   campaignId String?
+  campaign   Campaign? @relation(fields: [campaignId], references: [id])
 }
 
-enum VerifyCampaignStatus {
+enum StatusVerifyCampaign {
   NEW
   PENDING
   ACCEPT
@@ -309,34 +272,24 @@ enum VerifyCampaignStatus {
   UPDATE
 }
 
-model PaymentDebit {
-  id          String    @id @default(uuid())
-  price       String?
-  createDate  String
-  paidDate    String?
-  expiredDate String
-  campaign    Campaign? @relation(fields: [campaignId], references: [id])
-  campaignId  String    @unique
-  isValid     Boolean   @default(false)
-}
-
 model ContractCampaign {
-  id               String    @id @default(uuid())
+  id               String   @id @default(uuid())
   contractName     String
-  totalDriverMoney String?
-  totalSystemMoney String?
-  totalWrapMoney   String?
-  isAccept         Boolean
+  totalDriverMoney Float
+  totalSystemMoney Float
+  totalWrapMoney   Float
+  isAccept         Boolean?
   message          String?
-  campaign         Campaign? @relation(fields: [campaignId], references: [id])
-  campaignId       String?   @unique
+
+  campaignId String?   @unique
+  campaign   Campaign? @relation(fields: [campaignId], references: [id])
 }
 
 model FAQs {
-  id       String @id @default(uuid())
+  id       String  @id @default(uuid())
   question String
   answer   String
-  status   Status @default(ENABLE)
+  isActive Boolean @default(true)
 }
 
 model PoliciesTerm {
@@ -344,10 +297,33 @@ model PoliciesTerm {
   type     TypePolicyTerm
   question String
   answer   String
-  status   Status         @default(ENABLE)
+  isActive Boolean        @default(true)
 }
 
 enum TypePolicyTerm {
   POLICY
   TERM
+}
+
+model Checkpoint {
+  id          String @id @default(uuid())
+  addressName String
+  longitude   String
+  latitude    String
+
+  reporterId       String             @unique
+  reporter         Reporter           @relation(fields: [reporterId], references: [id])
+  routeId          String?
+  Route            Route?             @relation(fields: [routeId], references: [id])
+  DriverScanQRCode DriverScanQRCode[]
+}
+
+model Route {
+  id             String @id @default(uuid())
+  name           String
+  price          Float
+  totalKilometer Int
+
+  checkpoints Checkpoint[]
+  campaign    Campaign[]
 }

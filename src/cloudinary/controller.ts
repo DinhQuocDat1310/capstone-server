@@ -18,7 +18,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { Role, UserStatus } from '@prisma/client';
+import { Role, StatusUser } from '@prisma/client';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { Roles, Status } from 'src/guard/decorators';
 import { RolesGuard } from 'src/guard/roles.guard';
@@ -50,10 +50,10 @@ export class CloudinaryController {
       'url: http://res.cloudinary.com/exampleId/image/upload/v.example/exampleId.type',
   })
   @Status(
-    UserStatus.NEW,
-    UserStatus.PENDING,
-    UserStatus.UPDATE,
-    UserStatus.VERIFIED,
+    StatusUser.NEW,
+    StatusUser.PENDING,
+    StatusUser.UPDATE,
+    StatusUser.VERIFIED,
   )
   @Roles(Role.BRAND, Role.DRIVER, Role.REPORTER)
   @UseInterceptors(FileInterceptor('file'))

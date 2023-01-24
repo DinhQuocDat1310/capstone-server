@@ -6,7 +6,7 @@ import {
   Injectable,
   Logger,
 } from '@nestjs/common';
-import { UserStatus } from '@prisma/client';
+import { StatusUser } from '@prisma/client';
 import { Cache } from 'cache-manager';
 import { UsersService } from 'src/user/service';
 import { AppConfigService } from 'src/config/appConfigService';
@@ -115,7 +115,7 @@ export class EmailsService {
         await this.cacheManager.del(userReq.email);
         await this.userService.updateStatusUserByUserId(
           userReq.id,
-          UserStatus.BANNED,
+          StatusUser.BANNED,
         );
         throw new BadRequestException({
           message: `Your account is banned. Please contact: ${this.configService.getConfig(
@@ -138,7 +138,7 @@ export class EmailsService {
         },
       });
     }
-    await this.userService.updateStatusUserByUserId(userReq.id, UserStatus.NEW);
+    await this.userService.updateStatusUserByUserId(userReq.id, StatusUser.NEW);
     await this.cacheManager.del(userReq.email);
     return {
       message: 'Verified',

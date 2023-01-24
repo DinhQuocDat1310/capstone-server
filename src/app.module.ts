@@ -24,6 +24,7 @@ import { PaymentModule } from './payment/module';
 import { ReporterModule } from './reporter/module';
 import { DemoModule } from './demo/module';
 import { TermModule } from './term/module';
+import { CheckPointModule } from './checkpoint/module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { TermModule } from './term/module';
     ConfigJsonModule,
     ReporterModule,
     TermModule,
+    CheckPointModule,
   ],
   providers: [AppConfigService, UsersService, PrismaService],
   controllers: [],

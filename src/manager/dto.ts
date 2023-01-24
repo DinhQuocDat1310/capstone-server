@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { VerifyAccountStatus, VerifyCampaignStatus } from '@prisma/client';
+import { StatusVerifyAccount, StatusVerifyCampaign } from '@prisma/client';
 import {
   IsEmail,
   IsEnum,
@@ -17,9 +17,9 @@ export class ManagerVerifyDTO {
 
   @IsEnum(
     [
-      VerifyAccountStatus.BANNED,
-      VerifyAccountStatus.UPDATE,
-      VerifyAccountStatus.ACCEPT,
+      StatusVerifyAccount.BANNED,
+      StatusVerifyAccount.UPDATE,
+      StatusVerifyAccount.ACCEPT,
     ],
     {
       message: 'Action must be following format: [BANNED, UPDATE, ACCEPT]',
@@ -27,18 +27,18 @@ export class ManagerVerifyDTO {
   )
   @ApiProperty({
     enum: [
-      VerifyAccountStatus.BANNED,
-      VerifyAccountStatus.UPDATE,
-      VerifyAccountStatus.ACCEPT,
+      StatusVerifyAccount.BANNED,
+      StatusVerifyAccount.UPDATE,
+      StatusVerifyAccount.ACCEPT,
     ],
     example: [
-      VerifyAccountStatus.BANNED,
-      VerifyAccountStatus.UPDATE,
-      VerifyAccountStatus.ACCEPT,
+      StatusVerifyAccount.BANNED,
+      StatusVerifyAccount.UPDATE,
+      StatusVerifyAccount.ACCEPT,
     ],
     description: 'action',
   })
-  action: VerifyAccountStatus;
+  action: StatusVerifyAccount;
 
   @IsString()
   @ApiProperty()
@@ -54,15 +54,15 @@ export class ManagerVerifyCampaignDTO {
   @ApiProperty({ description: 'ID of request verify account' })
   verifyId: string;
 
-  @IsEnum([VerifyCampaignStatus.BANNED, VerifyCampaignStatus.UPDATE], {
+  @IsEnum([StatusVerifyCampaign.BANNED, StatusVerifyCampaign.UPDATE], {
     message: 'Action must be following format: [BANNED, UPDATE]',
   })
   @ApiProperty({
-    enum: [VerifyCampaignStatus.BANNED, VerifyCampaignStatus.UPDATE],
-    example: [VerifyCampaignStatus.BANNED, VerifyCampaignStatus.UPDATE],
+    enum: [StatusVerifyCampaign.BANNED, StatusVerifyCampaign.UPDATE],
+    example: [StatusVerifyCampaign.BANNED, StatusVerifyCampaign.UPDATE],
     description: 'action',
   })
-  action: VerifyCampaignStatus;
+  action: StatusVerifyCampaign;
 
   @IsString()
   @ApiProperty()

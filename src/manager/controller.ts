@@ -18,7 +18,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { Role, UserStatus } from '@prisma/client';
+import { Role, StatusUser } from '@prisma/client';
 import { RequestUser } from 'src/auth/dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { Roles, Status } from 'src/guard/decorators';
@@ -47,7 +47,7 @@ export class ManagerController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Post('account/verify')
   @Roles(Role.MANAGER)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   async verifyAccount(
     @Request() req: RequestUser,
     @Body() dto: ManagerVerifyDTO,
@@ -65,7 +65,7 @@ export class ManagerController {
   @ApiBadRequestResponse({ description: 'Role is not valid' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.MANAGER)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Get('account/verifies/:role')
   async getListVerifyByRole(
     @Request() req: RequestUser,
@@ -84,7 +84,7 @@ export class ManagerController {
   @ApiBadRequestResponse({ description: 'Role is not valid' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.MANAGER)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Get('account/verifieds/:role')
   async getListVerifiedByRole(
     @Request() req: RequestUser,
@@ -105,7 +105,7 @@ export class ManagerController {
   @ApiBadRequestResponse({ description: 'Role is not valid' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.MANAGER)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Get('account/verified/:id')
   async getHistoryDetailVerified(
     @Request() req: RequestUser,
@@ -123,7 +123,7 @@ export class ManagerController {
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.MANAGER)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Get('campaign/verifies/waiting')
   async getListVerifyCampaign(@Request() req: RequestUser) {
     return await this.verifyCampaignService.getListVerifyCampaignPending(
@@ -140,7 +140,7 @@ export class ManagerController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Post('campaign/verify')
   @Roles(Role.MANAGER)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   async verifyCampaign(
     @Request() req: RequestUser,
     @Body() dto: ManagerVerifyCampaignDTO,
@@ -158,7 +158,7 @@ export class ManagerController {
   @ApiBadRequestResponse({ description: 'Role is not valid' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.MANAGER)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Get('campaign/verifieds/history')
   async getListVerifiedCampaign(@Request() req: RequestUser) {
     return await this.verifyCampaignService.getListHistoryVerifiedCampaignByManagerId(
@@ -173,7 +173,7 @@ export class ManagerController {
   @ApiBadRequestResponse({ description: 'Role is not valid' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.MANAGER)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Get('campaign/verifieds/current')
   async getListCurrentVerifiedCampaign(@Request() req: RequestUser) {
     return await this.verifyCampaignService.getListCurrentCampaignByManagerId(
@@ -190,7 +190,7 @@ export class ManagerController {
   @ApiBadRequestResponse({ description: 'Role is not valid' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.MANAGER)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Get('campaign/verified/:id')
   async getHistoryDetailVerifiedCampaignDetail(
     @Request() req: RequestUser,

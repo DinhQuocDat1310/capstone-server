@@ -3,10 +3,10 @@ import { UsersService } from 'src/user/service';
 import { CACHE_MANAGER, Inject, Injectable, Logger } from '@nestjs/common';
 import { BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/service';
-import * as moment from 'moment';
 import { Cache } from 'cache-manager';
 import { GLOBAL_DATE } from 'src/constants/cache-code';
 import { TasksService } from 'src/task/service';
+import { addDays, diffDates } from 'src/utilities';
 
 @Injectable()
 export class ReporterService {
@@ -47,9 +47,6 @@ export class ReporterService {
 
     const resultCampaign = await this.prisma.campaign.findMany({
       where: {
-        locationCampaign: {
-          locationName: getLocationReporter.user.address,
-        },
         statusCampaign: {
           in: ['OPEN', 'PAYMENT', 'WRAPPING', 'RUNNING', 'CLOSED'],
         },
@@ -57,11 +54,6 @@ export class ReporterService {
       select: {
         id: true,
         campaignName: true,
-        locationCampaign: {
-          select: {
-            locationName: true,
-          },
-        },
         startRunningDate: true,
         duration: true,
         quantityDriver: true,
@@ -74,169 +66,26 @@ export class ReporterService {
           campaignId: resultCampaign[i].id,
         },
       });
-      const dateEndCampaign = moment(
+      const dateEndCampaign = addDays(
         resultCampaign[i].startRunningDate,
-        'MM/DD/YYYY',
-      )
-        .add(Number(resultCampaign[i].duration) - 1, 'days')
-        .toDate()
-        .toLocaleDateString('vn-VN');
+        resultCampaign[i].duration - 1,
+      );
 
       resultCampaign[i]['endDateCampaign'] = dateEndCampaign;
       resultCampaign[i]['quantityDriverJoinning'] = countDriver;
     }
-    return resultCampaign.map((campaign) => {
-      const locationName = campaign.locationCampaign.locationName;
-      delete campaign.locationCampaign;
-      return {
-        ...campaign,
-        locationName,
-      };
-    });
+    return resultCampaign;
   }
 
   async getDriverDetailByCarId(carId: string, userId: string) {
-    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
-    const checkCarIdExist = await this.prisma.driver.findMany({
-      where: {
-        idCar: carId,
-      },
-    });
-    if (checkCarIdExist.length === 0)
-      throw new BadRequestException('Not found Car ID');
-    const getLocationReporter = await this.prisma.reporter.findFirst({
-      where: {
-        userId,
-      },
-      select: {
-        user: {
-          select: {
-            address: true,
-          },
-        },
-      },
-    });
-
-    const dataDriver = await this.prisma.driverJoinCampaign.findFirst({
-      where: {
-        driver: {
-          idCar: carId,
-        },
-        status: 'APPROVE',
-        campaign: {
-          locationCampaign: {
-            locationName: getLocationReporter.user.address,
-          },
-        },
-      },
-      select: {
-        id: true,
-        createDate: true,
-        status: true,
-        isRequiredOdo: true,
-        driver: {
-          include: {
-            user: true,
-          },
-        },
-        campaign: {
-          include: {
-            locationCampaign: true,
-            wrap: true,
-          },
-        },
-        reporterDriverCampaign: {
-          select: {
-            isChecked: true,
-            createDate: true,
-          },
-        },
-        driverTrackingLocation: {
-          select: {
-            createDate: true,
-            tracking: {
-              select: {
-                timeSubmit: true,
-                totalMeterDriven: true,
-              },
-            },
-          },
-        },
-      },
-    });
-    if (!dataDriver) {
-      throw new BadRequestException('CarId is not in reporter location');
-    }
-    dataDriver.reporterDriverCampaign.sort(
-      (a, b) =>
-        moment(b.createDate, 'MM/DD/YYYY').valueOf() -
-        moment(a.createDate, 'MM/DD/YYYY').valueOf(),
-    );
-    dataDriver.driverTrackingLocation.sort(
-      (a, b) =>
-        moment(b.createDate, 'MM/DD/YYYY').valueOf() -
-        moment(a.createDate, 'MM/DD/YYYY').valueOf(),
-    );
-    let totalMeterDrive = 0;
-    if (
-      moment(
-        dataDriver.driverTrackingLocation[0]?.createDate,
-        'MM/DD/YYYY',
-      ).diff(moment(globalDate, 'MM/DD/YYYY')) !== 0
-    ) {
-      totalMeterDrive = 0;
-    } else {
-      dataDriver.driverTrackingLocation[0].tracking.forEach(
-        (track) => (totalMeterDrive += Number(track.totalMeterDriven)),
-      );
-    }
-
-    if (
-      moment(globalDate, 'MM/DD/YYYY') <
-      moment(dataDriver.campaign.startRunningDate, 'MM/DD/YYYY')
-    ) {
-      throw new BadRequestException(
-        'Your campaign is not running yet. please try again!',
-      );
-    }
-    let resultCheck = null;
-    let checkedResult = false;
-    if (dataDriver.reporterDriverCampaign[0]) {
-      const dateCreateCheck = moment(
-        dataDriver.reporterDriverCampaign[0].createDate,
-        'MM/DD/YYYY',
-      );
-      const differDateCheck = moment(globalDate, 'MM/DD/YYYY').diff(
-        dateCreateCheck,
-        'days',
-      );
-      if (Math.abs(differDateCheck) !== 0) {
-        resultCheck = dataDriver.reporterDriverCampaign[0].isChecked === false;
-      } else {
-        resultCheck = dataDriver.reporterDriverCampaign[0].isChecked === true;
-      }
-      Object.keys(dataDriver).forEach(() => {
-        dataDriver['reporterDriverCampaign'][0].isChecked = resultCheck;
-      });
-      checkedResult = dataDriver.reporterDriverCampaign[0].isChecked;
-      dataDriver['todayOdoMeter'] = totalMeterDrive;
-      delete dataDriver.reporterDriverCampaign;
-      delete dataDriver.driverTrackingLocation;
-    }
-    dataDriver['todayOdoMeter'] = totalMeterDrive;
-    delete dataDriver.reporterDriverCampaign;
-    delete dataDriver.driverTrackingLocation;
-    return {
-      ...dataDriver,
-      checkedResult,
-    };
+    return 'this getDriverDetailByCarId need to be update';
   }
 
   async createReporterDriverCampaign(
     dto: CreateReportDriverCampaignDTO,
     userId: string,
   ) {
-    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
+    const globalDate: Date = await this.cacheManager.get(GLOBAL_DATE);
     const campaign = await this.prisma.driverJoinCampaign.findFirst({
       where: {
         id: dto.driverJoinCampaignId,
@@ -265,7 +114,7 @@ export class ReporterService {
       },
     });
 
-    const dataDriverReport = await this.prisma.reporterDriverCampaign.findMany({
+    const dataDriverReport = await this.prisma.drivingPhotoReport.findMany({
       where: {
         driverJoinCampaignId: dto.driverJoinCampaignId,
         reporter: {
@@ -282,12 +131,11 @@ export class ReporterService {
       select: {
         reporterId: true,
         createDate: true,
-        isChecked: true,
         driverJoinCampaign: {
           select: {
             driver: {
               select: {
-                idCar: true,
+                licensePlates: true,
               },
             },
           },
@@ -295,83 +143,29 @@ export class ReporterService {
       },
     });
     dataDriverReport.sort(
-      (a, b) =>
-        moment(b.createDate, 'MM/DD/YYYY').valueOf() -
-        moment(a.createDate, 'MM/DD/YYYY').valueOf(),
+      (a, b) => b.createDate.valueOf() - a.createDate.valueOf(),
     );
-    const requiredOdo = await this.prisma.driverJoinCampaign.findFirst({
-      where: {
-        id: dto.driverJoinCampaignId,
-      },
-      select: {
-        isRequiredOdo: true,
-      },
-    });
     if (dataDriverReport.length !== 0) {
-      const dateCreateCheck = moment(
+      const differDateCheck = diffDates(
+        globalDate,
         dataDriverReport[0].createDate,
-        'MM/DD/YYYY',
       );
-      const differDateCheck = moment(globalDate, 'MM/DD/YYYY').diff(
-        dateCreateCheck,
-        'days',
-      );
-      if (
-        Math.abs(differDateCheck) === 0 &&
-        dataDriverReport[0].isChecked !== null
-      ) {
+      if (Math.abs(differDateCheck) === 0) {
         throw new BadRequestException('Today is checked for this driver');
       }
     }
 
-    if (requiredOdo.isRequiredOdo && !dto.imageCarOdo) {
-      throw new BadRequestException(
-        'Odo image is required. Please take photo Odo',
-      );
-    }
-    if (!requiredOdo.isRequiredOdo && dto.imageCarOdo) {
-      throw new BadRequestException(
-        'Odo image is not required. Please remove field Odo',
-      );
-    }
-    if (!requiredOdo.isRequiredOdo) {
-      await this.prisma.reporterDriverCampaign.create({
-        data: {
-          imageCarBack: dto.imageCarBack,
-          imageCarLeft: dto.imageCarLeft,
-          imageCarRight: dto.imageCarRight,
-          isChecked: true,
-          driverJoinCampaignId: dto.driverJoinCampaignId,
-          reporterId: reporter.id,
-          createDate: moment(globalDate, 'MM/DD/YYYY')
-            .toDate()
-            .toLocaleDateString('vn-VN'),
-        },
-      });
-    } else {
-      await this.prisma.reporterDriverCampaign.create({
-        data: {
-          imageCarBack: dto.imageCarBack,
-          imageCarLeft: dto.imageCarLeft,
-          imageCarRight: dto.imageCarRight,
-          imageCarOdo: dto.imageCarOdo,
-          isChecked: true,
-          driverJoinCampaignId: dto.driverJoinCampaignId,
-          reporterId: reporter.id,
-          createDate: moment(globalDate, 'MM/DD/YYYY')
-            .toDate()
-            .toLocaleDateString('vn-VN'),
-        },
-      });
-      await this.prisma.driverJoinCampaign.update({
-        where: {
-          id: dto.driverJoinCampaignId,
-        },
-        data: {
-          isRequiredOdo: false,
-        },
-      });
-    }
+    await this.prisma.drivingPhotoReport.create({
+      data: {
+        imageCarBack: dto.imageCarBack,
+        imageCarLeft: dto.imageCarLeft,
+        imageCarRight: dto.imageCarRight,
+        driverJoinCampaignId: dto.driverJoinCampaignId,
+        reporterId: reporter.id,
+        createDate: globalDate,
+      },
+    });
+
     // TODO: handle close if the last driver is reported just for demo.
     const campaignDriverJoin = await this.prisma.driverJoinCampaign.findFirst({
       where: {
@@ -386,22 +180,20 @@ export class ReporterService {
       },
     });
     if (
-      moment(globalDate, 'MM/DD/YYYY').diff(
-        moment(campaignDriverJoin.campaign.startRunningDate, 'MM/DD/YYYY').add(
-          Number(campaignDriverJoin.campaign.duration) - 1,
-          'days',
+      diffDates(
+        globalDate,
+        addDays(
+          campaignDriverJoin.campaign.startRunningDate,
+          campaignDriverJoin.campaign.duration - 1,
         ),
-        'days',
       ) === 0
     ) {
-      const reports = await this.prisma.reporterDriverCampaign.findMany({
+      const reports = await this.prisma.drivingPhotoReport.findMany({
         where: {
           driverJoinCampaign: {
             campaignId: campaignDriverJoin.campaignId,
           },
-          createDate: moment(globalDate, 'MM/DD/YYYY')
-            .toDate()
-            .toLocaleDateString('vn-VN'),
+          createDate: globalDate,
         },
       });
       this.logger.debug(reports.length);
@@ -412,9 +204,7 @@ export class ReporterService {
           (driver) => driver.status === 'APPROVE',
         ).length
       ) {
-        const newGlobalDate = moment(globalDate, 'MM/DD/YYYY')
-          .toDate()
-          .toLocaleDateString('vn-VN');
+        const newGlobalDate = globalDate;
 
         await this.tasksService.handleCompleteRunningCampaignPhase(
           newGlobalDate,

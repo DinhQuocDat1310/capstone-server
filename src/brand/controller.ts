@@ -1,5 +1,4 @@
 import { WrapService } from 'src/wrap/service';
-import { LocationService } from './../location/service';
 import {
   Body,
   Controller,
@@ -19,7 +18,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { Role, UserStatus } from '@prisma/client';
+import { Role, StatusUser } from '@prisma/client';
 import { RequestUser } from 'src/auth/dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { Roles, Status } from 'src/guard/decorators';
@@ -37,7 +36,6 @@ export class BrandController {
   constructor(
     private readonly brandService: BrandsService,
     private readonly verifyAccountService: VerifyAccountsService,
-    private readonly locationService: LocationService,
     private readonly wrapService: WrapService,
   ) {}
 
@@ -47,7 +45,7 @@ export class BrandController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiCreatedResponse({ description: 'Updated' })
-  @Status(UserStatus.NEW, UserStatus.UPDATE)
+  @Status(StatusUser.NEW, StatusUser.UPDATE)
   @Roles(Role.BRAND)
   @Post('account/verify')
   async updateBrandInformation(
@@ -63,7 +61,7 @@ export class BrandController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiCreatedResponse({ description: 'Updated' })
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Roles(Role.BRAND)
   @Post('account/update-logo/')
   async updateBrandLogo(
@@ -78,50 +76,20 @@ export class BrandController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.BRAND)
-  @Status(UserStatus.UPDATE)
+  @Status(StatusUser.UPDATE)
   @Get('account/verify')
   async getListVerifyBrand(@Request() req: RequestUser) {
     return await this.verifyAccountService.getListVerifyByUserId(req.user.id);
-  }
-
-  @ApiOperation({ summary: 'Get list locations' })
-  @ApiForbiddenResponse({ description: 'Forbidden' })
-  @ApiBadRequestResponse({ description: 'Bad Request' })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Roles(Role.BRAND)
-  @Status(UserStatus.NEW, UserStatus.UPDATE, UserStatus.VERIFIED)
-  @Get('/locations')
-  async getListLocations(@Request() req: RequestUser) {
-    return await this.locationService.getListLocation(req.user.role);
   }
 
   @ApiOperation({ summary: 'Get list wraps' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Roles(Role.BRAND)
   @Get('/wraps')
   async getListWrap(@Request() userReq: RequestUser) {
     return await this.wrapService.getListWrap(userReq.user.role);
-  }
-
-  @ApiOperation({
-    summary: 'Send request require capture ODO driver to reporter',
-  })
-  @ApiForbiddenResponse({ description: 'Forbidden' })
-  @ApiBadRequestResponse({ description: 'Bad Request' })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Status(UserStatus.VERIFIED)
-  @Roles(Role.BRAND)
-  @Get('/verify-odo/:id')
-  async createRequestVerifyOdo(
-    @Request() userReq: RequestUser,
-    @Param('id') driverJoinCampaignId: string,
-  ) {
-    return await this.brandService.createRequestVerifyOdo(
-      userReq.user.id,
-      driverJoinCampaignId,
-    );
   }
 }

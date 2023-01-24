@@ -1,6 +1,6 @@
 import { VerifyCampaignService } from './../verifyCampaign/service';
 import { VerifyAccountsService } from 'src/verifyAccount/service';
-import { UserStatus } from '@prisma/client';
+import { StatusUser } from '@prisma/client';
 import { UsersService } from './../user/service';
 import {
   BadRequestException,
@@ -22,11 +22,7 @@ export class AdminService {
   ) {}
 
   async createManager(dto: ManagerDTO) {
-    await this.userService.checkEmailOrPhoneNumberIsExist(
-      dto.email,
-      dto.phoneNumber,
-      'Email or Phone number already used!',
-    );
+    await this.userService.checkEmailIsExist(dto.email, 'Email already used!');
     try {
       const manager = await this.userService.createManager(dto);
       await this.prisma.manager.create({
@@ -63,7 +59,7 @@ export class AdminService {
           user: {
             update: {
               isActive: true,
-              status: UserStatus.VERIFIED,
+              status: StatusUser.VERIFIED,
             },
           },
         },
@@ -106,7 +102,7 @@ export class AdminService {
           user: {
             update: {
               isActive: false,
-              status: UserStatus.BANNED,
+              status: StatusUser.BANNED,
             },
           },
         },
@@ -182,7 +178,6 @@ export class AdminService {
           data: {
             managerId: assignDto.managerId,
             status: 'PENDING',
-            assignBy: 'ADMIN',
           },
         })
       : await this.prisma.verifyAccount.update({
@@ -192,7 +187,6 @@ export class AdminService {
           data: {
             managerId: assignDto.managerId,
             status: 'PENDING',
-            assignBy: 'ADMIN',
           },
         });
     return `Assigned task to manager`;

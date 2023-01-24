@@ -17,7 +17,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { Role, UserStatus } from '@prisma/client';
+import { Role, StatusUser } from '@prisma/client';
 import { RequestUser } from 'src/auth/dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { Roles, Status } from 'src/guard/decorators';
@@ -36,7 +36,7 @@ export class ReporterController {
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Roles(Role.ADMIN)
   @Get('/list')
   async getListManager() {
@@ -47,7 +47,7 @@ export class ReporterController {
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Roles(Role.ADMIN)
   @Get('/list/campaign/:id')
   async viewListCampaignReporterLocation(@Param('id') reporterId: string) {
@@ -60,7 +60,7 @@ export class ReporterController {
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Roles(Role.REPORTER)
   @Get('/driver/car/:id')
   async viewDriverByCarId(
@@ -78,7 +78,7 @@ export class ReporterController {
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Roles(Role.REPORTER)
   @Post('/check/driver')
   async submitCheckDriverRun(

@@ -9,22 +9,16 @@ import {
 } from 'class-validator';
 export class CampaignVerifyInformationDTO {
   @ApiProperty({
-    description: 'Id location',
+    description: 'Id route',
   })
   @IsString()
-  idLocation: string;
+  routeId: string;
 
   @ApiProperty({
     description: 'Id Wrap',
   })
   @IsString()
   idWrap: string;
-
-  @ApiProperty({
-    description: 'Price location',
-  })
-  @IsNumberString()
-  priceLocation: string;
 
   @ApiProperty({
     description: 'Price wrap',
@@ -71,12 +65,6 @@ export class CampaignVerifyInformationDTO {
   description: string;
 
   @ApiProperty({
-    description: 'Minimum km must drive/day',
-  })
-  @IsNumberString()
-  minimumKmDrive: string;
-
-  @ApiProperty({
     description: 'URL image of image Poster',
     default: 'image.com',
   })
@@ -104,15 +92,15 @@ export class CampaignContractDTO {
   @Matches(/([1-9]|1[012])[/]([1-9]|[12][0-9]|3[01])[/](19|20)[0-9]{2}/, {
     message: 'Date payment deposit must be format MM/DD/YYYY',
   })
-  datePaymentDeposit: string;
+  startDatePayment: string;
 
   @ApiProperty({
-    description: `Date wrap sticket`,
+    description: `Date wrap`,
   })
   @Matches(/([1-9]|1[012])[/]([1-9]|[12][0-9]|3[01])[/](19|20)[0-9]{2}/, {
     message: 'Date warp sticket must be format MM/DD/YYYY',
   })
-  dateWarpSticket: string;
+  startDateWrap: string;
 }
 
 export class StepsCampaignDTO {

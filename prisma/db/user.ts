@@ -8,7 +8,7 @@ import {
   FAKE_FRONT_CARDLICENSE,
   FAKE_IMAGE_CAR,
 } from './../../src/constants/fake-data';
-import { Prisma, Role, UserStatus } from '@prisma/client';
+import { Prisma, Role, StatusUser } from '@prisma/client';
 import { hash } from 'bcrypt';
 export const users = async (): Promise<any[]> => {
   const password: string = await hash('123456aA!', 10);
@@ -22,7 +22,7 @@ export const users = async (): Promise<any[]> => {
     password,
     role: Role.ADMIN,
     fullname: 'admin',
-    status: UserStatus.VERIFIED,
+    status: StatusUser.VERIFIED,
   };
 
   managers.push({
@@ -30,7 +30,7 @@ export const users = async (): Promise<any[]> => {
     password,
     role: Role.MANAGER,
     fullname: 'Lê Anh Nguyên',
-    status: UserStatus.VERIFIED,
+    status: StatusUser.VERIFIED,
     manager: {
       create: {},
     },
@@ -42,7 +42,7 @@ export const users = async (): Promise<any[]> => {
       password,
       role: Role.MANAGER,
       fullname: `Manager ${i + 1}`,
-      status: UserStatus.VERIFIED,
+      status: StatusUser.VERIFIED,
       manager: {
         create: {},
       },
@@ -108,8 +108,7 @@ export const users = async (): Promise<any[]> => {
       Math.random() * (Math.pow(10, 10) * 9.9 - Math.pow(10, 10) + 1) +
         Math.pow(10, 10),
     );
-    const randomIdCar = 10000;
-    const randomAccountNumber = 100000;
+    const randomlicensePlates = 10000;
 
     drivers.push({
       imageCitizenFront: FAKE_FRONT_CARDLICENSE[random],
@@ -121,17 +120,13 @@ export const users = async (): Promise<any[]> => {
       role: Role.DRIVER,
       password,
       status: 'VERIFIED',
-      phoneNumber: `+84${910000000 + i}`,
       driver: {
         create: {
           imageCarBack: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
           imageCarFront: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
           imageCarLeft: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
           imageCarRight: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
-          idCar: `51F-${randomIdCar + i}`,
-          bankName: i < 150 ? 'TP BANK' : 'AGRIBANK',
-          bankAccountNumber: `${randomAccountNumber + i}`,
-          bankAccountOwner: FAKE_OWNER_BUSINESS[random],
+          licensePlates: `51F-${randomlicensePlates + i}`,
         },
       },
     });
@@ -148,17 +143,13 @@ export const users = async (): Promise<any[]> => {
     role: Role.DRIVER,
     password,
     status: 'VERIFIED',
-    phoneNumber: `+84999999999`,
     driver: {
       create: {
         imageCarBack: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
         imageCarFront: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
         imageCarLeft: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
         imageCarRight: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
-        idCar: `51F-99999`,
-        bankName: 'TP BANK',
-        bankAccountNumber: '999999',
-        bankAccountOwner: 'Trần Xuân Đạt',
+        licensePlates: `51F-99999`,
       },
     },
   });
@@ -172,17 +163,13 @@ export const users = async (): Promise<any[]> => {
     role: Role.DRIVER,
     password,
     status: 'VERIFIED',
-    phoneNumber: `+84888888888`,
     driver: {
       create: {
         imageCarBack: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
         imageCarFront: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
         imageCarLeft: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
         imageCarRight: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
-        idCar: `51F-888888`,
-        bankName: 'TP BANK',
-        bankAccountNumber: '888888',
-        bankAccountOwner: 'Trần Đạt',
+        licensePlates: `51F-888888`,
       },
     },
   });
@@ -196,17 +183,13 @@ export const users = async (): Promise<any[]> => {
     role: Role.DRIVER,
     password,
     status: 'VERIFIED',
-    phoneNumber: `+84777777777`,
     driver: {
       create: {
         imageCarBack: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
         imageCarFront: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
         imageCarLeft: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
         imageCarRight: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
-        idCar: `51F-77777`,
-        bankName: 'TP BANK',
-        bankAccountNumber: '777777',
-        bankAccountOwner: 'Trần Đạt',
+        licensePlates: `51F-77777`,
       },
     },
   });
@@ -217,14 +200,13 @@ export const users = async (): Promise<any[]> => {
         FAKE_ADDRESS[i] === 'TP Hồ Chí Minh'
           ? 'minh@gmail.com'
           : `reporter${i + 1}@gmail.com`,
-      phoneNumber: `+84${920000000 + i}`,
       password,
       role: Role.REPORTER,
       fullname:
         FAKE_ADDRESS[i] === 'TP Hồ Chí Minh'
           ? 'Nguyễn Quang Minh'
           : `Reporter ${i + 1}`,
-      status: UserStatus.VERIFIED,
+      status: StatusUser.VERIFIED,
       address: FAKE_ADDRESS[i],
       reporter: {
         create: {},

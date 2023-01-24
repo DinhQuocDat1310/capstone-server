@@ -18,10 +18,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ManagerVerifyDTO } from 'src/manager/dto';
-import { UserStatus, VerifyAccountStatus } from '@prisma/client';
+import { StatusUser, StatusVerifyAccount } from '@prisma/client';
 import { MailerService } from '@nestjs-modules/mailer';
 import { AppConfigService } from 'src/config/appConfigService';
-import * as moment from 'moment';
 import { Cache } from 'cache-manager';
 import { GLOBAL_DATE } from 'src/constants/cache-code';
 
@@ -35,13 +34,11 @@ export class VerifyAccountsService {
   ) {}
 
   async createNewRequestVerifyBrandAccount(id: string) {
-    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
+    const globalDate: Date = await this.cacheManager.get(GLOBAL_DATE);
     try {
       return await this.prisma.verifyAccount.create({
         data: {
-          createDate: moment(globalDate, 'MM/DD/YYYY')
-            .toDate()
-            .toLocaleDateString('vn-VN'),
+          createDate: globalDate,
           brand: {
             connect: {
               id,
@@ -69,7 +66,7 @@ export class VerifyAccountsService {
     try {
       return await this.prisma.verifyAccount.create({
         data: {
-          status: VerifyAccountStatus.PENDING,
+          status: StatusVerifyAccount.PENDING,
           driver: {
             connect: {
               id,
@@ -103,7 +100,7 @@ export class VerifyAccountsService {
     try {
       return await this.prisma.verifyAccount.create({
         data: {
-          status: VerifyAccountStatus.PENDING,
+          status: StatusVerifyAccount.PENDING,
           brand: {
             connect: {
               id,
@@ -123,13 +120,11 @@ export class VerifyAccountsService {
   }
 
   async createNewRequestVerifyDriverAccount(id: string) {
-    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
+    const globalDate: Date = await this.cacheManager.get(GLOBAL_DATE);
     try {
       return await this.prisma.verifyAccount.create({
         data: {
-          createDate: moment(globalDate, 'MM/DD/YYYY')
-            .toDate()
-            .toLocaleDateString('vn-VN'),
+          createDate: globalDate,
           driver: {
             connect: {
               id,
@@ -199,7 +194,7 @@ export class VerifyAccountsService {
     if (type === 'driver') {
       select['driver'] = {
         select: {
-          idCar: true,
+          licensePlates: true,
           imageCarRight: true,
           imageCarLeft: true,
           imageCarFront: true,
@@ -226,7 +221,7 @@ export class VerifyAccountsService {
           manager: {
             userId,
           },
-          status: VerifyAccountStatus.PENDING,
+          status: StatusVerifyAccount.PENDING,
         },
         select,
       });
@@ -252,15 +247,9 @@ export class VerifyAccountsService {
         })
         .filter((verify) => Object.keys(verify[`${type}`]).length !== 0)
         .sort((v1, v2) => {
-          if (
-            moment(v1.createDate, 'MM/DD/YYYY') >
-            moment(v2.createDate, 'MM/DD/YYYY')
-          ) {
+          if (v1.createDate > v2.createDate) {
             return 1;
-          } else if (
-            moment(v1.createDate, 'MM/DD/YYYY') <
-            moment(v2.createDate, 'MM/DD/YYYY')
-          ) {
+          } else if (v1.createDate < v2.createDate) {
             return -1;
           }
           return 0;
@@ -274,7 +263,7 @@ export class VerifyAccountsService {
     const verify = await this.prisma.verifyAccount.findFirst({
       where: {
         id: dto.verifyId,
-        status: VerifyAccountStatus.PENDING,
+        status: StatusVerifyAccount.PENDING,
         manager: {
           userId: userId,
         },
@@ -307,25 +296,25 @@ export class VerifyAccountsService {
         detail: dto.detail,
       },
     });
-    let status: UserStatus = 'PENDING';
+    let status: StatusUser = 'PENDING';
     let message = '';
     switch (dto.action) {
       case 'ACCEPT':
         message = `<p>Congratulations!. Your ${type} information has been accepted</p>
            <p>Please login at the website for more details</p>`;
-        status = UserStatus.VERIFIED;
+        status = StatusUser.VERIFIED;
         break;
       case 'BANNED':
         message = `<p>Your account has been banned for violating our terms</p>
            <p>Please contact ${this.configService.getConfig(
              'MAILER',
            )} for more information</p>`;
-        status = UserStatus.BANNED;
+        status = StatusUser.BANNED;
         break;
       case 'UPDATE':
         message = `<p>The ${type} information you provided is not valid, please update so that Brandvertise's team can support as soon as possible.</p>
            <p>Please login at the website for more details</p>`;
-        status = UserStatus.UPDATE;
+        status = StatusUser.UPDATE;
         break;
     }
     const user = await this.prisma.user.update({
@@ -374,7 +363,7 @@ export class VerifyAccountsService {
   }
 
   async fakeAutoCreateVerifyRequest() {
-    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
+    const globalDate: Date = await this.cacheManager.get(GLOBAL_DATE);
     const users = await this.prisma.user.findMany({
       where: {
         status: 'NEW',
@@ -433,16 +422,13 @@ export class VerifyAccountsService {
               imageCitizenBack: FAKE_BACK_CARDLICENSE[random],
               idCitizen: randomIdCitizen.toString(),
               address: FAKE_ADDRESS_ACCOUNT[random],
-              phoneNumber: `+84${randomPhone + i}`,
             },
           },
         },
       });
       await this.prisma.verifyAccount.create({
         data: {
-          createDate: moment(globalDate, 'MM/DD/YYYY')
-            .toDate()
-            .toLocaleDateString('vn-VN'),
+          createDate: globalDate,
           brand: {
             connect: {
               id: brandsFilter[i].brand.id,
@@ -457,7 +443,7 @@ export class VerifyAccountsService {
         Math.random() * (Math.pow(10, 10) * 9.9 - Math.pow(10, 10) + 1) +
           Math.pow(10, 10),
       );
-      const randomIdCar = Math.floor(
+      const randomlicensePlates = Math.floor(
         Math.random() * (Math.pow(10, 5) * 9.9 - Math.pow(10, 5) + 1) +
           Math.pow(10, 5),
       );
@@ -476,10 +462,7 @@ export class VerifyAccountsService {
           imageCarFront: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
           imageCarLeft: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
           imageCarRight: FAKE_IMAGE_CAR[Math.floor(Math.random() * 20)],
-          idCar: `51F-${randomIdCar}`,
-          bankName: 'AGRIBANK',
-          bankAccountNumber: `${randomAccountNumber}`,
-          bankAccountOwner: FAKE_OWNER_BUSINESS[random],
+          licensePlates: `51F-${randomlicensePlates}`,
           user: {
             update: {
               status: 'PENDING',
@@ -495,9 +478,7 @@ export class VerifyAccountsService {
       });
       await this.prisma.verifyAccount.create({
         data: {
-          createDate: moment(globalDate, 'MM/DD/YYYY')
-            .toDate()
-            .toLocaleDateString('vn-VN'),
+          createDate: globalDate,
           driver: {
             connect: {
               id: driversFilter[i].driver.id,
@@ -557,7 +538,7 @@ export class VerifyAccountsService {
             userId,
           },
           status: {
-            not: VerifyAccountStatus.PENDING || VerifyAccountStatus.NEW,
+            not: StatusVerifyAccount.PENDING || StatusVerifyAccount.NEW,
           },
         },
         select,
@@ -603,7 +584,7 @@ export class VerifyAccountsService {
             },
             {
               status: {
-                not: VerifyAccountStatus.PENDING || VerifyAccountStatus.NEW,
+                not: StatusVerifyAccount.PENDING || StatusVerifyAccount.NEW,
               },
             },
           ],
@@ -624,7 +605,7 @@ export class VerifyAccountsService {
         manager: {
           userId,
         },
-        status: VerifyAccountStatus.PENDING,
+        status: StatusVerifyAccount.PENDING,
       },
       select: {
         id: true,
@@ -640,7 +621,7 @@ export class VerifyAccountsService {
           manager: {
             userId,
           },
-          status: VerifyAccountStatus.PENDING,
+          status: StatusVerifyAccount.PENDING,
         },
         include: {
           brand: {
@@ -665,7 +646,7 @@ export class VerifyAccountsService {
           manager: {
             userId,
           },
-          status: VerifyAccountStatus.PENDING,
+          status: StatusVerifyAccount.PENDING,
         },
         include: {
           driver: {
@@ -699,7 +680,7 @@ export class VerifyAccountsService {
           },
         },
         data: {
-          status: VerifyAccountStatus.ACCEPT,
+          status: StatusVerifyAccount.ACCEPT,
         },
       });
       await this.prisma.user.updateMany({
@@ -709,7 +690,7 @@ export class VerifyAccountsService {
           },
         },
         data: {
-          status: UserStatus.VERIFIED,
+          status: StatusUser.VERIFIED,
         },
       });
       return `ACCEPT ${
@@ -758,9 +739,8 @@ export class VerifyAccountsService {
         },
       },
       data: {
-        status: VerifyAccountStatus.NEW,
+        status: StatusVerifyAccount.NEW,
         managerId: null,
-        assignBy: null,
       },
     });
   }

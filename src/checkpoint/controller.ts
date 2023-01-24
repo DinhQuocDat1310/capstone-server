@@ -9,68 +9,63 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { Role, StatusUser } from '@prisma/client';
+import { Role } from '@prisma/client';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { Roles, Status } from 'src/guard/decorators';
+import { Roles } from 'src/guard/decorators';
 import { RolesGuard } from 'src/guard/roles.guard';
 import { StatusGuard } from 'src/guard/userStatus.guard';
-import { globalDateDTO } from './dto';
-import { DemoService } from './service';
+import { CheckpointDTO, RouteDTO } from './dto';
+import { CheckPointService } from './service';
 
-@Controller('demo')
-@ApiBearerAuth('access-token')
+@Controller('checkpoint')
 @UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
-@ApiTags('Demo')
-export class DemoController {
-  constructor(private readonly demoService: DemoService) {}
+@ApiBearerAuth('access-token')
+@ApiTags('Checkpoint')
+export class CheckPointController {
+  constructor(private readonly checkpointService: CheckPointService) {}
 
-  @ApiOperation({ summary: 'Get global date' })
+  @ApiBody({ type: CheckpointDTO })
+  @ApiOperation({ summary: 'Create checkpoint' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiCreatedResponse({ description: 'Created' })
-  @Get('/getGlobalDate')
-  async getGlobalDate() {
-    return await this.demoService.getGlobalDate();
-  }
-
-  @ApiOperation({ summary: 'Reset global date' })
-  @ApiForbiddenResponse({ description: 'Forbidden' })
-  @ApiBadRequestResponse({ description: 'Bad Request' })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @ApiCreatedResponse({ description: 'Created' })
-  @Post('/resetGlobalDate')
-  async resetGlobalDate() {
-    return await this.demoService.resetGlobalDate();
-  }
-
-  @ApiBody({ type: globalDateDTO })
-  @ApiOperation({ summary: 'Get global date' })
-  @ApiForbiddenResponse({ description: 'Forbidden' })
-  @ApiBadRequestResponse({ description: 'Bad Request' })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @ApiCreatedResponse({ description: 'Created' })
-  @Status(StatusUser.VERIFIED)
   @Roles(Role.ADMIN)
-  @Post('/setGlobalDate')
-  async setGlobalDate(@Body() global: globalDateDTO) {
-    return await this.demoService.setGlobalDate(global.date);
+  @Post()
+  async createCheckPoint(@Body() dto: CheckpointDTO) {
+    return await this.checkpointService.createCheckPoint(dto);
   }
 
-  @ApiOperation({ summary: 'Get list campaigns demo' })
+  @ApiOperation({ summary: 'get all checkpoints' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiCreatedResponse({ description: 'Created' })
-  @Status(StatusUser.VERIFIED)
   @Roles(Role.ADMIN)
-  @Get('/getListCampaigns')
-  async getListCampaigns() {
-    return await this.demoService.getListCampaigns();
+  @Post()
+  async getCheckpoints() {
+    return await this.checkpointService.getAllCheckpoints();
   }
 
-  // @Sse('sse')
-  // async sse(): Promise<Observable<MessageEvent>> {
-  //   return await this.demoService.getListCampaigns();
-  // }
+  @ApiBody({ type: RouteDTO })
+  @ApiOperation({ summary: 'Create route' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiCreatedResponse({ description: 'Created' })
+  @Roles(Role.ADMIN)
+  @Post('route')
+  async createRoute(@Body() dto: RouteDTO) {
+    return await this.checkpointService.createRoute(dto);
+  }
+
+  @ApiOperation({ summary: 'Get all route' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Roles(Role.ADMIN)
+  @Get('route')
+  async getAllRoutes() {
+    return await this.checkpointService.getAllRoutes();
+  }
 }

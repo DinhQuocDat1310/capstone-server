@@ -23,7 +23,7 @@ export class FaqService {
   async viewListFAQsUser() {
     return await this.prisma.fAQs.findMany({
       where: {
-        status: 'ENABLE',
+        isActive: true,
       },
     });
   }
@@ -35,7 +35,7 @@ export class FaqService {
         id,
       },
       data: {
-        status: 'ENABLE',
+        isActive: true,
       },
     });
     return `Enable Faq`;
@@ -48,7 +48,7 @@ export class FaqService {
         id,
       },
       data: {
-        status: 'DISABLE',
+        isActive: false,
       },
     });
     return `Disable Faq`;

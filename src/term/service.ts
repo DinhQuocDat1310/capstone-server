@@ -29,7 +29,7 @@ export class TermService {
     return await this.prisma.policiesTerm.findMany({
       where: {
         type: 'TERM',
-        status: 'ENABLE',
+        isActive: true,
       },
     });
   }
@@ -41,7 +41,7 @@ export class TermService {
         id,
       },
       data: {
-        status: 'ENABLE',
+        isActive: true,
       },
     });
     return `Enable Term`;
@@ -54,7 +54,7 @@ export class TermService {
         id,
       },
       data: {
-        status: 'DISABLE',
+        isActive: false,
       },
     });
     return `Disable Term`;

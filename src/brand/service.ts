@@ -37,13 +37,6 @@ export class BrandsService {
         )} for more information`,
       );
     }
-    if (user.phoneNumber !== dto.phoneNumber) {
-      await this.usersService.checkEmailOrPhoneNumberIsExist(
-        '',
-        dto.phoneNumber,
-        'This phone number is already used',
-      );
-    }
     if (user.idCitizen !== dto.idCitizen) {
       await this.usersService.checkIdCardIsExist(dto.idCitizen);
     }
@@ -80,31 +73,5 @@ export class BrandsService {
     } catch (e) {
       throw new InternalServerErrorException(e.message);
     }
-  }
-
-  async createRequestVerifyOdo(userId: string, driverJoinCampaignId: string) {
-    const driverJoinCampaign = await this.prisma.driverJoinCampaign.findFirst({
-      where: {
-        id: driverJoinCampaignId,
-      },
-    });
-    if (!driverJoinCampaign)
-      throw new BadRequestException(
-        'Please try again, this driver is not join your campaign',
-      );
-
-    if (driverJoinCampaign.isRequiredOdo)
-      throw new BadRequestException(
-        'You are request capture odo driver already',
-      );
-
-    await this.prisma.driverJoinCampaign.update({
-      where: {
-        id: driverJoinCampaignId,
-      },
-      data: {
-        isRequiredOdo: true,
-      },
-    });
   }
 }

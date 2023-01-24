@@ -1,1 +1,11 @@
-{"duration":["90","1","2"],"minimumKmDrive":"1","gapOpenRegisterForm":"1","gapPaymentDeposit":"1","gapWrapping":"1"}
+{
+  "duration": [
+    "90",
+    "1",
+    "2"
+  ],
+  "pricePerKm": "15.000",
+  "gapOpenRegisterForm": "1",
+  "gapPaymentDeposit": "1",
+  "gapWrapping": "1"
+}

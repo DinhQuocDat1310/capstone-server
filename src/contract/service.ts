@@ -1,7 +1,7 @@
 import { CancelContractDTO } from './dto';
 import { AppConfigService } from 'src/config/appConfigService';
 import { MailerService } from '@nestjs-modules/mailer';
-import { VerifyCampaignStatus } from '@prisma/client';
+import { StatusVerifyCampaign } from '@prisma/client';
 import { CampaignContractDTO } from './../campaign/dto';
 import {
   BadRequestException,
@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/service';
 import * as fs from 'fs';
-import * as moment from 'moment';
+import { addDays, diffDates } from 'src/utilities';
 
 @Injectable()
 export class ContractService {
@@ -20,8 +20,9 @@ export class ContractService {
     private readonly appConfigService: AppConfigService,
   ) {}
 
-  async createCampaignContract(userId: string, dto: CampaignContractDTO) {
+  async createCampaignContract(dto: CampaignContractDTO) {
     await this.checkVerifyCampaignId(dto.verifyId);
+
     const checkCampaignInvalidToVerify =
       await this.checkCampaignInvalidToVerify(dto.verifyId);
     if (checkCampaignInvalidToVerify) {
@@ -32,62 +33,32 @@ export class ContractService {
       fs.readFileSync('./dataConfig.json', 'utf-8'),
     );
 
-    const dateOpenRegister = moment(dto.dateOpenRegister, 'MM/DD/YYYY')
-      .toDate()
-      .toLocaleDateString('vn-VN');
-
-    const dateEndRegister = moment(dto.dateOpenRegister, 'MM/DD/YYYY')
-      .add(parseInt(objDataConfig.gapOpenRegisterForm) - 1, 'days')
-      .toDate()
-      .toLocaleDateString('vn-VN');
-
-    const datePaymentDepose = moment(dto.datePaymentDeposit, 'MM/DD/YYYY')
-      .toDate()
-      .toLocaleDateString('vn-VN');
-
-    const dateEndPaymentDeposit = moment(dto.datePaymentDeposit, 'MM/DD/YYYY')
-      .add(parseInt(objDataConfig.gapPaymentDeposit) - 1, 'days')
-      .toDate()
-      .toLocaleDateString('vn-VN');
-
-    const dateWrapStick = moment(dto.dateWarpSticket, 'MM/DD/YYYY')
-      .toDate()
-      .toLocaleDateString('vn-VN');
-
-    const dateEndWarpSticket = moment(dto.dateWarpSticket, 'MM/DD/YYYY')
-      .add(parseInt(objDataConfig.gapWrapping) - 1, 'days')
-      .toDate()
-      .toLocaleDateString('vn-VN');
-
-    const inputDateOpenRegis = moment(dto.dateOpenRegister, 'MM/DD/YYYY');
-    const inputDatePayment = moment(dto.datePaymentDeposit, 'MM/DD/YYYY');
-
     if (
-      Math.abs(inputDateOpenRegis.diff(inputDatePayment, 'days')) !==
-      parseInt(objDataConfig.gapOpenRegisterForm)
+      diffDates(
+        new Date(dto.dateOpenRegister),
+        new Date(dto.startDatePayment),
+      ) !== parseInt(objDataConfig.gapOpenRegisterForm)
     )
       throw new BadRequestException(
         `Gap Date Open Register must be in ${
           objDataConfig.gapOpenRegisterForm
-        } day(s). Date Payment must be: ${inputDateOpenRegis
-          .add(parseInt(objDataConfig.gapOpenRegisterForm) - 1, 'days')
-          .toDate()
-          .toLocaleDateString('vn-VN')}`,
+        } day(s). Date Payment must be: ${addDays(
+          new Date(dto.dateOpenRegister),
+          parseInt(objDataConfig.gapOpenRegisterForm) - 1,
+        )}`,
       );
 
-    const inputDateWrap = moment(dto.dateWarpSticket, 'MM/DD/YYYY');
-
     if (
-      Math.abs(inputDatePayment.diff(inputDateWrap, 'days')) !==
+      diffDates(new Date(dto.startDateWrap), new Date(dto.startDatePayment)) !==
       parseInt(objDataConfig.gapPaymentDeposit)
     )
       throw new BadRequestException(
         `Gap Date Payment Deposit must be in ${
           objDataConfig.gapPaymentDeposit
-        } day(s). Date Wrapping must be: ${inputDateWrap
-          .add(parseInt(objDataConfig.gapPaymentDeposit) - 1, 'days')
-          .toDate()
-          .toLocaleDateString('vn-VN')}`,
+        } day(s). Date Wrapping must be: ${addDays(
+          new Date(dto.startDateWrap),
+          parseInt(objDataConfig.gapPaymentDeposit) - 1,
+        )}`,
       );
     try {
       const verifyCampaign = await this.prisma.verifyCampaign.update({
@@ -95,13 +66,24 @@ export class ContractService {
           id: dto.verifyId,
         },
         data: {
-          status: VerifyCampaignStatus.ACCEPT,
+          status: StatusVerifyCampaign.ACCEPT,
           campaign: {
             update: {
-              startRegisterDate: dateOpenRegister,
-              endRegisterDate: dateEndRegister,
-              startWrapDate: dateWrapStick,
-              endWrapDate: dateEndWarpSticket,
+              startRegisterDate: new Date(dto.dateOpenRegister),
+              endRegisterDate: addDays(
+                new Date(dto.dateOpenRegister),
+                parseInt(objDataConfig.gapOpenRegisterForm) - 1,
+              ),
+              startWrapDate: new Date(dto.startDateWrap),
+              endWrapDate: addDays(
+                new Date(dto.startDateWrap),
+                parseInt(objDataConfig.gapWrapping) - 1,
+              ),
+              startPaymentDate: new Date(dto.startDatePayment),
+              endPaymentDate: addDays(
+                new Date(dto.startDatePayment),
+                parseInt(objDataConfig.gapPaymentDeposit) - 1,
+              ),
             },
           },
         },
@@ -112,15 +94,8 @@ export class ContractService {
               startRunningDate: true,
               campaignName: true,
               duration: true,
-              minimumKmDrive: true,
               quantityDriver: true,
-              totalKm: true,
-              locationPricePerKm: true,
-              locationCampaign: {
-                select: {
-                  locationName: true,
-                },
-              },
+              route: true,
               wrap: {
                 select: {
                   positionWrap: true,
@@ -150,22 +125,16 @@ export class ContractService {
         verifyCampaign.campaign.wrap.positionWrap === 'BOTH_SIDE';
       const extraWrapMoney = isBothSide ? 400000 : 200000;
       const priceWrap = Number(verifyCampaign.campaign.wrapPrice);
-      const time =
-        Math.ceil(parseInt(verifyCampaign.campaign.duration) / 30) - 1;
+      const time = Math.ceil(verifyCampaign.campaign.duration / 30) - 1;
 
       const totalWrapMoney =
         (priceWrap + time * extraWrapMoney) *
         Number(verifyCampaign.campaign.quantityDriver);
 
       const totalDriverMoney =
-        Number(verifyCampaign.campaign.minimumKmDrive) *
-        Number(verifyCampaign.campaign.locationPricePerKm) *
-        Number(verifyCampaign.campaign.quantityDriver) *
-        Number(verifyCampaign.campaign.duration);
-
-      const totalSystemMoney = totalDriverMoney * 0.1;
-
-      const totalMoney = totalWrapMoney + totalDriverMoney + totalSystemMoney;
+        verifyCampaign.campaign.route.price *
+        verifyCampaign.campaign.quantityDriver *
+        verifyCampaign.campaign.duration;
 
       await this.prisma.contractCampaign.create({
         data: {
@@ -175,21 +144,13 @@ export class ContractService {
               id: verifyCampaign.campaignId,
             },
           },
-          totalDriverMoney: totalDriverMoney.toString(),
-          totalWrapMoney: totalWrapMoney.toString(),
-          totalSystemMoney: totalSystemMoney.toString(),
+          totalDriverMoney: totalDriverMoney,
+          totalWrapMoney: totalWrapMoney,
+          totalSystemMoney: totalDriverMoney * 0.1,
           isAccept: false,
         },
       });
 
-      await this.prisma.paymentDebit.create({
-        data: {
-          campaignId: verifyCampaign.campaignId,
-          price: `${Math.ceil(totalMoney * 0.2)}`,
-          createDate: datePaymentDepose,
-          expiredDate: dateEndPaymentDeposit,
-        },
-      });
       const message = `<p>Congratulations!. Your campaign information has been accepted</p>
            <p>Please login at the website for more details</p>`;
       await this.mailerService.sendMail({
@@ -253,24 +214,12 @@ export class ContractService {
             startWrapDate: true,
             endWrapDate: true,
             poster: true,
-            totalKm: true,
             description: true,
             duration: true,
-            minimumKmDrive: true,
             quantityDriver: true,
-            locationPricePerKm: true,
             wrapPrice: true,
             detailMessage: true,
-            paymentDebit: {
-              select: {
-                id: true,
-                paidDate: true,
-                expiredDate: true,
-                createDate: true,
-                price: true,
-                isValid: true,
-              },
-            },
+
             brand: {
               select: {
                 id: true,
@@ -278,11 +227,7 @@ export class ContractService {
                 logo: true,
               },
             },
-            locationCampaign: {
-              select: {
-                locationName: true,
-              },
-            },
+
             wrap: {
               select: {
                 positionWrap: true,
@@ -348,7 +293,7 @@ export class ContractService {
       throw new BadRequestException('This contract was Accepted');
     }
     try {
-      const contract = await this.prisma.contractCampaign.update({
+      await this.prisma.contractCampaign.update({
         where: {
           id: contractId,
         },
@@ -359,25 +304,6 @@ export class ContractService {
               statusCampaign: 'OPEN',
             },
           },
-        },
-        select: {
-          campaign: {
-            select: {
-              paymentDebit: {
-                select: {
-                  id: true,
-                },
-              },
-            },
-          },
-        },
-      });
-      await this.prisma.paymentDebit.update({
-        where: {
-          id: contract.campaign.paymentDebit.id,
-        },
-        data: {
-          isValid: true,
         },
       });
       return `Accepted contract`;

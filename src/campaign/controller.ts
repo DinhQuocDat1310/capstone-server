@@ -1,5 +1,4 @@
 import { StatusGuard } from './../guard/userStatus.guard';
-import { VerifyCampaignService } from './../verifyCampaign/service';
 import {
   Controller,
   Post,
@@ -19,7 +18,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { Role, UserStatus } from '@prisma/client';
+import { Role, StatusUser } from '@prisma/client';
 import { RequestUser } from 'src/auth/dto';
 import { Roles, Status } from 'src/guard/decorators';
 import { CampaignVerifyInformationDTO } from './dto';
@@ -32,10 +31,7 @@ import { RolesGuard } from 'src/guard/roles.guard';
 @UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
 @ApiTags('Campaign')
 export class CampaignController {
-  constructor(
-    private readonly verifyCampaignService: VerifyCampaignService,
-    private readonly campaignService: CampaignService,
-  ) {}
+  constructor(private readonly campaignService: CampaignService) {}
 
   @ApiOperation({
     summary: 'Get list verifies campaigns (For Tab: Verify Campaign)',
@@ -44,7 +40,7 @@ export class CampaignController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.BRAND)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Get('/verifies/waiting')
   async getListVerifyCampaign(@Request() req: RequestUser) {
     return await this.campaignService.getListVerifiesCampaignByUserId(
@@ -59,7 +55,7 @@ export class CampaignController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.BRAND)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Get('/verifies/current')
   async getListCurrentCampaign(@Request() req: RequestUser) {
     return await this.campaignService.getListCurrentCampaignByUserId(
@@ -74,7 +70,7 @@ export class CampaignController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.BRAND)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Get('/verifies/history')
   async getListVerifyHistoryCampaign(@Request() req: RequestUser) {
     return await this.campaignService.getListHistoryCampaignByUserId(
@@ -89,7 +85,7 @@ export class CampaignController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.BRAND, Role.MANAGER)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Get('/verifies/details/:id')
   async getDetailCampaign(
     @Request() req: RequestUser,
@@ -107,7 +103,7 @@ export class CampaignController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiCreatedResponse({ description: 'Updated' })
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Roles(Role.BRAND)
   @Post('/verify/:id')
   async updateCampaignInformation(
@@ -125,7 +121,7 @@ export class CampaignController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiCreatedResponse({ description: 'Create' })
   @Roles(Role.BRAND)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Post('/create')
   async createCampaignInformation(
     @Request() req: RequestUser,
@@ -140,7 +136,7 @@ export class CampaignController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiCreatedResponse({ description: 'Create' })
   @Roles(Role.BRAND)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Post('/cancel/:id')
   async cancelNewCampaign(
     @Request() req: RequestUser,
@@ -155,7 +151,7 @@ export class CampaignController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiCreatedResponse({ description: 'Create' })
   @Roles(Role.BRAND, Role.MANAGER)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Get('/quantity-driver-join/:id')
   async getCurrentDriverJoinCampaign(
     @Request() req: RequestUser,
@@ -172,7 +168,7 @@ export class CampaignController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.BRAND, Role.MANAGER, Role.ADMIN)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Get('/km-daily-report/:id')
   async getDailyReportKilometer(
     @Request() req: RequestUser,
@@ -190,7 +186,7 @@ export class CampaignController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.BRAND, Role.MANAGER)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Get('/list-driver-running/:id')
   async getListDriverRunning(
     @Request() req: RequestUser,
@@ -207,7 +203,7 @@ export class CampaignController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.BRAND, Role.MANAGER)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Get('/total-km-final-report/:id')
   async getFinalReportKilometer(
     @Request() req: RequestUser,
@@ -224,7 +220,7 @@ export class CampaignController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.ADMIN, Role.BRAND)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Get('/trigger-driver-join/:id')
   async triggerDriversJoinCampaign(
     @Request() req: RequestUser,

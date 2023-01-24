@@ -7,7 +7,6 @@ import { Module } from '@nestjs/common';
 import { AdminService } from './service';
 import { AdminController } from './controller';
 import { ManagerService } from 'src/manager/service';
-import { LocationService } from 'src/location/service';
 import { WrapService } from 'src/wrap/service';
 
 @Module({
@@ -20,7 +19,6 @@ import { WrapService } from 'src/wrap/service';
     AppConfigService,
     VerifyCampaignService,
     ManagerService,
-    LocationService,
     WrapService,
   ],
 })

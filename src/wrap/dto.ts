@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Status } from '@prisma/client';
+import { PositionWrap } from '@prisma/client';
 import { IsNumberString, IsString } from 'class-validator';
 
 export class WrapDTO {
@@ -12,5 +12,5 @@ export class WrapDTO {
   price: string;
 
   @ApiProperty({ type: String, description: 'Status of wrap' })
-  status: Status;
+  status: PositionWrap;
 }

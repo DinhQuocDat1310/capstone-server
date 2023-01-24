@@ -9,11 +9,10 @@ import {
 import { UserSignIn } from 'src/auth/dto';
 import { PrismaService } from 'src/prisma/service';
 import { CampaignVerifyInformationDTO, StepsCampaignDTO } from './dto';
-import { CampaignStatus, Role } from '@prisma/client';
-import * as moment from 'moment';
-import * as fs from 'fs';
+import { StatusCampaign, Role } from '@prisma/client';
 import { GLOBAL_DATE } from 'src/constants/cache-code';
 import { Cache } from 'cache-manager';
+import { addDays, diffDates } from 'src/utilities';
 
 @Injectable()
 export class CampaignService {
@@ -66,9 +65,13 @@ export class CampaignService {
             logo: true,
           },
         },
-        locationCampaign: {
-          select: {
-            locationName: true,
+        route: {
+          include: {
+            checkpoints: {
+              select: {
+                addressName: true,
+              },
+            },
           },
         },
         verifyCampaign: {
@@ -121,11 +124,6 @@ export class CampaignService {
           select: {
             brandName: true,
             logo: true,
-          },
-        },
-        locationCampaign: {
-          select: {
-            locationName: true,
           },
         },
         statusCampaign: true,
@@ -205,7 +203,7 @@ export class CampaignService {
   }
 
   async viewCampaignDetails(userId: string, campaignId: string) {
-    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
+    const globalDate: Date = await this.cacheManager.get(GLOBAL_DATE);
 
     const brandOwnCampaign = await this.prisma.campaign.findFirst({
       where: {
@@ -238,13 +236,13 @@ export class CampaignService {
         campaignName: true,
         startRegisterDate: true,
         endRegisterDate: true,
+        startPaymentDate: true,
+        endPaymentDate: true,
         startRunningDate: true,
         detailMessage: true,
         poster: true,
         duration: true,
-        totalKm: true,
         quantityDriver: true,
-        minimumKmDrive: true,
         description: true,
         startWrapDate: true,
         endWrapDate: true,
@@ -271,10 +269,13 @@ export class CampaignService {
             price: true,
           },
         },
-        locationCampaign: {
-          select: {
-            locationName: true,
-            price: true,
+        route: {
+          include: {
+            checkpoints: {
+              select: {
+                addressName: true,
+              },
+            },
           },
         },
         contractCampaign: {
@@ -284,16 +285,6 @@ export class CampaignService {
             totalDriverMoney: true,
             totalSystemMoney: true,
             totalWrapMoney: true,
-          },
-        },
-        paymentDebit: {
-          select: {
-            id: true,
-            createDate: true,
-            expiredDate: true,
-            paidDate: true,
-            price: true,
-            isValid: true,
           },
         },
       },
@@ -307,40 +298,20 @@ export class CampaignService {
 
     switch (brandOwnCampaign.statusCampaign) {
       case 'OPEN':
-        isWaiting =
-          moment(globalDate, 'MM/DD/YYYY') <
-          moment(brandOwnCampaign.startRegisterDate, 'MM/DD/YYYY');
-        days = moment(globalDate, 'MM/DD/YYYY').diff(
-          moment(brandOwnCampaign.startRegisterDate, 'MM/DD/YYYY'),
-          'days',
-        );
+        isWaiting = globalDate < brandOwnCampaign.startRegisterDate;
+        days = diffDates(globalDate, brandOwnCampaign.startRegisterDate);
         break;
       case 'PAYMENT':
-        isWaiting =
-          moment(globalDate, 'MM/DD/YYYY') <
-          moment(brandOwnCampaign.paymentDebit.createDate, 'MM/DD/YYYY');
-        days = moment(globalDate, 'MM/DD/YYYY').diff(
-          moment(brandOwnCampaign.paymentDebit.createDate, 'MM/DD/YYYY'),
-          'days',
-        );
+        isWaiting = globalDate < brandOwnCampaign.startPaymentDate;
+        days = diffDates(globalDate, brandOwnCampaign.startPaymentDate);
         break;
       case 'WRAPPING':
-        isWaiting =
-          moment(globalDate, 'MM/DD/YYYY') <
-          moment(brandOwnCampaign.startWrapDate, 'MM/DD/YYYY');
-        days = moment(globalDate, 'MM/DD/YYYY').diff(
-          moment(brandOwnCampaign.startWrapDate, 'MM/DD/YYYY'),
-          'days',
-        );
+        isWaiting = globalDate < brandOwnCampaign.startWrapDate;
+        days = diffDates(globalDate, brandOwnCampaign.startWrapDate);
         break;
       case 'RUNNING':
-        isWaiting =
-          moment(globalDate, 'MM/DD/YYYY') <
-          moment(brandOwnCampaign.startRunningDate, 'MM/DD/YYYY');
-        days = moment(globalDate, 'MM/DD/YYYY').diff(
-          moment(brandOwnCampaign.startRunningDate, 'MM/DD/YYYY'),
-          'days',
-        );
+        isWaiting = globalDate < brandOwnCampaign.startRunningDate;
+        days = diffDates(globalDate, brandOwnCampaign.startRunningDate);
         break;
     }
     if (isWaiting) {
@@ -357,11 +328,6 @@ export class CampaignService {
     campaignId: string,
     verifyCampaignId: string,
   ) {
-    const dataLocation = await this.prisma.locationCampaignPerKm.findFirst({
-      where: {
-        id: dto.idLocation,
-      },
-    });
     const dataWrap = await this.prisma.wrap.findFirst({
       where: {
         id: dto.idWrap,
@@ -381,16 +347,16 @@ export class CampaignService {
                 },
                 data: {
                   campaignName: dto.campaignName,
-                  startRunningDate: moment(dto.startRunningDate, 'MM/DD/YYYY')
-                    .toDate()
-                    .toLocaleDateString('vn-VN'),
-                  totalKm: dto.totalKm,
-                  quantityDriver: dto.quantityDriver,
-                  minimumKmDrive: dto.minimumKmDrive,
+                  startRunningDate: new Date(dto.startRunningDate),
+                  quantityDriver: +dto.quantityDriver,
                   description: dto.description,
                   poster: dto.poster,
                   wrapPrice: dataWrap.price,
-                  locationPricePerKm: dataLocation.price,
+                  route: {
+                    connect: {
+                      id: dto.routeId,
+                    },
+                  },
                   verifyCampaign: {
                     update: {
                       where: {
@@ -518,44 +484,25 @@ export class CampaignService {
   }
 
   async createCampaign(dto: CampaignVerifyInformationDTO, userId: string) {
-    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
-    const isCampaignNameExist = await this.prisma.campaign.findFirst({
-      where: {
-        campaignName: dto.campaignName,
-      },
-    });
-    if (isCampaignNameExist)
-      throw new BadRequestException('Campaign name already used!');
-    const objDataConfig = JSON.parse(
-      fs.readFileSync('./dataConfig.json', 'utf-8'),
-    );
+    const globalDate: Date = await this.cacheManager.get(GLOBAL_DATE);
 
-    if (objDataConfig.minimumKmDrive !== dto.minimumKmDrive)
-      throw new BadRequestException(
-        `Minimum Km must drive/day is ${objDataConfig.minimumKmDrive}`,
-      );
     const campaign = await this.prisma.campaign.create({
       data: {
         campaignName: dto.campaignName,
-        startRunningDate: moment(dto.startRunningDate, 'MM/DD/YYYY')
-          .toDate()
-          .toLocaleDateString('vn-VN'),
-        quantityDriver: dto.quantityDriver,
-        totalKm: dto.totalKm,
+        startRunningDate: new Date(dto.startRunningDate),
+        quantityDriver: +dto.quantityDriver,
         description: dto.description,
         poster: dto.poster,
-        minimumKmDrive: dto.minimumKmDrive,
-        locationPricePerKm: dto.priceLocation,
-        wrapPrice: dto.priceWrap,
-        duration: dto.duration,
+        wrapPrice: +dto.priceWrap,
+        duration: +dto.duration,
         brand: {
           connect: {
             userId,
           },
         },
-        locationCampaign: {
+        route: {
           connect: {
-            id: dto.idLocation,
+            id: dto.routeId,
           },
         },
         wrap: {
@@ -568,17 +515,17 @@ export class CampaignService {
         id: true,
         campaignName: true,
         duration: true,
-        totalKm: true,
         description: true,
         quantityDriver: true,
-        minimumKmDrive: true,
         startRunningDate: true,
         poster: true,
-        locationCampaign: {
-          select: {
-            id: true,
-            locationName: true,
-            price: true,
+        route: {
+          include: {
+            checkpoints: {
+              select: {
+                addressName: true,
+              },
+            },
           },
         },
         wrap: {
@@ -590,6 +537,7 @@ export class CampaignService {
         },
       },
     });
+
     await this.prisma.verifyCampaign.create({
       data: {
         campaign: {
@@ -597,9 +545,7 @@ export class CampaignService {
             id: campaign.id,
           },
         },
-        createDate: moment(globalDate, 'MM/DD/YYYY')
-          .toDate()
-          .toLocaleDateString('vn-VN'),
+        createDate: globalDate,
       },
     });
     return campaign;
@@ -778,7 +724,7 @@ export class CampaignService {
       throw new BadRequestException('Campaign ID is not exist');
   }
 
-  async getAllCampaignRegisterIsExpired(globalDate?: string) {
+  async getAllCampaignRegisterIsExpired(globalDate?: Date) {
     const campaigns = await this.prisma.campaign.findMany({
       where: {
         statusCampaign: 'OPEN',
@@ -801,40 +747,26 @@ export class CampaignService {
       },
     });
     if (globalDate) {
-      return campaigns.filter(
-        (c) =>
-          moment(globalDate, 'MM/DD/YYYY') >=
-          moment(c.endRegisterDate, 'MM/DD/YYYY'),
-      );
+      return campaigns.filter((c) => globalDate >= c.endRegisterDate);
     }
-    return campaigns.filter(
-      (c) => moment() >= moment(c.endRegisterDate, 'MM/DD/YYYY'),
-    );
+    return campaigns.filter((c) => new Date() >= c.endRegisterDate);
   }
 
-  async getAllCampaignWrapIsExpired(globalDate?: string) {
+  async getAllCampaignWrapIsExpired(globalDate?: Date) {
     const campaigns = await this.prisma.campaign.findMany({
       where: {
         statusCampaign: 'WRAPPING',
       },
     });
     if (globalDate) {
-      return campaigns.filter(
-        (c) =>
-          moment(globalDate, 'MM/DD/YYYY') >=
-          moment(c.endWrapDate, 'MM/DD/YYYY'),
-      );
+      return campaigns.filter((c) => globalDate >= c.endWrapDate);
     }
-    return campaigns.filter(
-      (c) => moment() >= moment(c.endWrapDate, 'MM/DD/YYYY'),
-    );
+    return campaigns.filter((c) => new Date() >= c.endWrapDate);
   }
 
-  async getAllCampaignPaymentIsExpired(globalDate?: string) {
+  async getAllCampaignPaymentIsExpired(globalDate?: Date) {
     const campaigns = await this.prisma.campaign.findMany({
       include: {
-        locationCampaign: true,
-        paymentDebit: true,
         brand: {
           include: {
             user: true,
@@ -852,18 +784,12 @@ export class CampaignService {
       },
     });
     if (globalDate) {
-      return campaigns.filter(
-        (c) =>
-          moment(globalDate, 'MM/DD/YYYY') >=
-          moment(c.paymentDebit.expiredDate, 'MM/DD/YYYY'),
-      );
+      return campaigns.filter((c) => globalDate >= c.endPaymentDate);
     }
-    return campaigns.filter(
-      (c) => moment() >= moment(c.paymentDebit.expiredDate, 'MM/DD/YYYY'),
-    );
+    return campaigns.filter((c) => new Date() >= c.endPaymentDate);
   }
 
-  async getAllCampaignRunningIsExpired(globalDate?: string) {
+  async getAllCampaignRunningIsExpired(globalDate?: Date) {
     const campaigns = await this.prisma.campaign.findMany({
       where: {
         statusCampaign: 'RUNNING',
@@ -873,11 +799,8 @@ export class CampaignService {
         contractCampaign: true,
         driverJoinCampaign: {
           include: {
-            driverTrackingLocation: {
-              include: {
-                tracking: true,
-              },
-            },
+            driverScanQRCode: true,
+            drivingPhotoReport: true,
             driver: {
               include: {
                 user: true,
@@ -885,7 +808,6 @@ export class CampaignService {
             },
           },
         },
-        paymentDebit: true,
         brand: {
           include: {
             user: true,
@@ -895,21 +817,11 @@ export class CampaignService {
     });
     if (globalDate) {
       return campaigns.filter(
-        (c) =>
-          moment(globalDate, 'MM/DD/YYYY') >=
-          moment(c.startRunningDate, 'MM/DD/YYYY').add(
-            Number(c.duration) - 1,
-            'days',
-          ),
+        (c) => globalDate >= addDays(c.startRunningDate, c.duration - 1),
       );
     }
     return campaigns.filter(
-      (c) =>
-        moment() >=
-        moment(c.startRunningDate, 'MM/DD/YYYY').add(
-          Number(c.duration) - 1,
-          'days',
-        ),
+      (c) => new Date() >= addDays(c.startRunningDate, c.duration - 1),
     );
   }
 
@@ -924,7 +836,7 @@ export class CampaignService {
 
   async updateStatusCampaign(
     campaignId: string,
-    status: CampaignStatus,
+    status: StatusCampaign,
     description?: string,
   ) {
     await this.prisma.campaign.update({
@@ -951,40 +863,18 @@ export class CampaignService {
         },
       },
       select: {
-        totalKm: true,
         driverJoinCampaign: {
           include: {
-            driverTrackingLocation: {
-              select: {
-                tracking: {
-                  select: {
-                    totalMeterDriven: true,
-                  },
-                },
-              },
-            },
+            driverScanQRCode: true,
+            drivingPhotoReport: true,
           },
         },
       },
     });
     if (!campaign)
       throw new BadRequestException('Campaign not found or not finished yet');
-    let totalMeterFinalReport = 0;
 
-    const driverTracking = campaign.driverJoinCampaign;
-
-    driverTracking.forEach((driver) =>
-      driver.driverTrackingLocation.forEach((track) =>
-        track.tracking.forEach(
-          (total) => (totalMeterFinalReport += Number(total.totalMeterDriven)),
-        ),
-      ),
-    );
-    const totalKm = campaign.totalKm;
-    return {
-      totalKm,
-      totalKmFinalReport: totalMeterFinalReport / 1000,
-    };
+    return 'this function need to be replace';
   }
 
   async getKilometerDailyReport(
@@ -992,17 +882,17 @@ export class CampaignService {
     role: Role,
     campaignId: string,
   ) {
-    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
+    const globalDate: Date = await this.cacheManager.get(GLOBAL_DATE);
     const where = {
       id: campaignId,
       statusCampaign: {
         in: [
-          CampaignStatus.OPEN,
-          CampaignStatus.PAYMENT,
-          CampaignStatus.WRAPPING,
-          CampaignStatus.RUNNING,
-          CampaignStatus.CLOSED,
-          CampaignStatus.CANCELED,
+          StatusCampaign.OPEN,
+          StatusCampaign.PAYMENT,
+          StatusCampaign.WRAPPING,
+          StatusCampaign.RUNNING,
+          StatusCampaign.CLOSED,
+          StatusCampaign.CANCELED,
         ],
       },
     };
@@ -1023,10 +913,14 @@ export class CampaignService {
       include: {
         driverJoinCampaign: {
           include: {
-            reporterDriverCampaign: true,
-            driverTrackingLocation: {
+            drivingPhotoReport: true,
+            driverScanQRCode: {
               include: {
-                tracking: true,
+                Checkpoint: {
+                  select: {
+                    addressName: true,
+                  },
+                },
               },
             },
             driver: {
@@ -1041,67 +935,36 @@ export class CampaignService {
     if (!campaign)
       throw new BadRequestException('You are not the owner this campaign!');
 
-    if (
-      moment(globalDate, 'MM/DD/YYYY') <
-      moment(campaign.startRunningDate, 'MM/DD/YYYY')
-    ) {
+    if (globalDate < campaign.startRunningDate) {
       return [];
     }
-    const totalKmPerDay = Number(campaign.totalKm) / Number(campaign.duration);
 
     const momentGlobal =
-      moment(globalDate, 'MM/DD/YYYY') >
-      moment(campaign.startRunningDate, 'MM/DD/YYYY').add(
-        Number(campaign.duration) - 1,
-        'days',
-      )
-        ? moment(campaign.startRunningDate, 'MM/DD/YYYY').add(
-            Number(campaign.duration) - 1,
-            'days',
-          )
-        : moment(globalDate, 'MM/DD/YYYY');
+      globalDate > addDays(campaign.startRunningDate, campaign.duration - 1)
+        ? addDays(campaign.startRunningDate, campaign.duration - 1)
+        : globalDate;
 
-    const totalLength = Math.abs(
-      momentGlobal.diff(
-        moment(campaign.startRunningDate, 'MM/DD/YYYY'),
-        'days',
-      ),
-    );
+    const totalLength = diffDates(momentGlobal, campaign.startRunningDate);
 
-    const listDriver = (date: string) => {
+    const listDriver = (date: Date) => {
       return campaign.driverJoinCampaign.map((driverJoin) => {
-        const driverTracking = driverJoin.driverTrackingLocation.find(
-          (driverTrack) =>
-            moment(date, 'MM/DD/YYYY').diff(
-              moment(driverTrack.createDate, 'MM/DD/YYYY'),
-              'days',
-            ) === 0,
+        const driverScanQR = driverJoin.driverScanQRCode.filter(
+          (driverTrack) => diffDates(date, driverTrack.submitTime) === 0,
         );
-        const totalKm =
-          driverTracking?.tracking?.reduce(
-            (acc, driver) => acc + Number(driver.totalMeterDriven),
-            0,
-          ) ?? 0;
 
-        const reporterImage = driverJoin?.reporterDriverCampaign?.find(
-          (report) =>
-            moment(date, 'MM/DD/YYYY').diff(
-              moment(report.createDate, 'MM/DD/YYYY'),
-              'days',
-            ) === 0,
+        const reporterImage = driverJoin?.drivingPhotoReport?.find(
+          (report) => diffDates(date, report.createDate) === 0,
         );
 
         return {
           driverJoinCampaignId: driverJoin.id,
           carOwnerName: driverJoin?.driver?.user?.fullname,
-          phoneNumber: driverJoin?.driver?.user?.phoneNumber,
-          carId: driverJoin?.driver?.idCar,
-          totalKm,
+          licensePlates: driverJoin?.driver?.licensePlates,
+          driverScanQRCode: driverScanQR,
           listImage: {
             imageCarBack: reporterImage?.imageCarBack,
             imageCarLeft: reporterImage?.imageCarLeft,
             imageCarRight: reporterImage?.imageCarRight,
-            imageCarOdo: reporterImage?.imageCarOdo,
           },
         };
       });
@@ -1110,22 +973,10 @@ export class CampaignService {
     const array = [];
     for (let i = 0; i <= totalLength; i++) {
       const listDriverFormat = listDriver(
-        moment(campaign.startRunningDate, 'MM/DD/YYYY')
-          .add(i, 'days')
-          .toDate()
-          .toLocaleDateString('vn-VN'),
+        addDays(campaign.startRunningDate, i),
       );
-      const totalKmDriven = listDriverFormat.reduce((acc, driver) => {
-        return acc + Number(driver.totalKm);
-      }, 0);
-
       array.push({
-        date: moment(campaign.startRunningDate, 'MM/DD/YYYY')
-          .add(i, 'days')
-          .toDate()
-          .toLocaleDateString('vn-VN'),
-        totalKm: totalKmPerDay,
-        totalKmDriven: totalKmDriven / 1000,
+        date: addDays(campaign.startRunningDate, i),
         listDriver: listDriverFormat,
       });
     }
@@ -1147,12 +998,8 @@ export class CampaignService {
       include: {
         driverJoinCampaign: {
           include: {
-            reporterDriverCampaign: true,
-            driverTrackingLocation: {
-              include: {
-                tracking: true,
-              },
-            },
+            driverScanQRCode: true,
+            drivingPhotoReport: true,
             driver: {
               include: {
                 user: true,
@@ -1188,24 +1035,21 @@ export class CampaignService {
   }
 
   async triggerDriversJoinCampaign(campaignId: string) {
-    const globalDate = await this.cacheManager.get(GLOBAL_DATE);
+    const globalDate: Date = await this.cacheManager.get(GLOBAL_DATE);
     const campaign = await this.prisma.campaign.findFirst({
       where: {
         id: campaignId,
         statusCampaign: 'OPEN',
       },
       include: {
-        locationCampaign: true,
         driverJoinCampaign: true,
       },
     });
     if (!campaign)
       throw new BadRequestException('Please input correct campaign ID');
     if (
-      moment(globalDate, 'MM/DD/YYYY') <
-        moment(campaign.startRegisterDate, 'MM/DD/YYYY') ||
-      moment(globalDate, 'MM/DD/YYYY') >
-        moment(campaign.endRegisterDate, 'MM/DD/YYYY')
+      globalDate < campaign.startRegisterDate ||
+      globalDate > campaign.endRegisterDate
     ) {
       throw new BadRequestException(
         'This campaign is not open for register. Please check register date.',
@@ -1220,11 +1064,9 @@ export class CampaignService {
 
     if (quantityDriverRequire <= 0)
       throw new BadRequestException('You are already trigger enough drivers');
+
     const drivers = await this.prisma.driver.findMany({
       where: {
-        user: {
-          address: campaign.locationCampaign.locationName,
-        },
         campaigns: {
           none: {
             status: 'APPROVE',
@@ -1236,7 +1078,7 @@ export class CampaignService {
 
     if (drivers.length < quantityDriverRequire) {
       this.logger.debug(
-        `We dont have enough drivers to auto register driver for campaign in ${campaign.locationCampaign.locationName}`,
+        `We dont have enough drivers to auto register driver for campaign in ${campaign.campaignName}`,
       );
       return;
     }
@@ -1245,9 +1087,7 @@ export class CampaignService {
         campaignId: campaign.id,
         driverId: driver.id,
         description: 'Auto join',
-        createDate: moment(globalDate, 'MM/DD/YYYY')
-          .toDate()
-          .toLocaleDateString('vn-VN'),
+        createDate: new Date(globalDate),
       };
     });
     await this.prisma.driverJoinCampaign.createMany({

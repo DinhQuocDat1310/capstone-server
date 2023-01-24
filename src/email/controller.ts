@@ -16,7 +16,7 @@ import { RolesGuard } from 'src/guard/roles.guard';
 import { StatusGuard } from 'src/guard/userStatus.guard';
 import { RequestUser } from 'src/auth/dto';
 import { Roles, Status } from 'src/guard/decorators';
-import { Role, UserStatus } from '@prisma/client';
+import { Role, StatusUser } from '@prisma/client';
 
 @Controller('email')
 @UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
@@ -30,7 +30,7 @@ export class EmailsController {
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiOkResponse({ description: 'ok' })
   @Roles(Role.BRAND)
-  @Status(UserStatus.INIT)
+  @Status(StatusUser.INIT)
   @Post('/brand/otp/generate')
   @ApiOperation({ summary: 'Send code to email' })
   async sendOtpToBrandEmail(@Request() req: RequestUser) {
@@ -42,7 +42,7 @@ export class EmailsController {
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiOkResponse({ description: 'ok' })
   @Roles(Role.DRIVER)
-  @Status(UserStatus.INIT)
+  @Status(StatusUser.INIT)
   @Post('/driver/otp/generate')
   @ApiOperation({ summary: 'Send code to email' })
   async sendOtpToDriverEmail(@Request() req: RequestUser) {
@@ -55,7 +55,7 @@ export class EmailsController {
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiOperation({ summary: 'Verify email' })
   @Roles(Role.BRAND, Role.DRIVER)
-  @Status(UserStatus.INIT)
+  @Status(StatusUser.INIT)
   @Post('/otp/verify')
   async inputCodeVerifyEmail(
     @Request() req: RequestUser,

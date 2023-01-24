@@ -17,13 +17,12 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { Role, UserStatus } from '@prisma/client';
+import { Role, StatusUser } from '@prisma/client';
 import { RequestUser } from 'src/auth/dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { Roles, Status } from 'src/guard/decorators';
 import { RolesGuard } from 'src/guard/roles.guard';
 import { StatusGuard } from 'src/guard/userStatus.guard';
-import { LocationService } from 'src/location/service';
 import { VerifyAccountsService } from 'src/verifyAccount/service';
 import {
   DriverJoinCampaign,
@@ -40,7 +39,6 @@ export class DriverController {
   constructor(
     private readonly driverService: DriversService,
     private readonly verifyAccountService: VerifyAccountsService,
-    private readonly locationService: LocationService,
   ) {}
 
   @ApiBody({ type: DriverVerifyInformationDTO })
@@ -49,7 +47,7 @@ export class DriverController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiCreatedResponse({ description: 'Updated' })
-  @Status(UserStatus.NEW, UserStatus.UPDATE)
+  @Status(StatusUser.NEW, StatusUser.UPDATE)
   @Roles(Role.DRIVER)
   @Post('account/verify')
   async updateDriverInformation(
@@ -64,7 +62,7 @@ export class DriverController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.DRIVER)
-  @Status(UserStatus.UPDATE)
+  @Status(StatusUser.UPDATE)
   @Get('account/verify')
   async getListVerifyDriver(@Request() req: RequestUser) {
     return await this.verifyAccountService.getListVerifyByUserId(req.user.id);
@@ -78,7 +76,7 @@ export class DriverController {
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Roles(Role.DRIVER)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Post('join-campaign')
   async joinVerifyCampaigns(
     @Request() req: RequestUser,
@@ -93,7 +91,7 @@ export class DriverController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiCreatedResponse({ description: 'Create' })
   @Roles(Role.DRIVER)
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Get('/list-campaigns')
   async getListCampaignForDriver(@Request() req: RequestUser) {
     return await this.driverService.getListCampaigns(
@@ -102,23 +100,11 @@ export class DriverController {
     );
   }
 
-  @ApiOperation({ summary: 'get location' })
-  @ApiForbiddenResponse({ description: 'Forbidden' })
-  @ApiBadRequestResponse({ description: 'Bad Request' })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @ApiCreatedResponse({ description: 'Create' })
-  @Roles(Role.DRIVER)
-  @Status(UserStatus.NEW, UserStatus.UPDATE, UserStatus.VERIFIED)
-  @Get('/locations')
-  async getListLocations(@Request() req: RequestUser) {
-    return await this.locationService.getListLocation(req.user.role);
-  }
-
   @ApiOperation({ summary: 'Get list campaign joining and joined' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Get('/joining-joined')
   @Roles(Role.DRIVER)
   async getListJoiningJoinedCampaign(@Request() req: RequestUser) {
@@ -130,7 +116,7 @@ export class DriverController {
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Post('/location/tracking')
   @Roles(Role.DRIVER)
   async saveCurrentLocationDriverByDate(
@@ -149,7 +135,7 @@ export class DriverController {
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Get('/location/totalMeterByDate/:id')
   @Roles(Role.DRIVER)
   async getTotalKmByCurrentDate(@Param('id') driverJoinCampaignId: string) {
@@ -158,22 +144,11 @@ export class DriverController {
     );
   }
 
-  @ApiOperation({ summary: 'Get list total km traveled' })
-  @ApiForbiddenResponse({ description: 'Forbidden' })
-  @ApiBadRequestResponse({ description: 'Bad Request' })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Status(UserStatus.VERIFIED)
-  @Get('location/totalKmTraveled')
-  @Roles(Role.DRIVER)
-  async getTotalKmTraveled(@Request() req: RequestUser) {
-    return await this.driverService.getTotalKmTraveled(req.user.id);
-  }
-
   @ApiOperation({ summary: 'Get history campaign driver joined and finished' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Status(UserStatus.VERIFIED)
+  @Status(StatusUser.VERIFIED)
   @Get('history/campaign')
   @Roles(Role.DRIVER)
   async historyDriverFinished(@Request() req: RequestUser) {

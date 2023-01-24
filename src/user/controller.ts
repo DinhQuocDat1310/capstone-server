@@ -19,12 +19,17 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { UserStatus } from '@prisma/client';
+import { Role, StatusUser } from '@prisma/client';
 import { RequestUser } from 'src/auth/dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { Status } from 'src/guard/decorators';
+import { Roles, Status } from 'src/guard/decorators';
 import { StatusGuard } from 'src/guard/userStatus.guard';
-import { ChangePasswordDTO, CreateUserDTO, UserDTO } from './dto';
+import {
+  ChangePasswordDTO,
+  CreateReporterDTO,
+  CreateUserDTO,
+  UserDTO,
+} from './dto';
 import { UsersService } from './service';
 @Controller('user')
 @ApiTags('User')
@@ -49,11 +54,11 @@ export class UserController {
   @ApiOkResponse({ type: UserDTO })
   @UseGuards(JwtAuthGuard, StatusGuard)
   @Status(
-    UserStatus.INIT,
-    UserStatus.NEW,
-    UserStatus.PENDING,
-    UserStatus.UPDATE,
-    UserStatus.VERIFIED,
+    StatusUser.INIT,
+    StatusUser.NEW,
+    StatusUser.PENDING,
+    StatusUser.UPDATE,
+    StatusUser.VERIFIED,
   )
   @ApiBearerAuth('access-token')
   @Get()
@@ -70,11 +75,11 @@ export class UserController {
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard, StatusGuard)
   @Status(
-    UserStatus.INIT,
-    UserStatus.NEW,
-    UserStatus.PENDING,
-    UserStatus.UPDATE,
-    UserStatus.VERIFIED,
+    StatusUser.INIT,
+    StatusUser.NEW,
+    StatusUser.PENDING,
+    StatusUser.UPDATE,
+    StatusUser.VERIFIED,
   )
   @Post('passsword/change')
   async changePassword(
@@ -84,8 +89,15 @@ export class UserController {
     await this.userService.updatePasswordUser(req.user.id, dto);
   }
 
-  @Get('test')
-  async testDateTime() {
-    return await this.userService.test();
+  @ApiBody({ type: CreateReporterDTO })
+  @ApiOperation({ summary: 'Create reporter' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Status(StatusUser.VERIFIED)
+  @Roles(Role.ADMIN)
+  @Post('/reporter')
+  async createReporter(@Body() dto: CreateReporterDTO) {
+    return await this.userService.createNewReporter(dto);
   }
 }

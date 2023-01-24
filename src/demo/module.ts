@@ -1,19 +1,18 @@
-import { AppConfigService } from './../config/appConfigService';
 import { Module } from '@nestjs/common';
-import { DemoService } from './service';
-import { DemoController } from './controller';
+import { CampaignService } from 'src/campaign/service';
+import { ContractService } from 'src/contract/service';
+import { DriversService } from 'src/driver/service';
+import { EmailsService } from 'src/email/service';
+import { ManagerService } from 'src/manager/service';
+import { PaymentService } from 'src/payment/service';
 import { PrismaService } from 'src/prisma/service';
 import { TasksService } from 'src/task/service';
-import { VerifyAccountsService } from 'src/verifyAccount/service';
-import { ManagerService } from 'src/manager/service';
-import { VerifyCampaignService } from 'src/verifyCampaign/service';
-import { ContractService } from 'src/contract/service';
-import { CampaignService } from 'src/campaign/service';
-import { PaymentService } from 'src/payment/service';
-import { DriversService } from 'src/driver/service';
 import { UsersService } from 'src/user/service';
-import { LocationService } from 'src/location/service';
-import { EmailsService } from 'src/email/service';
+import { VerifyAccountsService } from 'src/verifyAccount/service';
+import { VerifyCampaignService } from 'src/verifyCampaign/service';
+import { AppConfigService } from './../config/appConfigService';
+import { DemoController } from './controller';
+import { DemoService } from './service';
 
 @Module({
   controllers: [DemoController],
@@ -32,7 +31,6 @@ import { EmailsService } from 'src/email/service';
     PaymentService,
     DriversService,
     UsersService,
-    LocationService,
     EmailsService,
   ],
 })
