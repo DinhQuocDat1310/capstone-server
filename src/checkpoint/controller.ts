@@ -42,7 +42,7 @@ export class CheckPointController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiCreatedResponse({ description: 'Created' })
   @Roles(Role.ADMIN)
-  @Post()
+  @Get()
   async getCheckpoints() {
     return await this.checkpointService.getAllCheckpoints();
   }
