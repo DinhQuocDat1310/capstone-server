@@ -16,13 +16,17 @@ import { RolesGuard } from 'src/guard/roles.guard';
 import { StatusGuard } from 'src/guard/userStatus.guard';
 import { CheckpointDTO, RouteDTO } from './dto';
 import { CheckPointService } from './service';
+import { GoogleService } from 'src/google/service';
 
 @Controller('checkpoint')
 @UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
 @ApiBearerAuth('access-token')
 @ApiTags('Checkpoint')
 export class CheckPointController {
-  constructor(private readonly checkpointService: CheckPointService) {}
+  constructor(
+    private readonly checkpointService: CheckPointService,
+    private readonly googleService: GoogleService,
+  ) {}
 
   @ApiBody({ type: CheckpointDTO })
   @ApiOperation({ summary: 'Create checkpoint' })
@@ -56,7 +60,7 @@ export class CheckPointController {
   @Roles(Role.ADMIN)
   @Post('route')
   async createRoute(@Body() dto: RouteDTO) {
-    return await this.checkpointService.createRoute(dto);
+    return await this.googleService.calculateRoute(dto);
   }
 
   @ApiOperation({ summary: 'Get all route' })

@@ -29,17 +29,7 @@ export class RouteDTO {
   name: string;
 
   @ApiProperty({
-    description: 'Price',
-  })
-  price: string;
-
-  @ApiProperty({
-    description: 'Total Kilometer',
-  })
-  totalKilometer: string;
-
-  @ApiProperty({
     description: 'CheckPoints',
   })
-  checkpoints: { id: string }[];
+  checkpoints: { id: string; time: string }[];
 }

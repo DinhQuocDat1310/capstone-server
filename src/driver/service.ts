@@ -240,9 +240,14 @@ export class DriversService {
         },
         route: {
           include: {
-            checkpoints: {
+            checkpointTime: {
               select: {
-                addressName: true,
+                deadline: true,
+                checkpoint: {
+                  select: {
+                    addressName: true,
+                  },
+                },
               },
             },
           },
@@ -368,9 +373,14 @@ export class DriversService {
             },
             route: {
               include: {
-                checkpoints: {
+                checkpointTime: {
                   select: {
-                    addressName: true,
+                    deadline: true,
+                    checkpoint: {
+                      select: {
+                        addressName: true,
+                      },
+                    },
                   },
                 },
               },
@@ -466,9 +476,14 @@ export class DriversService {
             statusCampaign: true,
             route: {
               include: {
-                checkpoints: {
+                checkpointTime: {
                   select: {
-                    addressName: true,
+                    deadline: true,
+                    checkpoint: {
+                      select: {
+                        addressName: true,
+                      },
+                    },
                   },
                 },
               },

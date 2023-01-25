@@ -67,9 +67,14 @@ export class CampaignService {
         },
         route: {
           include: {
-            checkpoints: {
+            checkpointTime: {
               select: {
-                addressName: true,
+                deadline: true,
+                checkpoint: {
+                  select: {
+                    addressName: true,
+                  },
+                },
               },
             },
           },
@@ -271,9 +276,14 @@ export class CampaignService {
         },
         route: {
           include: {
-            checkpoints: {
+            checkpointTime: {
               select: {
-                addressName: true,
+                deadline: true,
+                checkpoint: {
+                  select: {
+                    addressName: true,
+                  },
+                },
               },
             },
           },
@@ -521,9 +531,14 @@ export class CampaignService {
         poster: true,
         route: {
           include: {
-            checkpoints: {
+            checkpointTime: {
               select: {
-                addressName: true,
+                deadline: true,
+                checkpoint: {
+                  select: {
+                    addressName: true,
+                  },
+                },
               },
             },
           },

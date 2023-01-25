@@ -25,6 +25,7 @@ import { ReporterModule } from './reporter/module';
 import { DemoModule } from './demo/module';
 import { TermModule } from './term/module';
 import { CheckPointModule } from './checkpoint/module';
+import { GoogleModule } from './google/module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { CheckPointModule } from './checkpoint/module';
     ReporterModule,
     TermModule,
     CheckPointModule,
+    GoogleModule,
   ],
   providers: [AppConfigService, UsersService, PrismaService],
   controllers: [],

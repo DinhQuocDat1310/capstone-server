@@ -39,7 +39,7 @@ export class ReporterController {
   @Status(StatusUser.VERIFIED)
   @Roles(Role.ADMIN)
   @Get('/list')
-  async getListManager() {
+  async getListReporter() {
     return await this.reporterService.getListReporter();
   }
 

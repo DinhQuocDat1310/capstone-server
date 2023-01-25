@@ -407,6 +407,9 @@ export class UsersService {
       fullname,
       email,
       status: StatusUser.VERIFIED,
+      reporter: {
+        create: {},
+      },
     };
 
     try {

@@ -6,30 +6,14 @@ import { CheckpointDTO, RouteDTO } from './dto';
 export class CheckPointService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createCheckPoint(dto: CheckpointDTO) {
+  async createCheckPoint(data: CheckpointDTO) {
     return await this.prisma.checkpoint.create({
-      data: {
-        ...dto,
-      },
+      data,
     });
   }
 
   async getAllCheckpoints() {
     return await this.prisma.checkpoint.findMany();
-  }
-
-  async createRoute(route: RouteDTO) {
-    const { name, price, totalKilometer, checkpoints } = route;
-    return await this.prisma.route.create({
-      data: {
-        name,
-        price: +price,
-        totalKilometer: +totalKilometer,
-        checkpoints: {
-          connect: checkpoints,
-        },
-      },
-    });
   }
 
   async getAllRoutes() {

@@ -313,9 +313,21 @@ model Checkpoint {
 
   reporterId       String             @unique
   reporter         Reporter           @relation(fields: [reporterId], references: [id])
-  routeId          String?
-  Route            Route?             @relation(fields: [routeId], references: [id])
-  DriverScanQRCode DriverScanQRCode[]
+  driverScanQRCode DriverScanQRCode[]
+  checkpointTime   CheckpointTime[]
+
+  originMatrix      GoogleDistanceMatrix[] @relation("Origin")
+  destinationMatrix GoogleDistanceMatrix[] @relation("Destination")
+}
+
+model CheckpointTime {
+  id       String @id @default(uuid())
+  deadline String
+
+  routeId      String
+  route        Route      @relation(fields: [routeId], references: [id])
+  checkpointId String
+  checkpoint   Checkpoint @relation(fields: [checkpointId], references: [id])
 }
 
 model Route {
@@ -324,6 +336,17 @@ model Route {
   price          Float
   totalKilometer Int
 
-  checkpoints Checkpoint[]
-  campaign    Campaign[]
+  campaign       Campaign[]
+  checkpointTime CheckpointTime[]
+}
+
+model GoogleDistanceMatrix {
+  id       String @id @default(uuid())
+  distance Int
+  time     Int
+
+  originCheckpointId      String
+  originCheckpoint        Checkpoint @relation(name: "Origin", fields: [originCheckpointId], references: [id])
+  destinationCheckpointId String
+  destinationCheckpoint   Checkpoint @relation(name: "Destination", fields: [destinationCheckpointId], references: [id])
 }
