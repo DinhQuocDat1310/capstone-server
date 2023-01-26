@@ -27,15 +27,6 @@ export class GoogleDistanceMatrixDto {
   latitudeDes: string;
 }
 
-export class ResponseGoogleMatrix {
-  destination_addresses: string[];
-  origin_addresses: string[];
-  rows: {
-    elements: {
-      distance: { text: string; value: number };
-      duration: { text: string; value: number };
-      status: string;
-    }[];
-  }[];
-  status: string;
+export class ResponseMapBoxMatrix {
+  routes: { duration: number; distance: number }[];
 }

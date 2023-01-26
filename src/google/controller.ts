@@ -23,15 +23,15 @@ import { StatusGuard } from 'src/guard/userStatus.guard';
 export class GoogleController {
   constructor(private readonly googleService: GoogleService) {}
 
-  @ApiBody({ type: GoogleDistanceMatrixDto })
-  @ApiOperation({ summary: 'Calculator distance each checkpoint' })
-  @ApiForbiddenResponse({ description: 'Forbidden' })
-  @ApiBadRequestResponse({ description: 'Bad Request' })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Status(StatusUser.VERIFIED)
-  @Roles(Role.BRAND)
-  @Post('/distance')
-  async calculateDistanceMatrix(@Body() dto: GoogleDistanceMatrixDto) {
-    return await this.googleService.calcDistanceMatrix(dto);
-  }
+  // @ApiBody({ type: GoogleDistanceMatrixDto })
+  // @ApiOperation({ summary: 'Calculator distance each checkpoint' })
+  // @ApiForbiddenResponse({ description: 'Forbidden' })
+  // @ApiBadRequestResponse({ description: 'Bad Request' })
+  // @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  // @Status(StatusUser.VERIFIED)
+  // @Roles(Role.BRAND)
+  // @Post('/distance')
+  // async calculateDistanceMatrix(@Body() dto: GoogleDistanceMatrixDto) {
+  //   return await this.googleService.calcDistanceMatrix(dto);
+  // }
 }
