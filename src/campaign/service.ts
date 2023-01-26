@@ -560,7 +560,7 @@ export class CampaignService {
             id: campaign.id,
           },
         },
-        createDate: globalDate,
+        createDate: new Date(),
       },
     });
     return campaign;

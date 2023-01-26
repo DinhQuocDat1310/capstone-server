@@ -1,12 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-import {
-  IsNotEmpty,
-  IsNumberString,
-  IsString,
-  IsUrl,
-  Matches,
-} from 'class-validator';
+import { IsNotEmpty, IsString, IsUrl, Matches } from 'class-validator';
 export class CampaignVerifyInformationDTO {
   @ApiProperty({
     description: 'Id route',
@@ -23,7 +17,6 @@ export class CampaignVerifyInformationDTO {
   @ApiProperty({
     description: 'Price wrap',
   })
-  @IsNumberString()
   priceWrap: string;
 
   @ApiProperty({
@@ -43,19 +36,16 @@ export class CampaignVerifyInformationDTO {
   @ApiProperty({
     description: 'Duration running Campaign',
   })
-  @IsNumberString()
   duration: string;
 
   @ApiProperty({
     description: 'Total km',
   })
-  @IsNumberString()
   totalKm: string;
 
   @ApiProperty({
     description: 'Quantity drivers',
   })
-  @IsNumberString()
   quantityDriver: string;
 
   @ApiProperty({
