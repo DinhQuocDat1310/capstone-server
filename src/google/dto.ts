@@ -28,5 +28,9 @@ export class GoogleDistanceMatrixDto {
 }
 
 export class ResponseMapBoxMatrix {
-  routes: { duration: number; distance: number }[];
+  routes: {
+    duration: number;
+    distance: number;
+    geometry: { coordinates: [number][] };
+  }[];
 }

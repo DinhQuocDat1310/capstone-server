@@ -67,7 +67,7 @@ export class CheckPointController {
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.BRAND)
   @Get('route')
   async getAllRoutes() {
     return await this.checkpointService.getAllRoutes();

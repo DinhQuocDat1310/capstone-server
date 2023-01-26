@@ -17,6 +17,26 @@ export class CheckPointService {
   }
 
   async getAllRoutes() {
-    return await this.prisma.route.findMany();
+    return await this.prisma.route.findMany({
+      include: {
+        coordinates: {
+          select: {
+            points: true,
+          },
+        },
+        checkpointTime: {
+          select: {
+            deadline: true,
+            checkpoint: {
+              select: {
+                latitude: true,
+                longitude: true,
+                addressName: true,
+              },
+            },
+          },
+        },
+      },
+    });
   }
 }

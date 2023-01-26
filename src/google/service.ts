@@ -16,7 +16,7 @@ export class GoogleService {
     const uri = 'https://api.mapbox.com/directions/v5/mapbox/driving';
     const config = {
       method: 'get',
-      url: `${uri}/${checkpoints}?access_token=${key}`,
+      url: `${uri}/${checkpoints}?steps=true&geometries=geojson&access_token=${key}`,
       headers: {},
     };
     const result = await axios(config);
@@ -34,7 +34,10 @@ export class GoogleService {
         checkpoints.push(`${checkpoint.longitude},${checkpoint.latitude}`);
       }
       const result = await this.calcDistanceMatrix(checkpoints.join(';'));
+      if (!result) throw new Error('Cannot get routes');
+      const coordinates = result.routes[0].geometry.coordinates;
       const distance = result.routes[0].distance;
+
       const routeInitialize = await this.prisma.route.create({
         data: {
           name: route.name,
@@ -42,6 +45,16 @@ export class GoogleService {
           totalKilometer: 0,
         },
       });
+
+      for (let i = 0; i < coordinates.length; i++) {
+        await this.prisma.coordinates.create({
+          data: {
+            routeId: routeInitialize.id,
+            points: coordinates[i],
+          },
+        });
+      }
+
       const checkpointTimeDTO = route.checkpoints.map((c) => {
         return {
           routeId: routeInitialize.id,
@@ -58,13 +71,25 @@ export class GoogleService {
           routeId: routeInitialize.id,
         },
       });
+      const coordinatesList = await this.prisma.coordinates.findMany({
+        where: {
+          routeId: routeInitialize.id,
+        },
+      });
       return await this.prisma.route.update({
         where: {
           id: routeInitialize.id,
         },
         data: {
-          price: Math.ceil((distance / 1000) * 15000),
+          price: Math.ceil(distance / 1000) * 15000,
           totalKilometer: Math.ceil(distance / 1000),
+          coordinates: {
+            connect: [
+              ...coordinatesList.map((c) => {
+                return { id: c.id };
+              }),
+            ],
+          },
           checkpointTime: {
             connect: [
               ...checkpointTimeList.map((c) => {
@@ -74,7 +99,6 @@ export class GoogleService {
           },
         },
       });
-      return result;
     } catch (error) {
       throw new BadRequestException(error.message);
     }
