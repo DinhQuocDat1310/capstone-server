@@ -255,18 +255,8 @@ export class PaymentService {
     }
   }
 
-  async sendOTPCheckout(userId: string, campaignId: string) {
+  async sendOTPCheckout(userId: string) {
     try {
-      const campaign = await this.prisma.campaign.findFirst({
-        where: {
-          id: campaignId,
-          brand: {
-            userId,
-          },
-        },
-      });
-      if (!campaign) throw new BadRequestException('Not found campaign');
-
       const code = Math.floor(100000 + Math.random() * 900000);
       const user = await this.usersService.getBrandInfo(userId);
       const codeCached: string = await this.cacheManager.get(userId);

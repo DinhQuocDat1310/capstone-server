@@ -84,12 +84,9 @@ export class PaymentController {
   @UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
   @Roles(Role.BRAND)
   @Status(StatusUser.VERIFIED)
-  @Get('/verify/:campaignId')
+  @Get('/verify')
   @ApiBearerAuth('access-token')
-  async verifyCheckoutCampaign(
-    @Request() req: RequestUser,
-    @Param('campaignId') campaignId: string,
-  ) {
-    return await this.paymentService.sendOTPCheckout(req.user.id, campaignId);
+  async verifyCheckoutCampaign(@Request() req: RequestUser) {
+    return await this.paymentService.sendOTPCheckout(req.user.id);
   }
 }
