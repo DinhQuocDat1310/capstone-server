@@ -1,3 +1,4 @@
+import { UsersService } from './../user/service';
 import { UserSignIn } from './../auth/dto/index';
 import {
   BadRequestException,
@@ -11,8 +12,11 @@ import { Cache } from 'cache-manager';
 import fetch, { Response } from 'node-fetch';
 // import { GLOBAL_DATE } from 'src/constants/cache-code';
 import { PrismaService } from 'src/prisma/service';
-import { TransactionDTO } from './dto';
+import { TransactionDTO, VerifyPaymentDTO } from './dto';
 import { StatusCampaign } from '@prisma/client';
+import { EXPIRED_CODE_FIVE_MINUTES } from 'src/constants/cache-code';
+import { MailerService } from '@nestjs-modules/mailer';
+import { AppConfigService } from 'src/config/appConfigService';
 
 @Injectable()
 export class PaymentService {
@@ -21,6 +25,9 @@ export class PaymentService {
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly prisma: PrismaService,
+    private readonly usersService: UsersService,
+    private readonly mailerService: MailerService,
+    private readonly configService: AppConfigService,
   ) {}
 
   async createOrder(dto: TransactionDTO) {
@@ -246,5 +253,72 @@ export class PaymentService {
       this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);
     }
+  }
+
+  async sendOTPCheckout(userId: string, campaignId: string) {
+    try {
+      const campaign = await this.prisma.campaign.findFirst({
+        where: {
+          id: campaignId,
+          brand: {
+            userId,
+          },
+        },
+      });
+      if (!campaign) throw new BadRequestException('Not found campaign');
+
+      const code = Math.floor(100000 + Math.random() * 900000);
+      const user = await this.usersService.getBrandInfo(userId);
+      const codeCached: string = await this.cacheManager.get(userId);
+      if (codeCached) {
+        throw new BadRequestException(
+          'We have sent the code to your email. Please try again in a few minutes.',
+        );
+      }
+
+      await this.cacheManager.set(userId, code.toString(), {
+        ttl: EXPIRED_CODE_FIVE_MINUTES,
+      });
+      await this.mailerService.sendMail({
+        to: user.email,
+        from: this.configService.getConfig('MAILER'),
+        subject: 'Your verify code for Brandvertise',
+        html: `
+      <h1 style="color: green">Hello ${user.brand.brandName},</h1></br>
+      <p>Thanks for becoming Brandvertise's partner!</p>
+      <p>Enter Code: <b>${code}</b> in the app to verify your Payment. Your code <b>expired in 5 minutes</b> later.</p></br>
+      <p>Regards,</p>
+      <p style="color: green">Brandvertise</p>
+      `,
+      });
+      return {
+        timeExpiredInSecond: EXPIRED_CODE_FIVE_MINUTES,
+      };
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async verifyOTPCheckout(userId: string, dto: VerifyPaymentDTO) {
+    const codeCached: string = await this.cacheManager.get(userId);
+    if (!codeCached) {
+      throw new BadRequestException({
+        message: `Verify code was expired. Please generate a new OTP`,
+      });
+    }
+    if (codeCached !== dto.codeInput) {
+      await this.cacheManager.set(userId, codeCached, {
+        ttl: EXPIRED_CODE_FIVE_MINUTES,
+      });
+      throw new BadRequestException({
+        message: `Verified code is wrong!`,
+      });
+    }
+    await this.checkoutCampaign(userId, dto.campaignId);
+    await this.cacheManager.del(userId);
+    return {
+      message: 'Verified',
+    };
   }
 }

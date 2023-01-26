@@ -245,6 +245,17 @@ export class UsersService {
     });
   }
 
+  async getBrandInfo(userId: string) {
+    return await this.prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+      include: {
+        brand: true,
+      },
+    });
+  }
+
   async getUserDriverInfo(email: string, role: Role) {
     return await this.prisma.user.findFirst({
       where: {
@@ -381,7 +392,7 @@ export class UsersService {
   }
 
   async createManager(dto: ManagerDTO) {
-    const { email, fullname, phoneNumber, password } = dto;
+    const { email, fullname, password } = dto;
     const hashPassword = await hash(password, 10);
     return await this.prisma.user.create({
       data: {

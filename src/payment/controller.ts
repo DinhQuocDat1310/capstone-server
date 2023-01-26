@@ -20,7 +20,7 @@ import {
 import { RequestUser } from 'src/auth/dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/guard/roles.guard';
-import { TransactionDTO } from './dto';
+import { TransactionDTO, VerifyPaymentDTO } from './dto';
 import { PaymentService } from './service';
 import { Roles, Status } from 'src/guard/decorators';
 import { Role, StatusUser } from '@prisma/client';
@@ -64,17 +64,32 @@ export class PaymentController {
     return await this.paymentService.viewAllTransaction(req.user);
   }
 
-  @ApiOperation({ summary: 'Checkout campaign ID' })
+  @ApiOperation({ summary: 'Checkout campaign' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiBody({ type: VerifyPaymentDTO })
+  @UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
+  @Roles(Role.BRAND)
+  @Status(StatusUser.VERIFIED)
+  @Post('/checkout')
+  @ApiBearerAuth('access-token')
+  async checkoutCampaign(
+    @Request() req: RequestUser,
+    @Body() dto: VerifyPaymentDTO,
+  ) {
+    return await this.paymentService.verifyOTPCheckout(req.user.id, dto);
+  }
+
+  @ApiOperation({ summary: 'Send OTP to checkout payment' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
   @Roles(Role.BRAND)
   @Status(StatusUser.VERIFIED)
-  @Get('/checkout/:campaignId')
+  @Get('/verify/:campaignId')
   @ApiBearerAuth('access-token')
-  async checkoutCampaign(
+  async verifyCheckoutCampaign(
     @Request() req: RequestUser,
     @Param('campaignId') campaignId: string,
   ) {
-    return await this.paymentService.checkoutCampaign(req.user.id, campaignId);
+    return await this.paymentService.sendOTPCheckout(req.user.id, campaignId);
   }
 }

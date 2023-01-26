@@ -12,3 +12,15 @@ export class TransactionDTO {
   })
   amount: string;
 }
+
+export class VerifyPaymentDTO {
+  @ApiProperty({
+    description: 'Code input',
+  })
+  codeInput: string;
+
+  @ApiProperty({
+    description: 'Campaign ID',
+  })
+  campaignId: string;
+}
