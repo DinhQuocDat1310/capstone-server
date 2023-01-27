@@ -90,31 +90,34 @@ export class ContractService {
         select: {
           campaignId: true,
           campaign: {
-            select: {
-              startRunningDate: true,
-              campaignName: true,
-              duration: true,
-              quantityDriver: true,
-              route: true,
-              wrap: {
-                select: {
-                  positionWrap: true,
+            include: {
+              route: {
+                include: {
+                  checkpointTime: true,
+                  coordinates: true,
                 },
               },
-              wrapPrice: true,
+              wrap: true,
               brand: {
-                select: {
-                  brandName: true,
-                  user: {
-                    select: {
-                      email: true,
-                    },
-                  },
+                include: {
+                  user: true,
                 },
               },
               contractCampaign: {
                 select: {
                   id: true,
+                },
+              },
+              transaction: {
+                select: {
+                  id: true,
+                  amount: true,
+                  eWallet: {
+                    select: {
+                      id: true,
+                      totalBalance: true,
+                    },
+                  },
                 },
               },
             },
@@ -165,7 +168,7 @@ export class ContractService {
              <p style="color: green">Brandvertise</p>
           `,
       });
-      return `Accepted verify campaign and Created unique contract. Check mail.`;
+      return verifyCampaign;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }

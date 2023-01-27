@@ -132,6 +132,12 @@ export class CampaignService {
           },
         },
         statusCampaign: true,
+        route: {
+          include: {
+            coordinates: true,
+            checkpointTime: true,
+          },
+        },
       },
       orderBy: {
         startRunningDate: 'asc',
