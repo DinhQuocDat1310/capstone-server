@@ -211,7 +211,14 @@ export class ContractService {
             startRegisterDate: true,
             endRegisterDate: true,
             startRunningDate: true,
+            startPaymentDate: true,
+            endPaymentDate: true,
             startWrapDate: true,
+            route: {
+              include: {
+                checkpointTime: true,
+              },
+            },
             endWrapDate: true,
             poster: true,
             description: true,
@@ -219,7 +226,6 @@ export class ContractService {
             quantityDriver: true,
             wrapPrice: true,
             detailMessage: true,
-
             brand: {
               select: {
                 id: true,
@@ -227,7 +233,6 @@ export class ContractService {
                 logo: true,
               },
             },
-
             wrap: {
               select: {
                 positionWrap: true,
