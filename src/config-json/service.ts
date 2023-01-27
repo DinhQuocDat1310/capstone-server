@@ -18,7 +18,6 @@ export class ConfigJsonService {
       throw new BadRequestException('Duplicate duration input');
     const data = {
       duration: listDtoDuration,
-      minimumKmDrive: dto.minimumKmDrive,
       gapOpenRegisterForm: dto.gapOpenRegisterForm,
       gapPaymentDeposit: dto.gapPaymentDeposit,
       gapWrapping: dto.gapWrapping,
