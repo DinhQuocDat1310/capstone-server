@@ -11,10 +11,6 @@ export class VariableConfig {
   duration: string[];
 
   @IsString()
-  @ApiProperty({ type: String, description: 'MinimumKmDrive', default: '20' })
-  minimumKmDrive: string;
-
-  @IsString()
   @ApiProperty({
     type: String,
     description: 'GapOpenRegisterForm',
