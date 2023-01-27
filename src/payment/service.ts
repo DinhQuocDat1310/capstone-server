@@ -255,18 +255,20 @@ export class PaymentService {
     }
   }
 
-  async sendOTPCheckout(userId: string) {
+  async sendOTPCheckout(userId: string, campaignId: string) {
     try {
       const code = Math.floor(100000 + Math.random() * 900000);
       const user = await this.usersService.getBrandInfo(userId);
-      const codeCached: string = await this.cacheManager.get(userId);
+      const codeCached: string = await this.cacheManager.get(
+        user.id + campaignId,
+      );
       if (codeCached) {
         throw new BadRequestException(
           'We have sent the code to your email. Please try again in a few minutes.',
         );
       }
 
-      await this.cacheManager.set(userId, code.toString(), {
+      await this.cacheManager.set(userId + campaignId, code.toString(), {
         ttl: EXPIRED_CODE_FIVE_MINUTES,
       });
       await this.mailerService.sendMail({
@@ -291,14 +293,16 @@ export class PaymentService {
   }
 
   async verifyOTPCheckout(userId: string, dto: VerifyPaymentDTO) {
-    const codeCached: string = await this.cacheManager.get(userId);
+    const codeCached: string = await this.cacheManager.get(
+      userId + dto.campaignId,
+    );
     if (!codeCached) {
       throw new BadRequestException({
         message: `Verify code was expired. Please generate a new OTP`,
       });
     }
     if (codeCached !== dto.codeInput) {
-      await this.cacheManager.set(userId, codeCached, {
+      await this.cacheManager.set(userId + dto.campaignId, codeCached, {
         ttl: EXPIRED_CODE_FIVE_MINUTES,
       });
       throw new BadRequestException({
