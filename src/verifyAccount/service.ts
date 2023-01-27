@@ -168,7 +168,6 @@ export class VerifyAccountsService {
       status: true,
       detail: true,
       createDate: true,
-      assignBy: true,
     };
     if (type === 'brand') {
       select['brand'] = {
@@ -182,7 +181,6 @@ export class VerifyAccountsService {
           user: {
             select: {
               address: true,
-              phoneNumber: true,
               idCitizen: true,
               imageCitizenFront: true,
               imageCitizenBack: true,
@@ -199,14 +197,10 @@ export class VerifyAccountsService {
           imageCarLeft: true,
           imageCarFront: true,
           imageCarBack: true,
-          bankAccountNumber: true,
-          bankAccountOwner: true,
-          bankName: true,
           user: {
             select: {
               fullname: true,
               address: true,
-              phoneNumber: true,
               idCitizen: true,
               imageCitizenFront: true,
               imageCitizenBack: true,
@@ -392,8 +386,6 @@ export class VerifyAccountsService {
     if (brandsFilter.length === 0 && driversFilter.length === 0) {
       return 'all account is on processing!';
     }
-    const randomPhone =
-      Math.floor(Math.random() * (999999999 - 100000000)) + 100000000;
     for (let i = 0; i < brandsFilter.length; i++) {
       const randomIdCitizen = Math.floor(
         Math.random() * (Math.pow(10, 10) * 9.9 - Math.pow(10, 10) + 1) +
@@ -523,7 +515,6 @@ export class VerifyAccountsService {
             select: {
               fullname: true,
               email: true,
-              phoneNumber: true,
               address: true,
             },
           },

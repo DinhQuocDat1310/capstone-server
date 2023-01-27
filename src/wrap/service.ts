@@ -21,7 +21,7 @@ export class WrapService {
       },
       data: {
         price: +dto.price,
-        positionWrap: dto.status,
+        isActive: dto.status,
       },
     });
   }

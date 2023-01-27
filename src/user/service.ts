@@ -360,6 +360,11 @@ export class UsersService {
         reporter: {
           select: {
             id: true,
+            Checkpoint: {
+              select: {
+                addressName: true,
+              },
+            },
           },
         },
         fullname: true,
@@ -373,10 +378,12 @@ export class UsersService {
       .map((user) => user)
       .map((user) => {
         const reporterId = user?.reporter?.id;
+        const address = user?.reporter?.Checkpoint?.addressName;
         delete user?.reporter;
         return {
-          reporterId,
           ...user,
+          reporterId,
+          address,
         };
       });
   }

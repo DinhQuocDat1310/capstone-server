@@ -1,7 +1,6 @@
 import {
   FAKE_LOGO,
   FAKE_TYPE_BUSINESS,
-  FAKE_ADDRESS,
   FAKE_OWNER_BUSINESS,
   FAKE_LICENSE,
   FAKE_BACK_CARDLICENSE,
@@ -194,20 +193,13 @@ export const users = async (): Promise<any[]> => {
     },
   });
 
-  for (let i = 0; i < FAKE_ADDRESS.length; i++) {
+  for (let i = 0; i < 5; i++) {
     reporter.push({
-      email:
-        FAKE_ADDRESS[i] === 'TP Hồ Chí Minh'
-          ? 'minh@gmail.com'
-          : `reporter${i + 1}@gmail.com`,
+      email: `reporter${i + 1}@gmail.com`,
       password,
       role: Role.REPORTER,
-      fullname:
-        FAKE_ADDRESS[i] === 'TP Hồ Chí Minh'
-          ? 'Nguyễn Quang Minh'
-          : `Reporter ${i + 1}`,
+      fullname: `Reporter ${i + 1}`,
       status: StatusUser.VERIFIED,
-      address: FAKE_ADDRESS[i],
       reporter: {
         create: {},
       },
