@@ -141,7 +141,7 @@ model DriverScanQRCode {
   driverJoinCampaignId String
   driverJoinCampaign   DriverJoinCampaign @relation(fields: [driverJoinCampaignId], references: [id])
   checkpointId         String
-  Checkpoint           Checkpoint         @relation(fields: [checkpointId], references: [id])
+  Checkpoint           CheckpointTime     @relation(fields: [checkpointId], references: [id])
 }
 
 model Reporter {
@@ -311,20 +311,20 @@ model Checkpoint {
   longitude   String
   latitude    String
 
-  reporterId       String             @unique
-  reporter         Reporter           @relation(fields: [reporterId], references: [id])
-  driverScanQRCode DriverScanQRCode[]
-  checkpointTime   CheckpointTime[]
+  reporterId     String           @unique
+  reporter       Reporter         @relation(fields: [reporterId], references: [id])
+  checkpointTime CheckpointTime[]
 }
 
 model CheckpointTime {
   id       String @id @default(uuid())
   deadline String
 
-  routeId      String
-  route        Route      @relation(fields: [routeId], references: [id])
-  checkpointId String
-  checkpoint   Checkpoint @relation(fields: [checkpointId], references: [id])
+  routeId          String
+  route            Route              @relation(fields: [routeId], references: [id])
+  checkpointId     String
+  checkpoint       Checkpoint         @relation(fields: [checkpointId], references: [id])
+  driverScanQRCode DriverScanQRCode[]
 }
 
 model coordinates {

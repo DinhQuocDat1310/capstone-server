@@ -501,4 +501,23 @@ export class DriversService {
 
     return 'this logic getHistoryCampaignFinished need to be change';
   }
+
+  async getDailyScanQRCode(driverId: string, campaignId: string) {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: {
+        id: campaignId,
+        driverJoinCampaign: {
+          some: {
+            driverId,
+          },
+        },
+      },
+    });
+    if (!campaign)
+      throw new BadRequestException(
+        'This driver Id is not belong to this campaign',
+      );
+
+    await this.prisma.driverScanQRCode;
+  }
 }

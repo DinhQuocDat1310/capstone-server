@@ -6,6 +6,9 @@ export function addDays(date: Date, days: number) {
 
 export function diffDates(begin: Date, end: Date) {
   const diffTime = Math.abs(end.getTime() - begin.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const diffDays =
+    begin.getTime() < end.getTime()
+      ? Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+      : Math.floor(diffTime / (1000 * 60 * 60 * 24));
   return diffDays;
 }

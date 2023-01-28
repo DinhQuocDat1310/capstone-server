@@ -10,7 +10,7 @@ import { UserSignIn } from 'src/auth/dto';
 import { PrismaService } from 'src/prisma/service';
 import { CampaignVerifyInformationDTO, StepsCampaignDTO } from './dto';
 import { StatusCampaign, Role } from '@prisma/client';
-import { GLOBAL_DATE } from 'src/constants/cache-code';
+import { GLOBAL_DATE, OPTIONS_DATE } from 'src/constants/cache-code';
 import { Cache } from 'cache-manager';
 import { addDays, diffDates } from 'src/utilities';
 
@@ -96,7 +96,7 @@ export class CampaignService {
   }
 
   async getListCurrentCampaignByUserId(userId: string) {
-    return await this.prisma.campaign.findMany({
+    const campaigns = await this.prisma.campaign.findMany({
       where: {
         AND: [
           {
@@ -142,6 +142,15 @@ export class CampaignService {
       orderBy: {
         startRunningDate: 'asc',
       },
+    });
+    return campaigns.map((c) => {
+      return {
+        ...c,
+        startRunningDate: new Date(c.startRunningDate).toLocaleDateString(
+          'vn-VN',
+          OPTIONS_DATE,
+        ),
+      };
     });
   }
 
@@ -214,7 +223,7 @@ export class CampaignService {
   }
 
   async viewCampaignDetails(userId: string, campaignId: string) {
-    const globalDate: Date = await this.cacheManager.get(GLOBAL_DATE);
+    const globalDate: Date = new Date(await this.cacheManager.get(GLOBAL_DATE));
 
     const brandOwnCampaign = await this.prisma.campaign.findFirst({
       where: {
@@ -335,7 +344,33 @@ export class CampaignService {
         days,
       )} days to ${brandOwnCampaign.statusCampaign}`;
     }
-    return { ...brandOwnCampaign, isWaiting: `${isWaiting}`, messageWaiting };
+    const brandDataFormat = {
+      ...brandOwnCampaign,
+      startPaymentDate: new Date(
+        brandOwnCampaign.startPaymentDate,
+      ).toLocaleDateString('vn-VN', OPTIONS_DATE),
+      startRegisterDate: new Date(
+        brandOwnCampaign.startRegisterDate,
+      ).toLocaleDateString('vn-VN', OPTIONS_DATE),
+      startRunningDate: new Date(
+        brandOwnCampaign.startRunningDate,
+      ).toLocaleDateString('vn-VN', OPTIONS_DATE),
+      startWrapDate: new Date(
+        brandOwnCampaign.startWrapDate,
+      ).toLocaleDateString('vn-VN', OPTIONS_DATE),
+      endPaymentDate: new Date(
+        brandOwnCampaign.endPaymentDate,
+      ).toLocaleDateString('vn-VN', OPTIONS_DATE),
+      endRegisterDate: new Date(
+        brandOwnCampaign.endRegisterDate,
+      ).toLocaleDateString('vn-VN', OPTIONS_DATE),
+      endWrapDate: new Date(brandOwnCampaign.endWrapDate).toLocaleDateString(
+        'vn-VN',
+        OPTIONS_DATE,
+      ),
+    };
+    this.logger.debug(brandDataFormat);
+    return { ...brandDataFormat, isWaiting: `${isWaiting}`, messageWaiting };
   }
 
   async updateCampaignInformation(

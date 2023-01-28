@@ -4,6 +4,7 @@ import { Cache } from 'cache-manager';
 import {
   EXPIRED_GLOBAL_DATE_ONE_DAY,
   GLOBAL_DATE,
+  OPTIONS_DATE,
 } from 'src/constants/cache-code';
 import { TasksService } from 'src/task/service';
 
@@ -36,6 +37,31 @@ export class DemoService {
     return campaigns.map((campaign) => {
       return {
         ...campaign,
+        startPaymentDate: new Date(
+          campaign.startPaymentDate,
+        ).toLocaleDateString('vn-VN', OPTIONS_DATE),
+        startRegisterDate: new Date(
+          campaign.startRegisterDate,
+        ).toLocaleDateString('vn-VN', OPTIONS_DATE),
+        startRunningDate: new Date(
+          campaign.startRunningDate,
+        ).toLocaleDateString('vn-VN', OPTIONS_DATE),
+        startWrapDate: new Date(campaign.startWrapDate).toLocaleDateString(
+          'vn-VN',
+          OPTIONS_DATE,
+        ),
+        endPaymentDate: new Date(campaign.endPaymentDate).toLocaleDateString(
+          'vn-VN',
+          OPTIONS_DATE,
+        ),
+        endRegisterDate: new Date(campaign.endRegisterDate).toLocaleDateString(
+          'vn-VN',
+          OPTIONS_DATE,
+        ),
+        endWrapDate: new Date(campaign.endWrapDate).toLocaleDateString(
+          'vn-VN',
+          OPTIONS_DATE,
+        ),
         numberOfDriversRequired: campaign?.quantityDriver,
         numberOfDriversJoined: campaign.driverJoinCampaign.filter(
           (driver) => driver.status === 'JOIN' || driver.status === 'APPROVE',
@@ -64,7 +90,7 @@ export class DemoService {
 
   async setGlobalDate(newDate: Date) {
     const globalDate: Date = await this.cacheManager.get(GLOBAL_DATE);
-    if (globalDate > newDate) {
+    if (globalDate?.getTime() > newDate.getTime()) {
       this.logger.error('New date must be greater than current global date');
       return;
     }

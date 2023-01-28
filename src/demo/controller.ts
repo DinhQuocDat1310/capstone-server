@@ -54,7 +54,7 @@ export class DemoController {
   @Roles(Role.ADMIN)
   @Post('/setGlobalDate')
   async setGlobalDate(@Body() global: globalDateDTO) {
-    return await this.demoService.setGlobalDate(global.date);
+    return await this.demoService.setGlobalDate(new Date(global.date));
   }
 
   @ApiOperation({ summary: 'Get list campaigns demo' })

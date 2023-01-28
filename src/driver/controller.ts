@@ -111,22 +111,18 @@ export class DriverController {
     return await this.driverService.getCampaignJoiningAndJoined(req.user.id);
   }
 
-  @ApiOperation({ summary: 'Save current location by date' })
-  @ApiBody({ type: DriverTrackingLocation })
+  @ApiOperation({ summary: 'Get daily scan QR code' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Status(StatusUser.VERIFIED)
-  @Post('/location/tracking')
+  @Get('/checkpoint/:id')
   @Roles(Role.DRIVER)
-  async saveCurrentLocationDriverByDate(
+  async getDailyScanQRcode(
     @Request() req: RequestUser,
-    @Body() dto: DriverTrackingLocation,
+    @Param('id') campaignId: string,
   ) {
-    return await this.driverService.saveCurrentLocationDriverByDate(
-      req.user.id,
-      dto,
-    );
+    return await this.driverService.getDailyScanQRCode(req.user.id, campaignId);
   }
 
   @ApiOperation({
