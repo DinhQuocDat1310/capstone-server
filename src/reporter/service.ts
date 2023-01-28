@@ -286,6 +286,29 @@ export class ReporterService {
         throw new BadRequestException(
           'You dont have permission to verify this checkpoint',
         );
+      const listCheckpoint = await this.prisma.driverScanQRCode.findMany({
+        where: {
+          driverJoinCampaignId: qrCode.driverJoinCampaignId,
+        },
+        include: {
+          CheckpointTime: {
+            include: {
+              checkpoint: true,
+            },
+          },
+        },
+      });
+
+      const checkpointIndex = listCheckpoint.findIndex(
+        (c) => c.id === qrCode.id,
+      );
+      for (let i = 0; i < checkpointIndex; i++) {
+        if (listCheckpoint[i].isCheck === false) {
+          throw new BadRequestException(
+            `You need to check checkpoint ${listCheckpoint[i].CheckpointTime.checkpoint.addressName} first`,
+          );
+        }
+      }
 
       if (qrCode.isCheck && qrCode.submitTime)
         throw new BadRequestException('You already checked this checkpoint');

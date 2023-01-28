@@ -25,7 +25,7 @@ import { RolesGuard } from 'src/guard/roles.guard';
 import { StatusGuard } from 'src/guard/userStatus.guard';
 import { ReporterService } from './service';
 
-@Controller('reporter')
+@Controller('reporter/scan-driver/:id')
 @UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
 @ApiBearerAuth('access-token')
 @ApiTags('Reporter')

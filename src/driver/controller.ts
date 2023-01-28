@@ -111,20 +111,6 @@ export class DriverController {
     return await this.driverService.getCampaignJoiningAndJoined(req.user.id);
   }
 
-  @ApiOperation({ summary: 'Get daily scan QR code' })
-  @ApiForbiddenResponse({ description: 'Forbidden' })
-  @ApiBadRequestResponse({ description: 'Bad Request' })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Status(StatusUser.VERIFIED)
-  @Get('/checkpoint/:id')
-  @Roles(Role.DRIVER)
-  async getDailyScanQRcode(
-    @Request() req: RequestUser,
-    @Param('id') campaignId: string,
-  ) {
-    return await this.driverService.getDailyScanQRCode(req.user.id, campaignId);
-  }
-
   @ApiOperation({
     summary: 'Get total meter by date with driverJoineCampaign ID',
   })
