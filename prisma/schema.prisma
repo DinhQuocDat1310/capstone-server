@@ -135,13 +135,15 @@ enum StatusDriverJoin {
 }
 
 model DriverScanQRCode {
-  id         String   @id @default(uuid())
-  submitTime DateTime @db.Timestamptz
+  id         String    @id @default(uuid())
+  submitTime DateTime? @db.Timestamptz
+  isCheck    Boolean   @default(false)
+  createDate DateTime  @db.Timestamptz
 
   driverJoinCampaignId String
   driverJoinCampaign   DriverJoinCampaign @relation(fields: [driverJoinCampaignId], references: [id])
-  checkpointTimeId         String
-  CheckpointTime           CheckpointTime     @relation(fields: [checkpointTimeId], references: [id])
+  checkpointTimeId     String
+  CheckpointTime       CheckpointTime     @relation(fields: [checkpointTimeId], references: [id])
 }
 
 model Reporter {

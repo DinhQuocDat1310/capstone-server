@@ -14,7 +14,7 @@ import { PrismaService } from './../prisma/service';
 import { DriverTrackingLocation, DriverVerifyInformationDTO } from './dto';
 import { StatusDriverJoin } from '@prisma/client';
 import { Cache } from 'cache-manager';
-import { GLOBAL_DATE } from 'src/constants/cache-code';
+import { GLOBAL_DATE, OPTIONS_DATE } from 'src/constants/cache-code';
 import { addDays, diffDates } from 'src/utilities';
 
 @Injectable()
@@ -519,5 +519,58 @@ export class DriversService {
       );
 
     await this.prisma.driverScanQRCode;
+  }
+
+  async getAllCheckpoints(driverJoinCampaignId: string) {
+    const globalDate: Date = new Date(await this.cacheManager.get(GLOBAL_DATE));
+
+    const driverJoinCampaign = await this.prisma.driverJoinCampaign.findFirst({
+      where: {
+        id: driverJoinCampaignId,
+        campaign: {
+          statusCampaign: 'RUNNING',
+        },
+      },
+      include: {
+        driverScanQRCode: true,
+        campaign: {
+          select: {
+            route: {
+              select: {
+                checkpointTime: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    if (!driverJoinCampaign)
+      throw new BadRequestException('You are not running this campaign');
+    const scanCheckpointsToday = driverJoinCampaign.driverScanQRCode.filter(
+      (d) =>
+        new Date(d.createDate).toLocaleDateString('vn-VN', OPTIONS_DATE) ===
+        globalDate.toLocaleDateString('vn-VN', OPTIONS_DATE),
+    );
+    if (scanCheckpointsToday.length === 0) {
+      const check = driverJoinCampaign.campaign.route.checkpointTime;
+      for (let i = 0; i < check.length; i++) {
+        await this.prisma.driverScanQRCode.create({
+          data: {
+            checkpointTimeId: check[i].id,
+            driverJoinCampaignId: driverJoinCampaign.id,
+            createDate: globalDate,
+          },
+        });
+      }
+    }
+    return await this.prisma.driverScanQRCode.findMany({
+      where: {
+        driverJoinCampaignId: driverJoinCampaign.id,
+        createDate: {
+          gte: globalDate,
+          lte: globalDate,
+        },
+      },
+    });
   }
 }

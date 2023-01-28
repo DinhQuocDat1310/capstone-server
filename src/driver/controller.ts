@@ -150,4 +150,15 @@ export class DriverController {
   async historyDriverFinished(@Request() req: RequestUser) {
     return await this.driverService.getHistoryCampaignFinished(req.user.id);
   }
+
+  @ApiOperation({ summary: 'Get all checkpoints' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Status(StatusUser.VERIFIED)
+  @Get('checkpoints/:id')
+  @Roles(Role.DRIVER)
+  async getAllCheckpoints(@Param('id') driverJoinCampaignId: string) {
+    return await this.driverService.getAllCheckpoints(driverJoinCampaignId);
+  }
 }
