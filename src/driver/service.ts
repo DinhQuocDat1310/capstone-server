@@ -537,7 +537,18 @@ export class DriversService {
           select: {
             route: {
               select: {
-                checkpointTime: true,
+                checkpointTime: {
+                  select: {
+                    id: true,
+                    checkpoint: {
+                      select: {
+                        addressName: true,
+                        latitude: true,
+                        longitude: true,
+                      },
+                    },
+                  },
+                },
               },
             },
           },
