@@ -170,7 +170,7 @@ export class PaymentService {
   }
 
   async viewAllTransaction(userReq: UserSignIn) {
-    return await this.prisma.eWallet.findMany({
+    const result = await this.prisma.eWallet.findMany({
       where: {
         userId: userReq.id,
       },
@@ -189,6 +189,25 @@ export class PaymentService {
         },
       },
     });
+    const formatResult = result.map((wallet) => {
+      const transactions = wallet.transactions.map((t) => {
+        return {
+          ...t,
+          createDate: new Date(t.createDate).toLocaleDateString('vn-VN', {
+            year: 'numeric',
+            day: 'numeric',
+            month: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+        };
+      });
+      return {
+        ...wallet,
+        transactions,
+      };
+    });
+    return formatResult;
   }
 
   async checkoutCampaign(userId: string, campaignId: string) {

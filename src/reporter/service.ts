@@ -7,6 +7,7 @@ import { Cache } from 'cache-manager';
 import { GLOBAL_DATE } from 'src/constants/cache-code';
 import { TasksService } from 'src/task/service';
 import { addDays, diffDates } from 'src/utilities';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class ReporterService {
@@ -23,6 +24,48 @@ export class ReporterService {
       throw new BadRequestException('Not found any Reporter');
     }
     return listReporters;
+  }
+  async getListReporterAvailable() {
+    const users = await this.prisma.user.findMany({
+      where: {
+        role: Role.REPORTER,
+      },
+      select: {
+        reporter: {
+          select: {
+            id: true,
+            Checkpoint: {
+              select: {
+                addressName: true,
+              },
+            },
+          },
+        },
+        fullname: true,
+        email: true,
+        status: true,
+        isActive: true,
+        address: true,
+      },
+    });
+    const result = users
+      .filter((u) => !u.reporter?.Checkpoint)
+      .map((user) => {
+        const reporterId = user?.reporter?.id;
+        const address = user?.reporter?.Checkpoint?.addressName;
+        delete user?.reporter;
+        return {
+          ...user,
+          reporterId,
+          address,
+        };
+      });
+
+    if (result.length === 0)
+      throw new BadRequestException(
+        'We dont have any reporter available to assign to new checkpoint',
+      );
+    return result;
   }
 
   async getListCampaignInReporterLocation(reporterId: string) {

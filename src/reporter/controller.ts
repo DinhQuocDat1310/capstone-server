@@ -43,6 +43,17 @@ export class ReporterController {
     return await this.reporterService.getListReporter();
   }
 
+  @ApiOperation({ summary: 'Get list Reporters Available' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Status(StatusUser.VERIFIED)
+  @Roles(Role.ADMIN)
+  @Get('/list-available')
+  async getListReporterAvailable() {
+    return await this.reporterService.getListReporterAvailable();
+  }
+
   @ApiOperation({ summary: 'View list campaign in Reporter Location' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })

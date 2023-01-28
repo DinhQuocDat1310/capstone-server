@@ -80,7 +80,7 @@ export const users = async (): Promise<any[]> => {
     });
   }
   brands.push({
-    email: 'datdqse140552@fpt.edu.vn',
+    email: 'tailmse140555@fpt.edu.vn',
     password,
     role: Role.BRAND,
     status: 'VERIFIED',

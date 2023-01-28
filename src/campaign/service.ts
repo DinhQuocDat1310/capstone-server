@@ -369,7 +369,6 @@ export class CampaignService {
         OPTIONS_DATE,
       ),
     };
-    this.logger.debug(brandDataFormat);
     return { ...brandDataFormat, isWaiting: `${isWaiting}`, messageWaiting };
   }
 
