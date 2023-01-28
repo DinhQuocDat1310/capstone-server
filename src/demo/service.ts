@@ -4,6 +4,7 @@ import { Cache } from 'cache-manager';
 import {
   EXPIRED_GLOBAL_DATE_ONE_DAY,
   GLOBAL_DATE,
+  GLOBAL_HOUR,
   OPTIONS_DATE,
 } from 'src/constants/cache-code';
 import { TasksService } from 'src/task/service';
@@ -80,6 +81,16 @@ export class DemoService {
     return date;
   }
 
+  async getGlobalHour() {
+    let hour = await this.cacheManager.get(GLOBAL_HOUR);
+    if (!hour) {
+      hour = await this.cacheManager.set(GLOBAL_HOUR, '10:00', {
+        ttl: EXPIRED_GLOBAL_DATE_ONE_DAY,
+      });
+    }
+    return hour;
+  }
+
   async resetGlobalDate() {
     const today = new Date();
     await this.cacheManager.set(GLOBAL_DATE, today, {
@@ -105,5 +116,11 @@ export class DemoService {
     // await this.taskService.handleCompletePostPaymentCampaignPhase(
     //   newGlobalDate,
     // );
+  }
+
+  async setGlobalHour(hour: string) {
+    await this.cacheManager.set(GLOBAL_HOUR, hour, {
+      ttl: EXPIRED_GLOBAL_DATE_ONE_DAY,
+    });
   }
 }

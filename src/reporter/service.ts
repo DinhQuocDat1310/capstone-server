@@ -4,7 +4,7 @@ import { CACHE_MANAGER, Inject, Injectable, Logger } from '@nestjs/common';
 import { BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/service';
 import { Cache } from 'cache-manager';
-import { GLOBAL_DATE } from 'src/constants/cache-code';
+import { GLOBAL_DATE, GLOBAL_HOUR } from 'src/constants/cache-code';
 import { TasksService } from 'src/task/service';
 import { addDays, diffDates } from 'src/utilities';
 import { Role } from '@prisma/client';
@@ -255,5 +255,58 @@ export class ReporterService {
       }
     }
     return 'Checked success';
+  }
+
+  async scanQRCodeDriver(userId: string, scanQRId: string) {
+    try {
+      const globalDate: Date = new Date(
+        await this.cacheManager.get(GLOBAL_DATE),
+      );
+      const globalHour: string = await this.cacheManager.get(GLOBAL_HOUR);
+      const qrCode = await this.prisma.driverScanQRCode.findFirst({
+        where: {
+          id: scanQRId,
+          createDate: {
+            lte: globalDate,
+            gte: globalDate,
+          },
+          CheckpointTime: {
+            checkpoint: {
+              reporter: {
+                userId,
+              },
+            },
+          },
+        },
+        include: {
+          CheckpointTime: true,
+        },
+      });
+      if (!qrCode)
+        throw new BadRequestException(
+          'You dont have permission to verify this checkpoint',
+        );
+
+      if (qrCode.isCheck && qrCode.submitTime)
+        throw new BadRequestException('You already checked this checkpoint');
+
+      const hourG = globalHour.split(':')[0];
+      const hourQR = qrCode.CheckpointTime.deadline.split(':')[0];
+      if (hourG > hourQR)
+        throw new BadRequestException('This driver is overdue to check');
+
+      await this.prisma.driverScanQRCode.update({
+        where: {
+          id: scanQRId,
+        },
+        data: {
+          submitTime: globalDate,
+          isCheck: true,
+        },
+      });
+    } catch (error) {
+      this.logger.debug(error.message);
+      throw new BadRequestException(error.message);
+    }
   }
 }

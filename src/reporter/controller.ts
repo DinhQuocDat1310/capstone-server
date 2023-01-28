@@ -101,4 +101,18 @@ export class ReporterController {
       req.user.id,
     );
   }
+
+  @ApiOperation({ summary: 'Scan QR Driver' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Status(StatusUser.VERIFIED)
+  @Roles(Role.REPORTER)
+  @Get('/scan-driver/:id')
+  async scanQRCodeDriver(
+    @Request() req: RequestUser,
+    @Param('id') driverQRId: string,
+  ) {
+    return await this.reporterService.scanQRCodeDriver(req.user.id, driverQRId);
+  }
 }

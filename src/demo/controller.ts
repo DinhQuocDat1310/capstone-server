@@ -14,7 +14,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { Roles, Status } from 'src/guard/decorators';
 import { RolesGuard } from 'src/guard/roles.guard';
 import { StatusGuard } from 'src/guard/userStatus.guard';
-import { globalDateDTO } from './dto';
+import { globalDateDTO, globalHourDTO } from './dto';
 import { DemoService } from './service';
 
 @Controller('demo')
@@ -34,6 +34,16 @@ export class DemoController {
     return await this.demoService.getGlobalDate();
   }
 
+  @ApiOperation({ summary: 'Get global hour' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiCreatedResponse({ description: 'Created' })
+  @Get('/getGlobalHour')
+  async getGlobalHour() {
+    return await this.demoService.getGlobalHour();
+  }
+
   @ApiOperation({ summary: 'Reset global date' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
@@ -45,7 +55,7 @@ export class DemoController {
   }
 
   @ApiBody({ type: globalDateDTO })
-  @ApiOperation({ summary: 'Get global date' })
+  @ApiOperation({ summary: 'set global date' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
@@ -55,6 +65,19 @@ export class DemoController {
   @Post('/setGlobalDate')
   async setGlobalDate(@Body() global: globalDateDTO) {
     return await this.demoService.setGlobalDate(new Date(global.date));
+  }
+
+  @ApiBody({ type: globalHourDTO })
+  @ApiOperation({ summary: 'set global hour' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiCreatedResponse({ description: 'Created' })
+  @Status(StatusUser.VERIFIED)
+  @Roles(Role.ADMIN)
+  @Post('/setGlobalHour')
+  async setGlobalHour(@Body() global: globalHourDTO) {
+    return await this.demoService.setGlobalHour(global.hour);
   }
 
   @ApiOperation({ summary: 'Get list campaigns demo' })
