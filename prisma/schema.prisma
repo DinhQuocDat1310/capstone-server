@@ -140,8 +140,8 @@ model DriverScanQRCode {
 
   driverJoinCampaignId String
   driverJoinCampaign   DriverJoinCampaign @relation(fields: [driverJoinCampaignId], references: [id])
-  checkpointId         String
-  Checkpoint           CheckpointTime     @relation(fields: [checkpointId], references: [id])
+  checkpointTimeId         String
+  CheckpointTime           CheckpointTime     @relation(fields: [checkpointTimeId], references: [id])
 }
 
 model Reporter {

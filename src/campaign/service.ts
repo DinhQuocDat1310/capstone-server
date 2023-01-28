@@ -972,9 +972,14 @@ export class CampaignService {
             drivingPhotoReport: true,
             driverScanQRCode: {
               include: {
-                Checkpoint: {
+                CheckpointTime: {
                   select: {
-                    addressName: true,
+                    deadline: true,
+                    checkpoint: {
+                      select: {
+                        addressName: true,
+                      },
+                    },
                   },
                 },
               },
