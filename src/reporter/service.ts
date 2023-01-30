@@ -327,6 +327,16 @@ export class ReporterService {
           isCheck: true,
         },
       });
+
+      return await this.prisma.driverJoinCampaign.findFirst({
+        where: {
+          id: qrCode.driverJoinCampaignId,
+        },
+        include: {
+          driver: true,
+          campaign: true,
+        },
+      });
     } catch (error) {
       this.logger.debug(error.message);
       throw new BadRequestException(error.message);
