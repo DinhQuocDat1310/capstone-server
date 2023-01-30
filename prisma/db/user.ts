@@ -100,6 +100,27 @@ export const users = async (): Promise<any[]> => {
     },
   });
 
+  brands.push({
+    email: 'nguyenla171120@gmaill',
+    password,
+    role: Role.BRAND,
+    status: 'VERIFIED',
+    imageCitizenFront: FAKE_FRONT_CARDLICENSE[3],
+    imageCitizenBack: FAKE_BACK_CARDLICENSE[3],
+    idCitizen: '065099999999',
+    address: 'TP Hồ Chí Minh',
+    brand: {
+      create: {
+        brandName: 'Phuc Long',
+        logo: 'https://uploads-ssl.webflow.com/5fb85f26f126ce08d792d2d9/639d4fb26949fb0d309d5aba_logo-phuc-long-coffee-and-tea.jpg',
+        typeBusiness: FAKE_TYPE_BUSINESS[2],
+        idLicenseBusiness: '123123123123',
+        ownerLicenseBusiness: FAKE_OWNER_BUSINESS[2],
+        imageLicenseBusiness: FAKE_LICENSE[2],
+      },
+    },
+  });
+
   for (let i = 0; i < 200; i++) {
     const random = Math.floor(Math.random() * 20);
 
