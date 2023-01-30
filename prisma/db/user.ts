@@ -101,7 +101,7 @@ export const users = async (): Promise<any[]> => {
   });
 
   brands.push({
-    email: 'nguyenla171120@gmaill',
+    email: 'nguyenla171120@gmail',
     password,
     role: Role.BRAND,
     status: 'VERIFIED',

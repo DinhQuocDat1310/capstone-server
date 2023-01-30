@@ -548,7 +548,7 @@ export class DriversService {
     const end = new Date(globalDate);
     end.setUTCHours(23, 59, 59, 999);
 
-    const scanCheckpointsToday = await this.prisma.driverScanQRCode.findMany({
+    let scanCheckpointsToday = await this.prisma.driverScanQRCode.findMany({
       where: {
         driverJoinCampaignId: driverJoinCampaign.id,
         createDate: {
@@ -582,7 +582,7 @@ export class DriversService {
           },
         });
       }
-      return await this.prisma.driverScanQRCode.findMany({
+      scanCheckpointsToday = await this.prisma.driverScanQRCode.findMany({
         where: {
           driverJoinCampaignId: driverJoinCampaign.id,
           createDate: {
@@ -606,6 +606,10 @@ export class DriversService {
         },
       });
     }
-    return scanCheckpointsToday;
+    return scanCheckpointsToday.sort(
+      (c1, c2) =>
+        Number(c1.CheckpointTime.deadline.split(':')[0]) -
+        Number(c2.CheckpointTime.deadline.split(':')[0]),
+    );
   }
 }

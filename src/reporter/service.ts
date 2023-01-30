@@ -296,6 +296,10 @@ export class ReporterService {
       const listCheckpoint = await this.prisma.driverScanQRCode.findMany({
         where: {
           driverJoinCampaignId: qrCode.driverJoinCampaignId,
+          createDate: {
+            lte: end,
+            gte: start,
+          },
         },
         include: {
           CheckpointTime: {
@@ -306,9 +310,16 @@ export class ReporterService {
         },
       });
 
+      listCheckpoint.sort(
+        (c1, c2) =>
+          Number(c1.CheckpointTime.deadline.split(':')[0]) -
+          Number(c2.CheckpointTime.deadline.split(':')[0]),
+      );
+
       const checkpointIndex = listCheckpoint.findIndex(
         (c) => c.id === qrCode.id,
       );
+
       for (let i = 0; i < checkpointIndex; i++) {
         if (listCheckpoint[i].isCheck === false) {
           if (listCheckpoint[i].id !== qrCode.id) {
