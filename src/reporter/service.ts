@@ -304,9 +304,11 @@ export class ReporterService {
       );
       for (let i = 0; i < checkpointIndex; i++) {
         if (listCheckpoint[i].isCheck === false) {
-          throw new BadRequestException(
-            `You need to check checkpoint ${listCheckpoint[i].CheckpointTime.checkpoint.addressName} first`,
-          );
+          if (listCheckpoint[i].id !== qrCode.id) {
+            throw new BadRequestException(
+              `You need to check checkpoint ${listCheckpoint[i].CheckpointTime.checkpoint.addressName} first`,
+            );
+          }
         }
       }
 

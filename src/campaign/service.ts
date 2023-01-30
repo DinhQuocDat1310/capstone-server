@@ -499,7 +499,7 @@ export class CampaignService {
   }
 
   async getListHistoryCampaignByUserId(userId: string) {
-    return await this.prisma.campaign.findMany({
+    const campaigns = await this.prisma.campaign.findMany({
       where: {
         AND: [
           {
@@ -530,6 +530,13 @@ export class CampaignService {
         duration: true,
         quantityDriver: true,
         statusCampaign: true,
+        route: {
+          select: {
+            name: true,
+            totalKilometer: true,
+            price: true,
+          },
+        },
         brand: {
           select: {
             brandName: true,
@@ -540,6 +547,15 @@ export class CampaignService {
       orderBy: {
         startRunningDate: 'asc',
       },
+    });
+    return campaigns.map((c) => {
+      return {
+        ...c,
+        startRunningDate: new Date(c.startRunningDate).toLocaleDateString(
+          'vn-VN',
+          OPTIONS_DATE,
+        ),
+      };
     });
   }
 
