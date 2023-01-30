@@ -107,7 +107,7 @@ export const users = async (): Promise<any[]> => {
     status: 'VERIFIED',
     imageCitizenFront: FAKE_FRONT_CARDLICENSE[3],
     imageCitizenBack: FAKE_BACK_CARDLICENSE[3],
-    idCitizen: '065099999999',
+    idCitizen: '065129999999',
     address: 'TP Hồ Chí Minh',
     brand: {
       create: {
