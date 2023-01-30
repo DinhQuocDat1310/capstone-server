@@ -13,6 +13,7 @@ import {
 } from '@prisma/client';
 import { Cache } from 'cache-manager';
 import { AppConfigService } from 'src/config/appConfigService';
+import { OPTIONS_DATE } from 'src/constants/cache-code';
 import { PrismaService } from 'src/prisma/service';
 import { ManagerVerifyCampaignDTO } from './../manager/dto';
 
@@ -38,7 +39,7 @@ export class VerifyCampaignService {
 
   async getListVerifyCampaignPending(userId: string) {
     try {
-      return await this.prisma.verifyCampaign.findMany({
+      const listCampaigns = await this.prisma.verifyCampaign.findMany({
         where: {
           manager: {
             userId,
@@ -66,6 +67,18 @@ export class VerifyCampaignService {
           createDate: 'asc',
         },
       });
+      const campaignDateFormat = listCampaigns.map((val) => {
+        return {
+          id: val.id,
+          campaign: {
+            ...val.campaign,
+            startRunningDate: new Date(
+              val.campaign.startRunningDate,
+            ).toLocaleDateString('vn-VN', OPTIONS_DATE),
+          },
+        };
+      });
+      return campaignDateFormat;
     } catch (e) {
       throw new InternalServerErrorException(e.message);
     }
@@ -73,7 +86,7 @@ export class VerifyCampaignService {
 
   async getListCurrentCampaignByManagerId(userId: string) {
     try {
-      return await this.prisma.campaign.findMany({
+      const currentCampaign = await this.prisma.campaign.findMany({
         where: {
           AND: [
             {
@@ -117,6 +130,15 @@ export class VerifyCampaignService {
         orderBy: {
           startRunningDate: 'asc',
         },
+      });
+      return currentCampaign.map((c) => {
+        return {
+          ...c,
+          startRunningDate: new Date(c.startRunningDate).toLocaleDateString(
+            'vn-VN',
+            OPTIONS_DATE,
+          ),
+        };
       });
     } catch (error) {
       throw new InternalServerErrorException(error.message);

@@ -11,6 +11,7 @@ import {
 import { PrismaService } from 'src/prisma/service';
 import * as fs from 'fs';
 import { addDays, diffDates } from 'src/utilities';
+import { OPTIONS_DATE } from 'src/constants/cache-code';
 
 @Injectable()
 export class ContractService {
@@ -202,7 +203,7 @@ export class ContractService {
     const checkIdContract = await this.checkContractId(contractId);
     if (!checkIdContract)
       throw new BadRequestException('Contract ID not found');
-    return await this.prisma.contractCampaign.findFirst({
+    const contractData = await this.prisma.contractCampaign.findFirst({
       where: {
         id: contractId,
       },
@@ -254,6 +255,34 @@ export class ContractService {
         },
       },
     });
+
+    const contractDataFormat = {
+      campaign: {
+        ...contractData.campaign,
+        startPaymentDate: new Date(
+          contractData.campaign.startPaymentDate,
+        ).toLocaleDateString('vn-VN', OPTIONS_DATE),
+        startRegisterDate: new Date(
+          contractData.campaign.startRegisterDate,
+        ).toLocaleDateString('vn-VN', OPTIONS_DATE),
+        startRunningDate: new Date(
+          contractData.campaign.startRunningDate,
+        ).toLocaleDateString('vn-VN', OPTIONS_DATE),
+        startWrapDate: new Date(
+          contractData.campaign.startWrapDate,
+        ).toLocaleDateString('vn-VN', OPTIONS_DATE),
+        endPaymentDate: new Date(
+          contractData.campaign.endPaymentDate,
+        ).toLocaleDateString('vn-VN', OPTIONS_DATE),
+        endRegisterDate: new Date(
+          contractData.campaign.endRegisterDate,
+        ).toLocaleDateString('vn-VN', OPTIONS_DATE),
+        endWrapDate: new Date(
+          contractData.campaign.endWrapDate,
+        ).toLocaleDateString('vn-VN', OPTIONS_DATE),
+      },
+    };
+    return contractDataFormat;
   }
 
   async checkContractId(id: string) {

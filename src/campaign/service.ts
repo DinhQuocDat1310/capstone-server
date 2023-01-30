@@ -23,7 +23,7 @@ export class CampaignService {
   ) {}
 
   async getListVerifiesCampaignByUserId(userId: string) {
-    return await this.prisma.campaign.findMany({
+    const listCampaigns = await this.prisma.campaign.findMany({
       where: {
         AND: [
           {
@@ -93,6 +93,16 @@ export class CampaignService {
         startRunningDate: 'asc',
       },
     });
+    const campaignDateFormat = listCampaigns.map((val) => {
+      return {
+        ...val,
+        startRunningDate: new Date(val.startRunningDate).toLocaleDateString(
+          'vn-VN',
+          OPTIONS_DATE,
+        ),
+      };
+    });
+    return campaignDateFormat;
   }
 
   async getListCurrentCampaignByUserId(userId: string) {
@@ -534,7 +544,7 @@ export class CampaignService {
   }
 
   async createCampaign(dto: CampaignVerifyInformationDTO, userId: string) {
-    const globalDate: Date = await this.cacheManager.get(GLOBAL_DATE);
+    // const globalDate: Date = await this.cacheManager.get(GLOBAL_DATE);
 
     const campaign = await this.prisma.campaign.create({
       data: {

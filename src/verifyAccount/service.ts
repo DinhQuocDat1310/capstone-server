@@ -449,10 +449,10 @@ export class VerifyAccountsService {
           Math.pow(10, 5),
       );
 
-      const randomAccountNumber = Math.floor(
-        Math.random() * (Math.pow(10, 5) * 9.9 - Math.pow(10, 5) + 1) +
-          Math.pow(10, 5),
-      );
+      // const randomAccountNumber = Math.floor(
+      //   Math.random() * (Math.pow(10, 5) * 9.9 - Math.pow(10, 5) + 1) +
+      //     Math.pow(10, 5),
+      // );
       await this.prisma.driver.update({
         where: {
           id: driversFilter[i].driver.id,
