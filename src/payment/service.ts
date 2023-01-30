@@ -186,6 +186,9 @@ export class PaymentService {
             type: true,
             status: true,
           },
+          orderBy: {
+            createDate: 'desc',
+          },
         },
       },
     });

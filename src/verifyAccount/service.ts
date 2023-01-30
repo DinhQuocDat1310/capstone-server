@@ -297,6 +297,15 @@ export class VerifyAccountsService {
         message = `<p>Congratulations!. Your ${type} information has been accepted</p>
            <p>Please login at the website for more details</p>`;
         status = StatusUser.VERIFIED;
+        if (type === 'brand') {
+          await this.prisma.eWallet.create({
+            data: {
+              userId: verify.brand.userId,
+              totalBalance: 0,
+              updateDate: new Date(),
+            },
+          });
+        }
         break;
       case 'BANNED':
         message = `<p>Your account has been banned for violating our terms</p>
