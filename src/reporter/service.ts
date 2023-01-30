@@ -262,13 +262,20 @@ export class ReporterService {
       const globalDate: Date = new Date(
         await this.cacheManager.get(GLOBAL_DATE),
       );
+      const start = new Date(globalDate);
+      start.setUTCHours(0, 0, 0, 0);
+
+      const end = new Date(globalDate);
+      end.setUTCHours(23, 59, 59, 999);
+
       const globalHour: string = await this.cacheManager.get(GLOBAL_HOUR);
+
       const qrCode = await this.prisma.driverScanQRCode.findFirst({
         where: {
           id: scanQRId,
           createDate: {
-            lte: globalDate,
-            gte: globalDate,
+            lte: end,
+            gte: start,
           },
           CheckpointTime: {
             checkpoint: {

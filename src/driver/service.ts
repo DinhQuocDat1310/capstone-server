@@ -542,13 +542,18 @@ export class DriversService {
     });
     if (!driverJoinCampaign)
       throw new BadRequestException('You are not running this campaign');
+    const start = new Date(globalDate);
+    start.setUTCHours(0, 0, 0, 0);
+
+    const end = new Date(globalDate);
+    end.setUTCHours(23, 59, 59, 999);
 
     const scanCheckpointsToday = await this.prisma.driverScanQRCode.findMany({
       where: {
         driverJoinCampaignId: driverJoinCampaign.id,
         createDate: {
-          gte: globalDate,
-          lte: globalDate,
+          lte: end,
+          gte: start,
         },
       },
       include: {
