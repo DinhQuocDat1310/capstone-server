@@ -3,7 +3,9 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -90,5 +92,19 @@ export class BrandController {
   @Get('/wraps')
   async getListWrap(@Request() userReq: RequestUser) {
     return await this.wrapService.getListWrap(userReq.user.role);
+  }
+
+  @ApiOperation({ summary: 'Get driver checkpoint by time and id' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @Status(StatusUser.VERIFIED)
+  @Roles(Role.BRAND, Role.MANAGER)
+  @Get('checkpoint-driver/:id?')
+  async getDriverCheckpoint(
+    @Param('id') id: string,
+    @Query('date') date: string,
+  ) {
+    return await this.brandService.getDriverCheckpointByIdAndTime(id, date);
   }
 }

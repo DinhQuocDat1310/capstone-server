@@ -1,14 +1,14 @@
-import { UsersService } from './../user/service';
-import { PrismaService } from './../prisma/service';
 import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { BrandVerifyInformationDTO, UpdateBrandLogoDto } from './dto';
 import { UserSignIn } from 'src/auth/dto';
-import { VerifyAccountsService } from 'src/verifyAccount/service';
 import { AppConfigService } from 'src/config/appConfigService';
+import { VerifyAccountsService } from 'src/verifyAccount/service';
+import { PrismaService } from './../prisma/service';
+import { UsersService } from './../user/service';
+import { BrandVerifyInformationDTO, UpdateBrandLogoDto } from './dto';
 
 @Injectable()
 export class BrandsService {
@@ -73,5 +73,119 @@ export class BrandsService {
     } catch (e) {
       throw new InternalServerErrorException(e.message);
     }
+  }
+
+  async getDriverCheckpointByIdAndTime(
+    driverJoinCampaignId: string,
+    date: string,
+  ) {
+    const start = new Date(date);
+    start.setUTCHours(0, 0, 0, 0);
+
+    const end = new Date(date);
+    end.setUTCHours(23, 59, 59, 999);
+
+    let driverScanQRToday = await this.prisma.driverScanQRCode.findMany({
+      where: {
+        driverJoinCampaignId,
+        createDate: {
+          lte: end,
+          gte: start,
+        },
+      },
+      include: {
+        CheckpointTime: {
+          select: {
+            deadline: true,
+            checkpoint: {
+              select: {
+                addressName: true,
+                latitude: true,
+                longitude: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    if (driverScanQRToday.length === 0) {
+      const globalDate: Date = new Date(date);
+
+      const start = new Date(globalDate);
+      start.setUTCHours(0, 0, 0, 0);
+
+      const end = new Date(globalDate);
+      end.setUTCHours(23, 59, 59, 999);
+
+      const driver = await this.prisma.driverJoinCampaign.findFirst({
+        where: {
+          id: driverJoinCampaignId,
+        },
+        select: {
+          campaign: {
+            select: {
+              route: {
+                include: {
+                  checkpointTime: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const check = driver.campaign.route.checkpointTime;
+      for (let i = 0; i < check.length; i++) {
+        await this.prisma.driverScanQRCode.create({
+          data: {
+            checkpointTimeId: check[i].id,
+            driverJoinCampaignId,
+            createDate: globalDate,
+          },
+        });
+      }
+      driverScanQRToday = await this.prisma.driverScanQRCode.findMany({
+        where: {
+          driverJoinCampaignId,
+          createDate: {
+            lte: end,
+            gte: start,
+          },
+        },
+        include: {
+          CheckpointTime: {
+            select: {
+              deadline: true,
+              checkpoint: {
+                select: {
+                  addressName: true,
+                  latitude: true,
+                  longitude: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      driverScanQRToday.sort(
+        (c1, c2) =>
+          Number(c1.CheckpointTime.deadline.split(':')[0]) -
+          Number(c2.CheckpointTime.deadline.split(':')[0]),
+      );
+    }
+    const drivingPhotoReport = await this.prisma.drivingPhotoReport.findMany({
+      where: {
+        driverJoinCampaignId,
+        createDate: {
+          lte: end,
+          gte: start,
+        },
+      },
+    });
+    return {
+      driverScanQRCode: driverScanQRToday,
+      drivingPhotoReport: drivingPhotoReport,
+    };
   }
 }
