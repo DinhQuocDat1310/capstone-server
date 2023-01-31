@@ -553,24 +553,25 @@ export class DriversService {
         'You are not running this campaign or this campaign is not running yet',
       );
 
-    const endRunningDate = addDays(
-      start,
-      -driverJoinCampaign.campaign.duration + 1,
-    );
-    endRunningDate.setUTCHours(23, 59, 59, 999);
-    const campaign = await this.prisma.campaign.findFirst({
-      where: {
-        id: driverJoinCampaign.campaignId,
-        startRunningDate: {
-          gte: start,
-          lte: endRunningDate,
-        },
-      },
-    });
-    if (!campaign)
-      throw new BadRequestException(
-        'You are not running this campaign or this campaign is not running yet',
-      );
+    // const endRunningDate = addDays(
+    //   start,
+    //   -driverJoinCampaign.campaign.duration + 1,
+    // );
+    // endRunningDate.setUTCHours(23, 59, 59, 999);
+    // const campaign = await this.prisma.campaign.findFirst({
+    //   where: {
+    //     id: driverJoinCampaign.campaignId,
+    //     startRunningDate: {
+    //       gte: start,
+    //       lte: endRunningDate,
+    //     },
+    //   },
+    // });
+    // if (!campaign)
+    //   throw new BadRequestException(
+    //     'You are not running this campaign or this campaign is not running yet',
+    //   );
+
     let scanCheckpointsToday = await this.prisma.driverScanQRCode.findMany({
       where: {
         driverJoinCampaignId: driverJoinCampaign.id,
