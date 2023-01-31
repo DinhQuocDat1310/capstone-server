@@ -509,6 +509,12 @@ export class DriversService {
   async getAllCheckpoints(driverJoinCampaignId: string) {
     const globalDate: Date = new Date(await this.cacheManager.get(GLOBAL_DATE));
 
+    const start = new Date(globalDate);
+    start.setUTCHours(0, 0, 0, 0);
+
+    const end = new Date(globalDate);
+    end.setUTCHours(23, 59, 59, 999);
+
     const driverJoinCampaign = await this.prisma.driverJoinCampaign.findFirst({
       where: {
         id: driverJoinCampaignId,
@@ -520,6 +526,7 @@ export class DriversService {
         driverScanQRCode: true,
         campaign: {
           select: {
+            duration: true,
             route: {
               select: {
                 checkpointTime: {
@@ -540,14 +547,30 @@ export class DriversService {
         },
       },
     });
+
     if (!driverJoinCampaign)
-      throw new BadRequestException('You are not running this campaign');
-    const start = new Date(globalDate);
-    start.setUTCHours(0, 0, 0, 0);
+      throw new BadRequestException(
+        'You are not running this campaign or this campaign is not running yet',
+      );
 
-    const end = new Date(globalDate);
-    end.setUTCHours(23, 59, 59, 999);
-
+    const endRunningDate = addDays(
+      start,
+      -driverJoinCampaign.campaign.duration + 1,
+    );
+    endRunningDate.setUTCHours(23, 59, 59, 999);
+    const campaign = await this.prisma.campaign.findFirst({
+      where: {
+        id: driverJoinCampaign.campaignId,
+        startRunningDate: {
+          gte: start,
+          lte: endRunningDate,
+        },
+      },
+    });
+    if (!campaign)
+      throw new BadRequestException(
+        'You are not running this campaign or this campaign is not running yet',
+      );
     let scanCheckpointsToday = await this.prisma.driverScanQRCode.findMany({
       where: {
         driverJoinCampaignId: driverJoinCampaign.id,
@@ -586,8 +609,8 @@ export class DriversService {
         where: {
           driverJoinCampaignId: driverJoinCampaign.id,
           createDate: {
-            gte: globalDate,
-            lte: globalDate,
+            lte: end,
+            gte: start,
           },
         },
         include: {

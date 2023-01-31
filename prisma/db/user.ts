@@ -101,7 +101,7 @@ export const users = async (): Promise<any[]> => {
   });
 
   brands.push({
-    email: 'nguyenla171120@gmail',
+    email: 'nguyenla171120@gmail.com',
     password,
     role: Role.BRAND,
     status: 'VERIFIED',
@@ -115,6 +115,27 @@ export const users = async (): Promise<any[]> => {
         logo: 'https://uploads-ssl.webflow.com/5fb85f26f126ce08d792d2d9/639d4fb26949fb0d309d5aba_logo-phuc-long-coffee-and-tea.jpg',
         typeBusiness: FAKE_TYPE_BUSINESS[2],
         idLicenseBusiness: '123123123923',
+        ownerLicenseBusiness: FAKE_OWNER_BUSINESS[2],
+        imageLicenseBusiness: FAKE_LICENSE[2],
+      },
+    },
+  });
+
+  brands.push({
+    email: 'minhnqse140536@fpt.edu.vn',
+    password,
+    role: Role.BRAND,
+    status: 'VERIFIED',
+    imageCitizenFront: FAKE_FRONT_CARDLICENSE[3],
+    imageCitizenBack: FAKE_BACK_CARDLICENSE[3],
+    idCitizen: '065125999999',
+    address: 'TP Hồ Chí Minh',
+    brand: {
+      create: {
+        brandName: 'Starbucks',
+        logo: 'https://upload.wikimedia.org/wikipedia/vi/thumb/d/d3/Starbucks_Corporation_Logo_2011.svg/1200px-Starbucks_Corporation_Logo_2011.svg.png',
+        typeBusiness: FAKE_TYPE_BUSINESS[2],
+        idLicenseBusiness: '123123127923',
         ownerLicenseBusiness: FAKE_OWNER_BUSINESS[2],
         imageLicenseBusiness: FAKE_LICENSE[2],
       },

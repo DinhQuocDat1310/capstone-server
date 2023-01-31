@@ -13,12 +13,14 @@ import { StatusCampaign, Role } from '@prisma/client';
 import { GLOBAL_DATE, OPTIONS_DATE } from 'src/constants/cache-code';
 import { Cache } from 'cache-manager';
 import { addDays, diffDates } from 'src/utilities';
+import { DriversService } from 'src/driver/service';
 
 @Injectable()
 export class CampaignService {
   private readonly logger = new Logger(CampaignService.name);
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly driverService: DriversService,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -963,110 +965,87 @@ export class CampaignService {
     role: Role,
     campaignId: string,
   ) {
-    const globalDate: Date = await this.cacheManager.get(GLOBAL_DATE);
-    const where = {
-      id: campaignId,
-      statusCampaign: {
-        in: [
-          StatusCampaign.OPEN,
-          StatusCampaign.PAYMENT,
-          StatusCampaign.WRAPPING,
-          StatusCampaign.RUNNING,
-          StatusCampaign.CLOSED,
-          StatusCampaign.CANCELED,
-        ],
-      },
-    };
-    if (role === 'MANAGER') {
-      where['verifyCampaign'] = {
-        every: {
-          manager: { userId },
+    try {
+      const globalDate: Date = await this.cacheManager.get(GLOBAL_DATE);
+      const where = {
+        id: campaignId,
+        statusCampaign: {
+          in: [
+            StatusCampaign.OPEN,
+            StatusCampaign.PAYMENT,
+            StatusCampaign.WRAPPING,
+            StatusCampaign.RUNNING,
+            StatusCampaign.CLOSED,
+            StatusCampaign.CANCELED,
+          ],
         },
       };
-    }
-    if (role === 'BRAND') {
-      where['brand'] = {
-        userId,
-      };
-    }
-    const campaign = await this.prisma.campaign.findFirst({
-      where,
-      include: {
-        driverJoinCampaign: {
-          include: {
-            drivingPhotoReport: true,
-            driverScanQRCode: {
-              include: {
-                CheckpointTime: {
-                  select: {
-                    deadline: true,
-                    checkpoint: {
-                      select: {
-                        addressName: true,
-                      },
+      if (role === 'MANAGER') {
+        where['verifyCampaign'] = {
+          every: {
+            manager: { userId },
+          },
+        };
+      }
+      if (role === 'BRAND') {
+        where['brand'] = {
+          userId,
+        };
+      }
+      const campaign = await this.prisma.campaign.findFirst({
+        where,
+        include: {
+          driverJoinCampaign: {
+            select: {
+              id: true,
+              driver: {
+                select: {
+                  licensePlates: true,
+                  user: {
+                    select: {
+                      fullname: true,
                     },
                   },
                 },
               },
             },
-            driver: {
-              include: {
-                user: true,
-              },
-            },
           },
         },
-      },
-    });
-    if (!campaign)
-      throw new BadRequestException('You are not the owner this campaign!');
-
-    if (globalDate < campaign.startRunningDate) {
-      return [];
-    }
-
-    const momentGlobal =
-      globalDate > addDays(campaign.startRunningDate, campaign.duration - 1)
-        ? addDays(campaign.startRunningDate, campaign.duration - 1)
-        : globalDate;
-
-    const totalLength = diffDates(momentGlobal, campaign.startRunningDate);
-
-    const listDriver = (date: Date) => {
-      return campaign.driverJoinCampaign.map((driverJoin) => {
-        const driverScanQR = driverJoin.driverScanQRCode.filter(
-          (driverTrack) => diffDates(date, driverTrack.submitTime) === 0,
-        );
-
-        const reporterImage = driverJoin?.drivingPhotoReport?.find(
-          (report) => diffDates(date, report.createDate) === 0,
-        );
-
-        return {
-          driverJoinCampaignId: driverJoin.id,
-          carOwnerName: driverJoin?.driver?.user?.fullname,
-          licensePlates: driverJoin?.driver?.licensePlates,
-          driverScanQRCode: driverScanQR,
-          listImage: {
-            imageCarBack: reporterImage?.imageCarBack,
-            imageCarLeft: reporterImage?.imageCarLeft,
-            imageCarRight: reporterImage?.imageCarRight,
-          },
-        };
       });
-    };
+      if (!campaign)
+        throw new BadRequestException('You are not the owner this campaign!');
 
-    const array = [];
-    for (let i = 0; i <= totalLength; i++) {
-      const listDriverFormat = listDriver(
-        addDays(campaign.startRunningDate, i),
-      );
-      array.push({
-        date: addDays(campaign.startRunningDate, i),
-        listDriver: listDriverFormat,
-      });
+      if (globalDate < campaign.startRunningDate) {
+        return [];
+      }
+
+      const momentGlobal =
+        globalDate > addDays(campaign.startRunningDate, campaign.duration - 1)
+          ? addDays(campaign.startRunningDate, campaign.duration - 1)
+          : globalDate;
+
+      const totalLength = diffDates(momentGlobal, campaign.startRunningDate);
+
+      const array = [];
+      for (let i = 0; i <= totalLength; i++) {
+        array.push({
+          listDriver: campaign.driverJoinCampaign.map((d) => {
+            d['carOwnerName'] = d.driver.user.fullname;
+            d['licensePlates'] = d.driver.licensePlates;
+            delete d.driver;
+            return d;
+          }),
+          date: addDays(campaign.startRunningDate, i).toLocaleDateString(
+            'vn-VN',
+            OPTIONS_DATE,
+          ),
+        });
+      }
+      return array;
+    } catch (error) {
+      this.logger.debug(error);
+      throw new InternalServerErrorException(error.message);
     }
-    return array;
   }
 
   async getListDriverRunning(userId: string, campaignId: string) {
