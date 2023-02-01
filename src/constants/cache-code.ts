@@ -6,4 +6,5 @@ export const OPTIONS_DATE: Intl.DateTimeFormatOptions = {
   year: 'numeric',
   month: 'numeric',
   day: 'numeric',
+  timeZone: 'Asia/Jakarta',
 };

@@ -1032,7 +1032,6 @@ export class CampaignService {
           listDriver: campaign.driverJoinCampaign.map((d) => {
             d['carOwnerName'] = d.driver.user.fullname;
             d['licensePlates'] = d.driver.licensePlates;
-            delete d.driver;
             return d;
           }),
           date: addDays(campaign.startRunningDate, i).toLocaleDateString(

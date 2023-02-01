@@ -167,13 +167,12 @@ export class BrandsService {
           },
         },
       });
-
-      driverScanQRToday.sort(
-        (c1, c2) =>
-          Number(c1.CheckpointTime.deadline.split(':')[0]) -
-          Number(c2.CheckpointTime.deadline.split(':')[0]),
-      );
     }
+    driverScanQRToday.sort(
+      (c1, c2) =>
+        Number(c1.CheckpointTime.deadline.split(':')[0]) -
+        Number(c2.CheckpointTime.deadline.split(':')[0]),
+    );
     const drivingPhotoReport = await this.prisma.drivingPhotoReport.findMany({
       where: {
         driverJoinCampaignId,
