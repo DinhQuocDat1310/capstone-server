@@ -468,31 +468,18 @@ export class DriversService {
           },
         },
       },
-      select: {
-        id: true,
+      include: {
         campaign: {
-          select: {
-            id: true,
-            campaignName: true,
-            startRunningDate: true,
-            duration: true,
-            poster: true,
-            statusCampaign: true,
+          include: {
             route: {
               include: {
                 checkpointTime: {
-                  select: {
-                    deadline: true,
-                    checkpoint: {
-                      select: {
-                        addressName: true,
-                      },
-                    },
+                  include: {
+                    checkpoint: true,
                   },
                 },
               },
             },
-            wrapPrice: true,
             wrap: {
               select: {
                 positionWrap: true,
@@ -503,7 +490,21 @@ export class DriversService {
       },
     });
 
-    return 'this logic getHistoryCampaignFinished need to be change';
+    return driverJoinCampaign.map((d) => {
+      return {
+        ...d,
+        campaign: {
+          ...d.campaign,
+          startRunningDate: new Date(
+            d.campaign.startRunningDate,
+          ).toLocaleDateString('vn-VN', OPTIONS_DATE),
+          closeCampaignDate: addDays(
+            d.campaign.startRunningDate,
+            d.campaign.duration - 1,
+          ).toLocaleDateString('vn-VN', OPTIONS_DATE),
+        },
+      };
+    });
   }
 
   async getAllCheckpoints(driverJoinCampaignId: string) {
