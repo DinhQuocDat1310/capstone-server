@@ -468,9 +468,19 @@ export class DriversService {
           },
         },
       },
-      include: {
+      select: {
         campaign: {
-          include: {
+          select: {
+            startRunningDate: true,
+            duration: true,
+            campaignName: true,
+            poster: true,
+            wrapPrice: true,
+            wrap: {
+              select: {
+                positionWrap: true,
+              },
+            },
             route: {
               include: {
                 checkpointTime: {
@@ -478,11 +488,6 @@ export class DriversService {
                     checkpoint: true,
                   },
                 },
-              },
-            },
-            wrap: {
-              select: {
-                positionWrap: true,
               },
             },
           },
@@ -493,6 +498,8 @@ export class DriversService {
     return driverJoinCampaign.map((d) => {
       return {
         ...d,
+        driverMoney:
+          Number(d.campaign.route.price) + Number(d.campaign.wrapPrice),
         campaign: {
           ...d.campaign,
           startRunningDate: new Date(
