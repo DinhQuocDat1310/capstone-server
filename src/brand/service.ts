@@ -77,7 +77,7 @@ export class BrandsService {
 
   async getDriverCheckpointByIdAndTime(
     driverJoinCampaignId: string,
-    date: string,
+    date: Date,
   ) {
     const start = new Date(date);
     start.setUTCHours(0, 0, 0, 0);

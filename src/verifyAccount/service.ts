@@ -34,7 +34,7 @@ export class VerifyAccountsService {
   ) {}
 
   async createNewRequestVerifyBrandAccount(id: string) {
-    const globalDate: Date = await this.cacheManager.get(GLOBAL_DATE);
+    const globalDate: Date = new Date(await this.cacheManager.get(GLOBAL_DATE));
     try {
       return await this.prisma.verifyAccount.create({
         data: {
@@ -120,7 +120,7 @@ export class VerifyAccountsService {
   }
 
   async createNewRequestVerifyDriverAccount(id: string) {
-    const globalDate: Date = await this.cacheManager.get(GLOBAL_DATE);
+    const globalDate: Date = new Date(await this.cacheManager.get(GLOBAL_DATE));
     try {
       return await this.prisma.verifyAccount.create({
         data: {
@@ -366,7 +366,7 @@ export class VerifyAccountsService {
   }
 
   async fakeAutoCreateVerifyRequest() {
-    const globalDate: Date = await this.cacheManager.get(GLOBAL_DATE);
+    const globalDate: Date = new Date(await this.cacheManager.get(GLOBAL_DATE));
     const users = await this.prisma.user.findMany({
       where: {
         status: 'NEW',

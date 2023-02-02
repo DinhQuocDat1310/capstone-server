@@ -83,7 +83,7 @@ export class DriversService {
   }
 
   async driverJoinCampaign(campaignId: string, userReq: UserSignIn) {
-    const globalDate: Date = await this.cacheManager.get(GLOBAL_DATE);
+    const globalDate: Date = new Date(await this.cacheManager.get(GLOBAL_DATE));
     try {
       const driver = await this.prisma.driver.findFirst({
         where: {
@@ -348,7 +348,7 @@ export class DriversService {
   }
 
   async getCampaignJoiningAndJoined(userId: string) {
-    const globalDate: Date = await this.cacheManager.get(GLOBAL_DATE);
+    const globalDate: Date = new Date(await this.cacheManager.get(GLOBAL_DATE));
     const campaigns = await this.prisma.driverJoinCampaign.findMany({
       where: {
         driver: {
@@ -516,13 +516,15 @@ export class DriversService {
 
   async getAllCheckpoints(driverJoinCampaignId: string) {
     const globalDate: Date = new Date(await this.cacheManager.get(GLOBAL_DATE));
-
+    console.log(globalDate);
     const start = new Date(globalDate);
     start.setUTCHours(0, 0, 0, 0);
 
     const end = new Date(globalDate);
     end.setUTCHours(23, 59, 59, 999);
 
+    console.log(start);
+    console.log(end);
     const driverJoinCampaign = await this.prisma.driverJoinCampaign.findFirst({
       where: {
         id: driverJoinCampaignId,

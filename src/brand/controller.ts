@@ -103,7 +103,7 @@ export class BrandController {
   @Get('checkpoint-driver/:id?')
   async getDriverCheckpoint(
     @Param('id') id: string,
-    @Query('date') date: string,
+    @Query('date') date: Date,
   ) {
     return await this.brandService.getDriverCheckpointByIdAndTime(id, date);
   }

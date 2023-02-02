@@ -966,7 +966,9 @@ export class CampaignService {
     campaignId: string,
   ) {
     try {
-      const globalDate: Date = await this.cacheManager.get(GLOBAL_DATE);
+      const globalDate: Date = new Date(
+        await this.cacheManager.get(GLOBAL_DATE),
+      );
       const where = {
         id: campaignId,
         statusCampaign: {
@@ -1099,7 +1101,7 @@ export class CampaignService {
   }
 
   async triggerDriversJoinCampaign(campaignId: string) {
-    const globalDate: Date = await this.cacheManager.get(GLOBAL_DATE);
+    const globalDate: Date = new Date(await this.cacheManager.get(GLOBAL_DATE));
     const campaign = await this.prisma.campaign.findFirst({
       where: {
         id: campaignId,

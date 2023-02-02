@@ -128,7 +128,7 @@ export class ReporterService {
     dto: CreateReportDriverCampaignDTO,
     userId: string,
   ) {
-    const globalDate: Date = await this.cacheManager.get(GLOBAL_DATE);
+    const globalDate: Date = new Date(await this.cacheManager.get(GLOBAL_DATE));
     const campaign = await this.prisma.driverJoinCampaign.findFirst({
       where: {
         id: dto.driverJoinCampaignId,
