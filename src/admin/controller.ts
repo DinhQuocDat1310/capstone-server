@@ -151,4 +151,13 @@ export class AdminController {
   async updateWrap(@Body() dto: WrapDTO) {
     return await this.wrapService.updateWrap(dto);
   }
+
+  @ApiOperation({ summary: 'View all transaction admin' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @Roles(Role.ADMIN)
+  @Status(StatusUser.VERIFIED)
+  @Get('/transactions')
+  async viewAllTransaction(@Request() req: RequestUser) {
+    return await this.adminService.viewAllTransactionAdmin(req.user);
+  }
 }

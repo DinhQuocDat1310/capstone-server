@@ -442,7 +442,32 @@ export class DriversService {
         globalDate < campaignApprove.campaign.startRunningDate;
 
       delete campaignApprove.campaign.driverJoinCampaign;
-      return campaigns;
+
+      return campaigns.map((c) => {
+        const checkpointTime = c.campaign.route.checkpointTime.map(
+          (t, index) => {
+            return {
+              ...t,
+              deadline:
+                index === 0
+                  ? `7:00 - ${t.deadline}`
+                  : `${c.campaign.route.checkpointTime[index - 1].deadline} - ${
+                      t.deadline
+                    }`,
+            };
+          },
+        );
+        return {
+          ...c,
+          campaign: {
+            ...c.campaign,
+            route: {
+              ...c.campaign.route,
+              checkpointTime,
+            },
+          },
+        };
+      });
     }
     return campaigns.map((c) => {
       c.campaign['quantityDriverJoining'] =

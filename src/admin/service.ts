@@ -10,6 +10,7 @@ import {
 import { ManagerDTO, AssignDto } from 'src/manager/dto';
 import { PrismaService } from 'src/prisma/service';
 import { ManagerService } from 'src/manager/service';
+import { UserSignIn } from 'src/auth/dto';
 
 @Injectable()
 export class AdminService {
@@ -190,5 +191,50 @@ export class AdminService {
           },
         });
     return `Assigned task to manager`;
+  }
+
+  async viewAllTransactionAdmin(userReq: UserSignIn) {
+    const result = await this.prisma.eWallet.findMany({
+      where: {
+        userId: userReq.id,
+      },
+      select: {
+        id: true,
+        totalBalance: true,
+        updateDate: true,
+        transactions: {
+          select: {
+            name: true,
+            amount: true,
+            createDate: true,
+            type: true,
+            status: true,
+          },
+          orderBy: {
+            createDate: 'desc',
+          },
+        },
+      },
+    });
+    const formatResult = result.map((wallet) => {
+      const transactions = wallet.transactions.map((t) => {
+        return {
+          ...t,
+          createDate: new Date(t.createDate).toLocaleDateString('vn-VN', {
+            year: 'numeric',
+            day: 'numeric',
+            month: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'Asia/Jakarta',
+          }),
+        };
+      });
+      return {
+        ...wallet,
+        transactions,
+      };
+    });
+    return formatResult;
   }
 }
