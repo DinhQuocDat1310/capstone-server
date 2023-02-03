@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -49,6 +49,17 @@ export class CheckPointController {
   @Get()
   async getCheckpoints() {
     return await this.checkpointService.getAllCheckpoints();
+  }
+
+  @ApiOperation({ summary: 'get routes by checkpoint id' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiCreatedResponse({ description: 'Created' })
+  @Roles(Role.ADMIN)
+  @Get('route/:id')
+  async getAllCheckpointId(@Param('id') checkpointId: string) {
+    return await this.checkpointService.getRoutesByCheckpoint(checkpointId);
   }
 
   @ApiBody({ type: RouteDTO })

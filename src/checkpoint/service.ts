@@ -13,36 +13,36 @@ export class CheckPointService {
   }
 
   async getAllCheckpoints() {
-    const route = await this.prisma.checkpoint.findMany({
-      include: {
+    return await this.prisma.checkpoint.findMany({});
+  }
+
+  async getRoutesByCheckpoint(checkpointId: string) {
+    const checkpoint = await this.prisma.checkpoint.findFirst({
+      where: {
+        id: checkpointId,
+      },
+      select: {
         checkpointTime: {
-          include: {
-            route: true,
+          select: {
+            routeId: true,
           },
         },
       },
     });
-    return route.map((r) => {
-      const checkpointTime = r.checkpointTime
-        .sort(
-          (c1, c2) =>
-            Number(c1.deadline.split(':')[0]) -
-            Number(c2.deadline.split(':')[0]),
-        )
-        .map((c, index) => {
-          return {
-            ...c,
-            deadline:
-              index === 0
-                ? `7:00 - ${c.deadline}`
-                : `${r.checkpointTime[index - 1].deadline} - ${c.deadline}`,
-          };
-        });
-      return {
-        ...r,
-        checkpointTime,
-      };
-    });
+    const checkpointUni = [...new Set(checkpoint.checkpointTime)];
+    const routes = [];
+    for (let i = 0; i < checkpointUni.length; i++) {
+      const route = await this.prisma.route.findFirst({
+        where: {
+          id: checkpointUni[i].routeId,
+        },
+        include: {
+          checkpointTime: true,
+        },
+      });
+      routes.push(route);
+    }
+    return routes;
   }
 
   async getAllRoutes() {
