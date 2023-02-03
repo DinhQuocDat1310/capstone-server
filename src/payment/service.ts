@@ -338,4 +338,41 @@ export class PaymentService {
       message: 'Verified',
     };
   }
+
+  async checkWalletAcceptContract(userId: string) {
+    const campaignQueue = await this.prisma.campaign.findMany({
+      where: {
+        brand: {
+          userId,
+        },
+        statusCampaign: {
+          in: ['NEW'],
+        },
+      },
+      include: {
+        contractCampaign: true,
+      },
+    });
+    const filterCampaign = campaignQueue.filter(
+      (c) => c.contractCampaign !== null,
+    );
+
+    const totalMoney = filterCampaign.reduce(
+      (acc, c) =>
+        acc +
+        (c.contractCampaign.totalDriverMoney +
+          c.contractCampaign.totalSystemMoney +
+          c.contractCampaign.totalWrapMoney),
+      0,
+    );
+
+    const wallet = await this.prisma.eWallet.findFirst({
+      where: {
+        userId,
+      },
+    });
+
+    if (wallet.totalBalance < totalMoney)
+      throw new BadRequestException('You are not enough money to checkout');
+  }
 }

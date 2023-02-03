@@ -333,8 +333,24 @@ export class ReporterService {
       if (qrCode.isCheck && qrCode.submitTime)
         throw new BadRequestException('You already checked this checkpoint');
 
-      const hourG = globalHour.split(':')[0];
-      const hourQR = qrCode.CheckpointTime.deadline.split(':')[0];
+      const hourG = Number(globalHour.split(':')[0]);
+      const hourQR = Number(qrCode.CheckpointTime.deadline.split(':')[0]);
+
+      if (checkpointIndex === 0) {
+        if (hourG < 7)
+          throw new BadRequestException('This driver is too early to check');
+      } else {
+        if (
+          hourG <
+          Number(
+            listCheckpoint[checkpointIndex - 1].CheckpointTime.deadline.split(
+              ':',
+            )[0],
+          )
+        )
+          throw new BadRequestException('This driver is too early to check');
+      }
+
       if (hourG > hourQR)
         throw new BadRequestException('This driver is overdue to check');
 

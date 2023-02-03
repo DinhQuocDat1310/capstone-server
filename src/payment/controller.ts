@@ -53,6 +53,16 @@ export class PaymentController {
     return await this.paymentService.handleAllWebhook(dto);
   }
 
+  @ApiOperation({ summary: 'Check Wallet' })
+  @ApiBadRequestResponse({ description: 'Bad Request' })
+  @ApiCreatedResponse({ description: 'Created' })
+  @Status(StatusUser.VERIFIED)
+  @Roles(Role.BRAND)
+  @Post('/check-wallet')
+  async checkWalletToAcceptContract(@Request() req: RequestUser) {
+    return await this.paymentService.checkWalletAcceptContract(req.user.id);
+  }
+
   @ApiOperation({ summary: 'View all transaction' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)

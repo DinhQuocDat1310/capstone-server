@@ -294,7 +294,24 @@ export class DriversService {
       campaigns[i]['isJoined'] = isJoined ? true : false;
     }
 
-    return campaigns;
+    return campaigns.map((c) => {
+      const checkpointTime = c.route.checkpointTime.map((t, index) => {
+        return {
+          ...t,
+          deadline:
+            index === 0
+              ? `7:00 - ${t.deadline}`
+              : `${c.route.checkpointTime[index - 1].deadline} - ${t.deadline}`,
+        };
+      });
+      return {
+        ...c,
+        route: {
+          ...c.route,
+          checkpointTime,
+        },
+      };
+    });
   }
 
   async updateAllStatusDriverJoinCampaign(
@@ -438,8 +455,27 @@ export class DriversService {
         c.campaign.duration - 1,
       );
       delete c.campaign.driverJoinCampaign;
+
+      const checkpointTime = c.campaign.route.checkpointTime.map((t, index) => {
+        return {
+          ...t,
+          deadline:
+            index === 0
+              ? `7:00 - ${t.deadline}`
+              : `${c.campaign.route.checkpointTime[index - 1].deadline} - ${
+                  t.deadline
+                }`,
+        };
+      });
       return {
         ...c,
+        campaign: {
+          ...c.campaign,
+          route: {
+            ...c.campaign.route,
+            checkpointTime,
+          },
+        },
       };
     });
   }
@@ -496,6 +532,17 @@ export class DriversService {
     });
 
     return driverJoinCampaign.map((d) => {
+      const checkpointTime = d.campaign.route.checkpointTime.map((t, index) => {
+        return {
+          ...t,
+          deadline:
+            index === 0
+              ? `7:00 - ${t.deadline}`
+              : `${d.campaign.route.checkpointTime[index - 1].deadline} - ${
+                  t.deadline
+                }`,
+        };
+      });
       return {
         ...d,
         driverMoney:
@@ -509,6 +556,10 @@ export class DriversService {
             d.campaign.startRunningDate,
             d.campaign.duration - 1,
           ).toLocaleDateString('vn-VN', OPTIONS_DATE),
+          route: {
+            ...d.campaign.route,
+            checkpointTime,
+          },
         },
       };
     });
@@ -562,25 +613,6 @@ export class DriversService {
       throw new BadRequestException(
         'You are not running this campaign or this campaign is not running yet',
       );
-
-    // const endRunningDate = addDays(
-    //   start,
-    //   -driverJoinCampaign.campaign.duration + 1,
-    // );
-    // endRunningDate.setUTCHours(23, 59, 59, 999);
-    // const campaign = await this.prisma.campaign.findFirst({
-    //   where: {
-    //     id: driverJoinCampaign.campaignId,
-    //     startRunningDate: {
-    //       gte: start,
-    //       lte: endRunningDate,
-    //     },
-    //   },
-    // });
-    // if (!campaign)
-    //   throw new BadRequestException(
-    //     'You are not running this campaign or this campaign is not running yet',
-    //   );
 
     let scanCheckpointsToday = await this.prisma.driverScanQRCode.findMany({
       where: {
@@ -640,10 +672,25 @@ export class DriversService {
         },
       });
     }
-    return scanCheckpointsToday.sort(
+    scanCheckpointsToday.sort(
       (c1, c2) =>
         Number(c1.CheckpointTime.deadline.split(':')[0]) -
         Number(c2.CheckpointTime.deadline.split(':')[0]),
     );
+
+    return scanCheckpointsToday.map((s, index) => {
+      return {
+        ...s,
+        CheckpointTime: {
+          ...s.CheckpointTime,
+          deadline:
+            index === 0
+              ? `7:00 - ${s.CheckpointTime.deadline}`
+              : `${scanCheckpointsToday[index - 1].CheckpointTime.deadline} - ${
+                  s.CheckpointTime.deadline
+                }`,
+        },
+      };
+    });
   }
 }
