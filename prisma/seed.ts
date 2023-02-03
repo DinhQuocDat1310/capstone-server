@@ -67,6 +67,20 @@ async function main() {
       },
     });
 
+    const adminUser = await prisma.user.findFirst({
+      where: {
+        role: 'ADMIN',
+      },
+    });
+
+    await prisma.eWallet.create({
+      data: {
+        userId: adminUser.id,
+        updateDate: new Date(),
+        totalBalance: 500000000,
+      },
+    });
+
     for (let i = 0; i < brands.length; i++) {
       await prisma.eWallet.create({
         data: {

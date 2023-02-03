@@ -63,7 +63,7 @@ export class PaymentService {
           id: result.id,
           amount: +dto.amount,
           createDate: new Date(),
-          name: 'PAYPAL Service',
+          name: 'money transfer from Paypal',
           status: 'PENDING',
           type: 'DEPOSIT',
           eWallet: {
@@ -225,6 +225,7 @@ export class PaymentService {
         },
         include: {
           contractCampaign: true,
+          brand: true,
         },
       });
       if (!campaign) throw new BadRequestException('Not found campaign');
@@ -243,12 +244,33 @@ export class PaymentService {
         data: {
           amount: totalPay,
           createDate: new Date(),
-          name: `Checkout campaign ${campaign.campaignName}`,
+          name: `Transfer to Brandvertise company for campaign: ${campaign.campaignName}`,
           status: 'SUCCESS',
           type: 'WITHDRAW',
           eWallet: {
             connect: {
               id: walletUser.id,
+            },
+          },
+        },
+      });
+      const adminWallet = await this.prisma.eWallet.findFirst({
+        where: {
+          user: {
+            role: 'ADMIN',
+          },
+        },
+      });
+      await this.prisma.transactions.create({
+        data: {
+          amount: totalPay,
+          createDate: new Date(),
+          name: `Receive from ${campaign.brand.brandName} for campaign: ${campaign.campaignName}`,
+          status: 'SUCCESS',
+          type: 'DEPOSIT',
+          eWallet: {
+            connect: {
+              id: adminWallet.id,
             },
           },
         },
@@ -261,6 +283,15 @@ export class PaymentService {
         },
         data: {
           totalBalance: balance,
+        },
+      });
+
+      await this.prisma.eWallet.update({
+        where: {
+          id: adminWallet.id,
+        },
+        data: {
+          totalBalance: Number(adminWallet.totalBalance) + totalPay,
         },
       });
 

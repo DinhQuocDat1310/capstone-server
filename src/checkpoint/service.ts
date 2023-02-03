@@ -37,7 +37,24 @@ export class CheckPointService {
           id: checkpointUni[i].routeId,
         },
         include: {
-          checkpointTime: true,
+          checkpointTime: {
+            include: {
+              checkpoint: {
+                select: {
+                  addressName: true,
+                  reporter: {
+                    select: {
+                      user: {
+                        select: {
+                          email: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       });
       routes.push(route);
