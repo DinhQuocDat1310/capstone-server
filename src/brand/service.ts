@@ -183,19 +183,7 @@ export class BrandsService {
       },
     });
     return {
-      driverScanQRCode: driverScanQRToday.map((d) => {
-        return {
-          ...d,
-          submitTime: new Date(d.submitTime).toLocaleDateString('vn-VN', {
-            year: 'numeric',
-            day: 'numeric',
-            month: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            timeZone: 'Asia/Jakarta',
-          }),
-        };
-      }),
+      driverScanQRCode: driverScanQRToday,
       drivingPhotoReport: drivingPhotoReport,
     };
   }

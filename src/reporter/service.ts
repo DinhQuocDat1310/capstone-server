@@ -354,12 +354,15 @@ export class ReporterService {
       if (hourG > hourQR)
         throw new BadRequestException('This driver is overdue to check');
 
+      const dateTimeScan = new Date(globalDate);
+      dateTimeScan.setUTCHours(hourG, 0, 0, 0);
+
       await this.prisma.driverScanQRCode.update({
         where: {
           id: scanQRId,
         },
         data: {
-          submitTime: globalDate,
+          submitTime: dateTimeScan,
           isCheck: true,
         },
       });
