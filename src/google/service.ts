@@ -25,7 +25,29 @@ export class GoogleService {
 
   async calculateRoute(route: RouteDTO) {
     // calculate distance
+
     try {
+      if (route.checkpoints.length < 1)
+        throw new BadRequestException(
+          'Please check your route, route must be larger than 2 checkpoint',
+        );
+
+      for (let i = 0; i < route.checkpoints.length; i++) {
+        if (i === 0) {
+          if (Number(route.checkpoints[i].time.split(':')[0]) < 7) {
+            throw new BadRequestException(
+              'Please check your time on checkpoint, time start at 7:00',
+            );
+          }
+          continue;
+        }
+        const first = Number(route.checkpoints[i - 1].time.split(':')[0]);
+        const second = Number(route.checkpoints[i].time.split(':')[0]);
+
+        if (second <= first)
+          throw new BadRequestException('Please check your time on checkpoint');
+      }
+
       const checkpoints = [];
       for (let i = 0; i < route.checkpoints.length; i++) {
         const checkpoint = await this.prisma.checkpoint.findFirst({
