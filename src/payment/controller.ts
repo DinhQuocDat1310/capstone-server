@@ -56,9 +56,11 @@ export class PaymentController {
   @ApiOperation({ summary: 'Check Wallet' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
   @ApiCreatedResponse({ description: 'Created' })
+  @UseGuards(JwtAuthGuard, RolesGuard, StatusGuard)
   @Status(StatusUser.VERIFIED)
   @Roles(Role.BRAND)
-  @Post('/check-wallet')
+  @ApiBearerAuth('access-token')
+  @Get('/check-wallet')
   async checkWalletToAcceptContract(@Request() req: RequestUser) {
     return await this.paymentService.checkWalletAcceptContract(req.user.id);
   }
