@@ -65,7 +65,10 @@ export class PaymentController {
     @Request() req: RequestUser,
     @Param('id') campaignId: string,
   ) {
-    return await this.paymentService.checkWalletAcceptContract(req.user.id);
+    return await this.paymentService.checkWalletAcceptContract(
+      req.user.id,
+      campaignId,
+    );
   }
 
   @ApiOperation({ summary: 'View all transaction' })
