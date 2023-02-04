@@ -41,12 +41,34 @@ export class GoogleService {
           }
           continue;
         }
-        43;
         const first = Number(route.checkpoints[i - 1].time.split(':')[0]);
         const second = Number(route.checkpoints[i].time.split(':')[0]);
 
         if (second <= first)
           throw new BadRequestException('Please check your time on checkpoint');
+      }
+
+      const routeExist = await this.prisma.route.findMany({
+        include: {
+          checkpointTime: true,
+        },
+      });
+
+      let isDuplicate = true;
+
+      for (let i = 0; i < routeExist.length; i++) {
+        const checkpointTime = routeExist[i].checkpointTime;
+        for (let j = 0; j < checkpointTime.length; j++) {
+          if (checkpointTime[j].deadline !== route.checkpoints[j].time) {
+            isDuplicate = false;
+          }
+        }
+      }
+
+      if (isDuplicate) {
+        throw new BadRequestException(
+          'This route is already created, please check route again!',
+        );
       }
 
       const checkpoints = [];
