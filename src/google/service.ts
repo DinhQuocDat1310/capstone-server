@@ -56,13 +56,17 @@ export class GoogleService {
 
       let isDuplicate = true;
 
-      for (let i = 0; i < routeExist.length; i++) {
-        const checkpointTime = routeExist[i].checkpointTime;
-        for (let j = 0; j < checkpointTime.length; j++) {
-          if (checkpointTime[j].deadline !== route.checkpoints[j].time) {
-            isDuplicate = false;
+      if (routeExist.length !== 0) {
+        for (let i = 0; i < routeExist.length; i++) {
+          const checkpointTime = routeExist[i].checkpointTime;
+          for (let j = 0; j < checkpointTime.length; j++) {
+            if (checkpointTime[j].deadline !== route.checkpoints[j].time) {
+              isDuplicate = false;
+            }
           }
         }
+      } else {
+        isDuplicate = false;
       }
 
       if (isDuplicate) {
