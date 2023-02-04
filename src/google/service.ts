@@ -41,6 +41,7 @@ export class GoogleService {
           }
           continue;
         }
+        43;
         const first = Number(route.checkpoints[i - 1].time.split(':')[0]);
         const second = Number(route.checkpoints[i].time.split(':')[0]);
 

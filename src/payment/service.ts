@@ -370,8 +370,24 @@ export class PaymentService {
     };
   }
 
-  async checkWalletAcceptContract(userId: string) {
+  async checkWalletAcceptContract(userId: string, campaignId: string) {
     try {
+      const campaignCheckout = await this.prisma.campaign.findFirst({
+        where: {
+          id: campaignId,
+        },
+        include: {
+          contractCampaign: true,
+        },
+      });
+      if (!campaignCheckout)
+        throw new BadRequestException('This campaignId is not exist');
+
+      const totalCampaignCheckout =
+        Number(campaignCheckout.contractCampaign.totalDriverMoney) +
+        Number(campaignCheckout.contractCampaign.totalSystemMoney) +
+        Number(campaignCheckout.contractCampaign.totalWrapMoney);
+
       const campaignQueue = await this.prisma.campaign.findMany({
         where: {
           brand: {
@@ -385,11 +401,8 @@ export class PaymentService {
           contractCampaign: true,
         },
       });
-      const filterCampaign = campaignQueue.filter(
-        (c) => c.contractCampaign !== null,
-      );
 
-      const totalMoney = filterCampaign.reduce(
+      const totalMoney = campaignQueue.reduce(
         (acc, c) =>
           acc +
           (c.contractCampaign.totalDriverMoney +
@@ -403,9 +416,20 @@ export class PaymentService {
           userId,
         },
       });
-
-      if (wallet.totalBalance < totalMoney)
-        throw new BadRequestException('You are not enough money to checkout');
+      const total = totalMoney + totalCampaignCheckout;
+      if (wallet.totalBalance < total) {
+        return {
+          isSuccess: false,
+          campaignQueue: campaignQueue,
+          campaignCheckout: campaignCheckout,
+          message: `Check wallet and accept contract failure!`,
+        };
+      } else {
+        return {
+          isSuccess: true,
+          message: 'Check wallet and accept contract successful!',
+        };
+      }
     } catch (error) {
       throw new BadRequestException(error.message);
     }

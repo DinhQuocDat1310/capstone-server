@@ -60,8 +60,11 @@ export class PaymentController {
   @Status(StatusUser.VERIFIED)
   @Roles(Role.BRAND)
   @ApiBearerAuth('access-token')
-  @Get('/check-wallet')
-  async checkWalletToAcceptContract(@Request() req: RequestUser) {
+  @Get('/check-wallet/:id')
+  async checkWalletToAcceptContract(
+    @Request() req: RequestUser,
+    @Param('id') campaignId: string,
+  ) {
     return await this.paymentService.checkWalletAcceptContract(req.user.id);
   }
 
