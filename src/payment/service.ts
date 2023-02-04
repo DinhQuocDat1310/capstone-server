@@ -405,9 +405,9 @@ export class PaymentService {
       const totalMoney = campaignQueue.reduce(
         (acc, c) =>
           acc +
-          (c.contractCampaign.totalDriverMoney +
-            c.contractCampaign.totalSystemMoney +
-            c.contractCampaign.totalWrapMoney),
+          c.contractCampaign.totalDriverMoney +
+          c.contractCampaign.totalSystemMoney +
+          c.contractCampaign.totalWrapMoney,
         0,
       );
 
@@ -420,8 +420,24 @@ export class PaymentService {
       if (wallet.totalBalance < total) {
         return {
           isSuccess: false,
-          campaignQueue: campaignQueue,
-          campaignCheckout: campaignCheckout,
+          campaignQueue: campaignQueue.map((c) => {
+            const money =
+              c.contractCampaign.totalDriverMoney +
+              c.contractCampaign.totalSystemMoney +
+              c.contractCampaign.totalWrapMoney;
+            return {
+              name: c.campaignName,
+              money,
+            };
+          }),
+          campaignCheckout: {
+            name: campaignCheckout.campaignName,
+            money:
+              campaignCheckout.contractCampaign.totalDriverMoney +
+              campaignCheckout.contractCampaign.totalSystemMoney +
+              campaignCheckout.contractCampaign.totalWrapMoney,
+          },
+          topUp: total - wallet.totalBalance,
           message: `Check wallet and accept contract failure!`,
         };
       } else {
